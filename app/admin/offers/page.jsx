@@ -1,0 +1,187 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { PlusCircle, Tag, Trash2, CheckCircle } from "lucide-react";
+import EmptyState from "@/components/EmptyState";
+import { getOffers, createOffer } from "@/lib/api/admin";
+
+export default function AdminOffersPage() {
+  const [offers, setOffers] = useState([]);
+  const [showForm, setShowForm] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [success, setSuccess] = useState(false);
+
+  const { register, handleSubmit, reset, formState: { errors } } = useForm();
+
+  useEffect(() => {
+    getOffers().then(setOffers);
+  }, []);
+
+  async function onSubmit(data) {
+    setSubmitting(true);
+    await createOffer(data);
+    // TODO: Refresh offers list from API when backend is ready
+    setSubmitting(false);
+    setSuccess(true);
+    reset();
+    setTimeout(() => { setSuccess(false); setShowForm(false); }, 2000);
+  }
+
+  return (
+    <div className="space-y-5 max-w-3xl">
+      <div className="flex items-start justify-between">
+        <div>
+          <h1
+            className="text-2xl font-black text-text-primary"
+            style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
+          >
+            ऑफर / Offers
+          </h1>
+          <p className="text-text-secondary text-sm mt-0.5">Create and manage discount offers for workers</p>
+        </div>
+        <button
+          onClick={() => setShowForm(v => !v)}
+          className="flex items-center gap-2 bg-primary-navy text-white font-bold px-4 py-2.5 rounded-xl hover:bg-blue-900 transition-colors text-sm"
+        >
+          <PlusCircle size={16} />
+          <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>नया Offer</span>
+        </button>
+      </div>
+
+      {/* Create form */}
+      {showForm && (
+        <div className="bg-white rounded-3xl border-2 border-primary-navy p-5">
+          <h2
+            className="font-black text-text-primary mb-4"
+            style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
+          >
+            नया Offer बनाएं / Create New Offer
+          </h2>
+          {success ? (
+            <div className="flex items-center gap-3 py-4 text-primary-green">
+              <CheckCircle size={20} />
+              <p className="font-bold">Offer created! / Offer बनाया गया!</p>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-text-primary mb-1.5">
+                    Offer Title / नाम
+                  </label>
+                  <input
+                    {...register("title", { required: "Title is required" })}
+                    placeholder="e.g. Summer Special"
+                    className="w-full border-2 border-border-light rounded-xl px-4 py-3 text-sm outline-none focus:border-primary-blue transition-colors"
+                  />
+                  {errors.title && <p className="text-red-500 text-xs mt-1">{errors.title.message}</p>}
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-text-primary mb-1.5">
+                    Coupon Code
+                  </label>
+                  <input
+                    {...register("code", { required: "Code is required" })}
+                    placeholder="e.g. SUMMER50"
+                    className="w-full border-2 border-border-light rounded-xl px-4 py-3 text-sm outline-none focus:border-primary-blue transition-colors uppercase"
+                  />
+                  {errors.code && <p className="text-red-500 text-xs mt-1">{errors.code.message}</p>}
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-text-primary mb-1.5">
+                    Discount (₹ या %)
+                  </label>
+                  <input
+                    {...register("discount", { required: "Discount is required" })}
+                    placeholder="e.g. ₹50 or 25%"
+                    className="w-full border-2 border-border-light rounded-xl px-4 py-3 text-sm outline-none focus:border-primary-blue transition-colors"
+                  />
+                  {errors.discount && <p className="text-red-500 text-xs mt-1">{errors.discount.message}</p>}
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-text-primary mb-1.5">
+                    Expiry Date / खत्म होगा
+                  </label>
+                  <input
+                    type="date"
+                    {...register("expiresAt", { required: "Expiry date is required" })}
+                    className="w-full border-2 border-border-light rounded-xl px-4 py-3 text-sm outline-none focus:border-primary-blue transition-colors"
+                  />
+                  {errors.expiresAt && <p className="text-red-500 text-xs mt-1">{errors.expiresAt.message}</p>}
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-text-primary mb-1.5">
+                  Description / विवरण
+                </label>
+                <textarea
+                  {...register("description")}
+                  rows={2}
+                  placeholder="Offer details in Hindi/English..."
+                  className="w-full border-2 border-border-light rounded-xl px-4 py-3 text-sm outline-none focus:border-primary-blue transition-colors resize-none"
+                />
+              </div>
+              <div className="flex gap-3">
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="bg-primary-green text-white font-bold px-6 py-3 rounded-2xl hover:bg-green-700 transition-colors disabled:opacity-60"
+                >
+                  {submitting ? "Creating..." : "Create Offer"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowForm(false)}
+                  className="bg-neutral-bg text-text-secondary font-bold px-6 py-3 rounded-2xl hover:bg-gray-200 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
+      )}
+
+      {/* Offers list */}
+      <div className="bg-white rounded-3xl border-2 border-border-light p-5">
+        <h2
+          className="font-black text-text-primary mb-4 flex items-center gap-2"
+          style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
+        >
+          <Tag size={18} className="text-primary-orange" />
+          Active Offers / सक्रिय ऑफर
+        </h2>
+        {offers.length === 0 ? (
+          <EmptyState
+            icon="default"
+            titleHi="कोई Offer नहीं"
+            titleEn="No offers yet"
+            descHi="ऊपर बटन से नया offer बनाएं।"
+            descEn="Create a new offer using the button above."
+          />
+        ) : (
+          <div className="space-y-3">
+            {offers.map(o => (
+              <div key={o.id} className="flex items-center justify-between p-4 border-2 border-border-light rounded-2xl hover:border-primary-orange transition-colors">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-black text-text-primary">{o.title}</span>
+                    <span className="bg-accent-yellow text-primary-navy text-xs font-black px-2 py-0.5 rounded-full">{o.code}</span>
+                  </div>
+                  <p className="text-text-secondary text-sm mt-0.5">{o.discount} off · Expires {o.expiresAt}</p>
+                </div>
+                <button
+                  className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors"
+                  aria-label="Delete offer"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

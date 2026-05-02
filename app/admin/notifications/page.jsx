@@ -1,0 +1,176 @@
+"use client";
+
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { Send, CheckCircle, Bell } from "lucide-react";
+import { broadcastNotification } from "@/lib/api/admin";
+
+const AUDIENCE_OPTIONS = [
+  { value: "all",     hi: "सभी Users",          en: "All Users"        },
+  { value: "workers", hi: "सभी Workers",         en: "All Workers"      },
+  { value: "clients", hi: "सभी Clients",         en: "All Clients"      },
+  { value: "free",    hi: "खाली Workers (Free)", en: "Free Workers"     },
+  { value: "working", hi: "Busy Workers",        en: "Working Workers"  },
+];
+
+const CHANNEL_OPTIONS = [
+  { value: "sms",       label: "SMS"       },
+  { value: "whatsapp",  label: "WhatsApp"  },
+  { value: "push",      label: "Push Notification" },
+];
+
+export default function AdminNotificationsPage() {
+  const [submitting, setSubmitting] = useState(false);
+  const [success, setSuccess] = useState(false);
+
+  const { register, handleSubmit, reset, watch, formState: { errors } } = useForm({
+    defaultValues: { audience: "all", channels: ["sms"] },
+  });
+
+  async function onSubmit(data) {
+    setSubmitting(true);
+    await broadcastNotification(data);
+    setSubmitting(false);
+    setSuccess(true);
+    reset();
+    setTimeout(() => setSuccess(false), 3000);
+  }
+
+  const message = watch("message") ?? "";
+
+  return (
+    <div className="space-y-5 max-w-2xl">
+      <div>
+        <h1
+          className="text-2xl font-black text-text-primary"
+          style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
+        >
+          सूचनाएँ भेजें / Broadcast Notifications
+        </h1>
+        <p className="text-text-secondary text-sm mt-0.5">Send SMS, WhatsApp, or push notifications to platform users</p>
+      </div>
+
+      <div className="bg-white rounded-3xl border-2 border-border-light p-5">
+        {success ? (
+          <div className="flex flex-col items-center py-8 gap-3">
+            <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center">
+              <CheckCircle size={28} className="text-primary-green" />
+            </div>
+            <p
+              className="font-black text-text-primary text-xl"
+              style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
+            >
+              Notification भेजी गई!
+            </p>
+            <p className="text-text-secondary text-sm">Notification sent successfully.</p>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+
+            {/* Audience */}
+            <div>
+              <label
+                className="block text-sm font-semibold text-text-primary mb-2"
+                style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
+              >
+                Audience / किसे भेजें
+              </label>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                {AUDIENCE_OPTIONS.map(o => {
+                  const checked = watch("audience") === o.value;
+                  return (
+                    <label
+                      key={o.value}
+                      className={`flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition-colors ${
+                        checked ? "border-primary-navy bg-blue-50" : "border-border-light hover:border-blue-200"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        value={o.value}
+                        {...register("audience")}
+                        className="sr-only"
+                      />
+                      <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 ${checked ? "border-primary-navy bg-primary-navy" : "border-gray-300"}`} />
+                      <div>
+                        <p
+                          className="text-xs font-semibold text-text-primary"
+                          style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
+                        >
+                          {o.hi}
+                        </p>
+                        <p className="text-xs text-text-secondary">{o.en}</p>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Channels */}
+            <div>
+              <label className="block text-sm font-semibold text-text-primary mb-2">
+                Channel / माध्यम
+              </label>
+              <div className="flex flex-wrap gap-3">
+                {CHANNEL_OPTIONS.map(c => (
+                  <label key={c.value} className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      value={c.value}
+                      {...register("channels")}
+                      className="w-4 h-4 accent-primary-navy"
+                    />
+                    <span className="text-sm text-text-primary">{c.label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Message */}
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-sm font-semibold text-text-primary">
+                  <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>संदेश</span>
+                  {" / Message"}
+                </label>
+                <span className="text-xs text-text-secondary">{message.length}/160</span>
+              </div>
+              <textarea
+                {...register("message", {
+                  required: "Message is required",
+                  maxLength: { value: 160, message: "Max 160 characters" },
+                })}
+                rows={4}
+                placeholder="यहाँ अपना message लिखें / Write your message here..."
+                className="w-full border-2 border-border-light rounded-xl px-4 py-3 text-sm outline-none focus:border-primary-blue transition-colors resize-none"
+                style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
+              />
+              {errors.message && <p className="text-red-500 text-xs mt-1">{errors.message.message}</p>}
+            </div>
+
+            <button
+              type="submit"
+              disabled={submitting}
+              className="flex items-center gap-2 bg-primary-orange text-white font-black px-8 py-3.5 rounded-2xl hover:bg-orange-600 transition-colors disabled:opacity-60 w-full justify-center"
+            >
+              <Send size={18} />
+              {submitting ? "Sending..." : "Send Notification / भेजें"}
+            </button>
+          </form>
+        )}
+      </div>
+
+      {/* Info box */}
+      <div className="flex items-start gap-3 bg-blue-50 border-2 border-blue-200 rounded-2xl px-4 py-3">
+        <Bell size={18} className="text-primary-blue flex-shrink-0 mt-0.5" />
+        <p className="text-primary-blue text-sm">
+          <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>
+            Backend ready होने के बाद actual SMS/WhatsApp gateway से messages जाएंगे।
+          </span>
+          {" / Messages will be sent via SMS/WhatsApp gateway once the backend is connected."}
+        </p>
+      </div>
+    </div>
+  );
+}

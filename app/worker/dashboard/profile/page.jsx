@@ -1,0 +1,296 @@
+"use client";
+
+import { useState } from "react";
+import { CheckCircle, Upload, X, User } from "lucide-react";
+import { useForm } from "react-hook-form";
+import CategorySelect from "@/components/CategorySelect";
+import WorkerStatusBadge from "@/components/WorkerStatusBadge";
+import { useWorkerStatus } from "@/lib/context/WorkerStatusContext";
+import { updateWorker } from "@/lib/api/workers";
+
+export default function WorkerProfileEditPage() {
+  const { status, updateStatus } = useWorkerStatus();
+  const [category, setCategory] = useState("");
+  const [subcategory, setSubcategory] = useState("");
+  const [gender, setGender] = useState("");
+  const [serviceType, setServiceType] = useState("");
+  const [profilePhoto, setProfilePhoto] = useState(null);
+  const [saved, setSaved] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const { register, handleSubmit, formState: { errors } } = useForm();
+
+  function handlePhotoUpload(e) {
+    const file = e.target.files?.[0];
+    if (file) setProfilePhoto(URL.createObjectURL(file));
+  }
+
+  async function onSubmit(data) {
+    setLoading(true);
+    // TODO: Persist via API when backend is ready
+    await updateWorker(null, { ...data, category, subcategory, gender, serviceType });
+    setLoading(false);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 3000);
+  }
+
+  return (
+    <div className="space-y-5">
+      {/* Header */}
+      <div>
+        <h2
+          className="text-xl font-black text-text-primary"
+          style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
+        >
+          प्रोफ़ाइल संपादित करें
+        </h2>
+        <p className="text-text-secondary text-sm mt-0.5">Edit Profile</p>
+      </div>
+
+      {saved && (
+        <div className="flex items-center gap-3 bg-green-50 border-2 border-primary-green rounded-2xl px-4 py-3">
+          <CheckCircle size={20} className="text-primary-green flex-shrink-0" />
+          <p
+            className="text-primary-green font-semibold"
+            style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
+          >
+            Profile save हो गई! / Profile saved!
+          </p>
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+
+        {/* Profile photo */}
+        <div className="bg-white rounded-3xl border-2 border-border-light p-5">
+          <h3
+            className="font-bold text-text-primary mb-3"
+            style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
+          >
+            प्रोफाइल फ़ोटो / Profile Photo
+          </h3>
+          <div className="flex items-center gap-4">
+            <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center border-2 border-border-light flex-shrink-0">
+              {profilePhoto ? (
+                <img src={profilePhoto} alt="Profile preview" className="w-full h-full object-cover" />
+              ) : (
+                <User size={36} className="text-gray-400" />
+              )}
+            </div>
+            <label className="cursor-pointer flex items-center gap-2 border-2 border-dashed border-border-light rounded-xl px-4 py-3 hover:border-primary-orange transition-colors">
+              <Upload size={18} className="text-text-secondary" />
+              <span className="text-text-secondary text-sm">
+                <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>फ़ोटो बदलें</span>
+                {" / Change"}
+              </span>
+              <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} aria-label="Upload profile photo" />
+            </label>
+            {profilePhoto && (
+              <button type="button" onClick={() => setProfilePhoto(null)} className="text-red-500 p-1" aria-label="Remove photo">
+                <X size={18} />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Basic info */}
+        <div className="bg-white rounded-3xl border-2 border-border-light p-5 space-y-4">
+          <h3
+            className="font-bold text-text-primary"
+            style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
+          >
+            बेसिक जानकारी / Basic Info
+          </h3>
+
+          <FieldWrapper labelHi="नाम" labelEn="Name *">
+            <input
+              {...register("name", { required: "नाम जरूरी है" })}
+              placeholder="पूरा नाम / Full Name"
+              className="w-full px-4 py-4 text-base border-2 border-border-light rounded-xl focus:outline-none focus:border-primary-orange"
+            />
+            {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>}
+          </FieldWrapper>
+
+          <div className="grid grid-cols-2 gap-3">
+            <FieldWrapper labelHi="शहर" labelEn="City">
+              <input
+                {...register("city")}
+                placeholder="City"
+                className="w-full px-4 py-3 text-sm border-2 border-border-light rounded-xl focus:outline-none focus:border-primary-orange"
+              />
+            </FieldWrapper>
+            <FieldWrapper labelHi="एरिया" labelEn="Area">
+              <input
+                {...register("area")}
+                placeholder="Mohalla / Area"
+                className="w-full px-4 py-3 text-sm border-2 border-border-light rounded-xl focus:outline-none focus:border-primary-orange"
+              />
+            </FieldWrapper>
+          </div>
+
+          <FieldWrapper labelHi="अनुभव (साल)" labelEn="Experience (years)">
+            <input
+              {...register("experience", { min: 0 })}
+              type="number"
+              min={0}
+              placeholder="0"
+              className="w-full px-4 py-4 text-base border-2 border-border-light rounded-xl focus:outline-none focus:border-primary-orange"
+            />
+          </FieldWrapper>
+        </div>
+
+        {/* Profession */}
+        <div className="bg-white rounded-3xl border-2 border-border-light p-5 space-y-4">
+          <h3
+            className="font-bold text-text-primary"
+            style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
+          >
+            काम की जानकारी / Profession
+          </h3>
+
+          <CategorySelect
+            value={category}
+            onChange={setCategory}
+            level="main"
+            label="Category"
+            labelEn="Main Category"
+          />
+          {category && category !== "__other__" && (
+            <CategorySelect
+              value={subcategory}
+              onChange={setSubcategory}
+              level="sub"
+              parentSlug={category}
+              label="Subcategory"
+              labelEn="Specific Skill"
+            />
+          )}
+        </div>
+
+        {/* Gender */}
+        <div className="bg-white rounded-3xl border-2 border-border-light p-5 space-y-3">
+          <h3
+            className="font-bold text-text-primary"
+            style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
+          >
+            लिंग / Gender
+          </h3>
+          <div className="flex gap-3">
+            {[{ value: "male", hi: "पुरुष", en: "Male" }, { value: "female", hi: "महिला", en: "Female" }].map(g => (
+              <button
+                key={g.value}
+                type="button"
+                onClick={() => setGender(g.value)}
+                className={`flex-1 py-3 rounded-xl border-2 font-semibold transition-colors ${
+                  gender === g.value
+                    ? "bg-primary-blue text-white border-primary-blue"
+                    : "border-border-light text-text-secondary hover:border-primary-blue"
+                }`}
+                aria-label={g.en}
+              >
+                <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>{g.hi}</span>
+                <span className="font-normal text-sm"> / {g.en}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Service Type */}
+        <div className="bg-white rounded-3xl border-2 border-border-light p-5 space-y-3">
+          <h3
+            className="font-bold text-text-primary"
+            style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
+          >
+            सेवा का प्रकार / Service Type
+          </h3>
+          <div className="space-y-2">
+            {[
+              { value: "home_visit", hi: "घर पर आकर", en: "Home Visit" },
+              { value: "shop_office", hi: "दुकान / ऑफिस पर", en: "Shop or Office" },
+              { value: "both", hi: "दोनों", en: "Both" },
+            ].map(st => (
+              <button
+                key={st.value}
+                type="button"
+                onClick={() => setServiceType(st.value)}
+                className={`w-full py-3 px-4 rounded-xl border-2 font-semibold text-left transition-colors ${
+                  serviceType === st.value
+                    ? "bg-primary-green text-white border-primary-green"
+                    : "border-border-light text-text-secondary hover:border-primary-green"
+                }`}
+                aria-label={st.en}
+              >
+                <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>{st.hi}</span>
+                <span className="font-normal"> / {st.en}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Work Status toggle */}
+        <div className="bg-white rounded-3xl border-2 border-border-light p-5 space-y-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3
+                className="font-bold text-text-primary"
+                style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
+              >
+                काम की स्थिति / Work Status
+              </h3>
+              <p className="text-text-secondary text-xs mt-0.5">
+                Current: <WorkerStatusBadge status={status} size="sm" />
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => updateStatus("free")}
+              className={`flex-1 py-3 rounded-xl border-2 font-semibold transition-colors ${
+                status === "free" ? "bg-primary-green text-white border-primary-green" : "border-border-light text-text-secondary"
+              }`}
+            >
+              🟢 <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>खाली हूँ / Free</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => updateStatus("working")}
+              className={`flex-1 py-3 rounded-xl border-2 font-semibold transition-colors ${
+                status === "working" ? "bg-working-orange text-white border-working-orange" : "border-border-light text-text-secondary"
+              }`}
+            >
+              🔴 <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>व्यस्त / Working</span>
+            </button>
+          </div>
+          {/* TODO: Sync status to backend via API when ready */}
+        </div>
+
+        {/* Save button */}
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full bg-primary-blue text-white font-black text-xl py-5 rounded-2xl hover:bg-blue-700 transition-colors disabled:opacity-50 min-h-16"
+          aria-label="Save profile"
+        >
+          {loading ? "Save हो रहा है..." : (
+            <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>
+              Profile Save करें / Save Profile
+            </span>
+          )}
+        </button>
+      </form>
+    </div>
+  );
+}
+
+function FieldWrapper({ labelHi, labelEn, children }) {
+  return (
+    <div>
+      <label className="block mb-1.5 font-semibold text-text-primary">
+        <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>{labelHi}</span>
+        {labelEn && <span className="text-text-secondary font-normal"> / {labelEn}</span>}
+      </label>
+      {children}
+    </div>
+  );
+}

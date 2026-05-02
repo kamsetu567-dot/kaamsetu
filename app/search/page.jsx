@@ -1,0 +1,164 @@
+"use client";
+
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import HeroSearch from "@/components/HeroSearch";
+import FilterPanel from "@/components/FilterPanel";
+import EmptyState from "@/components/EmptyState";
+import LoadingSkeleton from "@/components/LoadingSkeleton";
+import { search, saveSearchRequest } from "@/lib/api/search";
+import { getWorkers } from "@/lib/api/workers";
+import { useFilters } from "@/lib/context/FilterContext";
+import { X } from "lucide-react";
+
+function SaveRequestModal({ query, onClose }) {
+  const [name, setName] = useState("");
+  const [mobile, setMobile] = useState("");
+  const [saved, setSaved] = useState(false);
+
+  async function handleSave() {
+    await saveSearchRequest(query, { name, mobile });
+    setSaved(true);
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl">
+        {saved ? (
+          <div className="text-center">
+            <p className="text-4xl mb-3">✅</p>
+            <p className="text-xl font-black text-text-primary" style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>
+              Request Save हो गई!
+            </p>
+            <p className="text-text-secondary mt-1">हम जल्द call करेंगे / We will call you soon.</p>
+            <button onClick={onClose} className="mt-4 bg-primary-orange text-white font-bold py-3 px-6 rounded-xl w-full">Close</button>
+          </div>
+        ) : (
+          <>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="font-black text-lg" style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>Request Save करें</h3>
+              <button onClick={onClose} aria-label="Close modal"><X size={20} /></button>
+            </div>
+            <p className="text-text-secondary text-sm mb-4">
+              <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>
+                हम आपको जल्द call करेंगे / We will call you soon!
+              </span>
+            </p>
+            <div className="space-y-3">
+              <input value={name} onChange={e => setName(e.target.value)} placeholder="आपका नाम / Your Name" className="w-full px-4 py-3 border-2 border-border-light rounded-xl focus:outline-none focus:border-primary-orange" />
+              <div className="flex items-center border-2 border-border-light rounded-xl overflow-hidden">
+                <span className="px-3 py-3 bg-gray-50 border-r border-border-light text-text-secondary font-semibold">+91</span>
+                <input value={mobile} onChange={e => setMobile(e.target.value.replace(/\D/g, "").slice(0, 10))} placeholder="Mobile Number" inputMode="numeric" className="flex-1 px-3 py-3 focus:outline-none" />
+              </div>
+              <button onClick={handleSave} disabled={!name || mobile.length !== 10} className="w-full bg-primary-orange text-white font-black py-3 rounded-xl hover:bg-orange-600 transition-colors disabled:opacity-50">
+                <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>Save करें / Save Request</span>
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function SearchResults() {
+  const searchParams = useSearchParams();
+  const query = searchParams.get("q") || "";
+  const { filters } = useFilters();
+  const [workers, setWorkers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("workers");
+  const [showModal, setShowModal] = useState(false);
+
+  useEffect(() => {
+    setLoading(true);
+    Promise.all([search(query, filters), getWorkers({ ...filters, query })])
+      .then(([, w]) => setWorkers(w))
+      .finally(() => setLoading(false));
+  }, [query, filters]);
+
+  return (
+    <>
+      {/* Search bar */}
+      <div className="bg-primary-navy py-6 px-4">
+        <div className="max-w-4xl mx-auto">
+          <HeroSearch initialQuery={query} />
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 py-8 w-full">
+        {/* Tabs */}
+        <div className="flex gap-3 mb-6 border-b border-border-light">
+          {[
+            { key: "workers", hi: "वर्कर", en: "Workers" },
+            { key: "categories", hi: "कैटेगरी", en: "Categories" },
+          ].map(tab => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`pb-3 px-1 font-bold text-lg border-b-2 transition-colors ${
+                activeTab === tab.key ? "border-primary-orange text-primary-orange" : "border-transparent text-text-secondary"
+              }`}
+              aria-label={tab.en}
+            >
+              <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>{tab.hi}</span>
+              <span> / {tab.en}</span>
+            </button>
+          ))}
+        </div>
+
+        <div className="flex gap-6">
+          <FilterPanel className="w-64" />
+          <div className="flex-1 min-w-0">
+            {query && (
+              <p className="text-text-secondary mb-4">
+                <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>
+                  "{query}" के लिए results
+                </span>
+                <span className="text-sm"> — Results for "{query}"</span>
+              </p>
+            )}
+            {loading ? (
+              <LoadingSkeleton type="card" count={3} />
+            ) : workers.length === 0 ? (
+              <EmptyState
+                icon="search"
+                titleHi="कोई वर्कर नहीं मिला"
+                titleEn="No worker found"
+                descHi="अपनी request save करें — हम आपको जल्द call करेंगे!"
+                descEn="Save your request — we will call you soon!"
+                action={{
+                  labelHi: "Request Save करें",
+                  labelEn: "Save My Request",
+                  onClick: () => setShowModal(true),
+                }}
+              />
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {workers.map(w => <div key={w.id}>{w.name}</div>)}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {showModal && <SaveRequestModal query={query} onClose={() => setShowModal(false)} />}
+    </>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <>
+      <Header />
+      <main className="flex-1">
+        <Suspense fallback={<div className="p-8 text-center">Loading...</div>}>
+          <SearchResults />
+        </Suspense>
+      </main>
+      <Footer />
+    </>
+  );
+}
