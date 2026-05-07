@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useState, useEffect, useCallback, Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import HeroSearch from "@/components/HeroSearch";
+import WorkerCard from "@/components/WorkerCard";
 import FilterPanel from "@/components/FilterPanel";
 import EmptyState from "@/components/EmptyState";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
@@ -66,11 +67,20 @@ function SaveRequestModal({ query, onClose }) {
 function SearchResults() {
   const searchParams = useSearchParams();
   const query = searchParams.get("q") || "";
+  const router = useRouter();
   const { filters } = useFilters();
   const [workers, setWorkers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("workers");
   const [showModal, setShowModal] = useState(false);
+
+  // Update URL in real-time while typing (replace, not push, to avoid history flood)
+  const handleQueryChange = useCallback((q) => {
+    const trimmed = q.trim();
+    if (trimmed) {
+      router.replace(`/search?q=${encodeURIComponent(trimmed)}`, { scroll: false });
+    }
+  }, [router]);
 
   useEffect(() => {
     setLoading(true);
@@ -84,7 +94,7 @@ function SearchResults() {
       {/* Search bar */}
       <div className="bg-primary-navy py-6 px-4">
         <div className="max-w-4xl mx-auto">
-          <HeroSearch initialQuery={query} />
+          <HeroSearch initialQuery={query} onQueryChange={handleQueryChange} />
         </div>
       </div>
 
@@ -113,11 +123,16 @@ function SearchResults() {
           <FilterPanel className="w-64" />
           <div className="flex-1 min-w-0">
             {query && (
-              <p className="text-text-secondary mb-4">
-                <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>
-                  "{query}" के लिए results
+              <p className="text-text-secondary mb-4 break-words">
+                <span
+                  className="font-semibold text-text-primary"
+                  style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
+                >
+                  &ldquo;{query}&rdquo;
                 </span>
-                <span className="text-sm"> — Results for "{query}"</span>
+                <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}> के लिए results</span>
+                <br className="sm:hidden" />
+                <span className="text-xs block mt-0.5">Results for &ldquo;{query}&rdquo;</span>
               </p>
             )}
             {loading ? (
@@ -137,7 +152,7 @@ function SearchResults() {
               />
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {workers.map(w => <div key={w.id}>{w.name}</div>)}
+                {workers.map(w => <WorkerCard key={w.id} worker={w} />)}
               </div>
             )}
           </div>

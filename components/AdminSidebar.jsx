@@ -4,8 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, Users, UserCheck, Briefcase, CreditCard,
-  Tag, Bell, BarChart3, Settings, Shield, Megaphone, Search, Wrench,
+  Tag, Bell, BarChart3, Settings, Shield, Megaphone, Search, Wrench, LogOut,
 } from "lucide-react";
+import { adminLogout } from "@/lib/utils/adminAuth";
 
 const NAV_ITEMS = [
   { href: "/admin", hi: "डैशबोर्ड", en: "Dashboard", icon: LayoutDashboard, exact: true },
@@ -76,11 +77,18 @@ export default function AdminSidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="p-4 border-t border-white/10">
+      <div className="p-4 border-t border-white/10 space-y-2">
         <Link href="/" className="text-white/50 hover:text-white text-xs flex items-center gap-2 transition-colors">
           <Megaphone size={14} />
           <span>Back to Site / साइट पर जाएं</span>
         </Link>
+        <button
+          onClick={adminLogout}
+          className="w-full flex items-center gap-2 text-red-400 hover:text-red-300 hover:bg-red-900/20 px-2 py-2 rounded-xl transition-colors text-xs"
+        >
+          <LogOut size={14} />
+          <span>Logout / लॉगआउट</span>
+        </button>
       </div>
     </aside>
   );

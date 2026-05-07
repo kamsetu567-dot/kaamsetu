@@ -9,6 +9,7 @@ import {
 import WorkerStatusBadge from "@/components/WorkerStatusBadge";
 import RatingStars from "@/components/RatingStars";
 import { useWorkerStatus } from "@/lib/context/WorkerStatusContext";
+import { useToast } from "@/components/Toast";
 
 // Format relative time from a Date
 function formatTime(date) {
@@ -19,10 +20,28 @@ function formatTime(date) {
   return date.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
 }
 
-// Work Status card — uses WorkerStatusContext (in-memory, no persistence)
 function WorkStatusCard() {
-  const { status, lastUpdated, startWork, endWork } = useWorkerStatus();
+  const { status, lastUpdated, startWork, endWork, isUpdating } = useWorkerStatus();
+  const toast = useToast();
   const isFree = status === "free";
+
+  async function handleStartWork() {
+    try {
+      await startWork();
+      toast.success("काम शुरू हो गया! / Work started!");
+    } catch {
+      toast.error("Status update नहीं हुआ। फिर try करें / Status update failed. Please try again");
+    }
+  }
+
+  async function handleEndWork() {
+    try {
+      await endWork();
+      toast.success("काम खत्म हो गया! / Work ended!");
+    } catch {
+      toast.error("Status update नहीं हुआ। फिर try करें / Status update failed. Please try again");
+    }
+  }
 
   return (
     <div className={`rounded-3xl border-2 p-6 ${isFree ? "bg-green-50 border-green-200" : "bg-orange-50 border-orange-200"}`}>
@@ -54,8 +73,8 @@ function WorkStatusCard() {
       {/* Action buttons */}
       <div className="grid grid-cols-2 gap-3 mb-4">
         <button
-          onClick={startWork}
-          disabled={!isFree}
+          onClick={handleStartWork}
+          disabled={!isFree || isUpdating}
           className="flex items-center justify-center gap-2 bg-primary-green text-white font-bold py-4 rounded-2xl hover:bg-green-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed min-h-14"
           aria-label="Start work"
         >
@@ -71,8 +90,8 @@ function WorkStatusCard() {
           </div>
         </button>
         <button
-          onClick={endWork}
-          disabled={isFree}
+          onClick={handleEndWork}
+          disabled={isFree || isUpdating}
           className="flex items-center justify-center gap-2 bg-red-500 text-white font-bold py-4 rounded-2xl hover:bg-red-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed min-h-14"
           aria-label="End work"
         >
@@ -95,12 +114,11 @@ function WorkStatusCard() {
         {" / Last updated: "}
         <span className="font-semibold text-text-primary">{formatTime(lastUpdated)}</span>
       </p>
-      {/* TODO: Sync status to backend via API when ready */}
     </div>
   );
 }
 
-// Profile summary card (static placeholder — data from API when backend ready)
+// Profile summary card
 function ProfileCard() {
   // TODO: Persist via API when backend is ready
   return (

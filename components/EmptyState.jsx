@@ -19,7 +19,7 @@ export default function EmptyState({
 }) {
   const Icon = ICONS[icon] || ICONS.default;
   return (
-    <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
+    <div className="flex flex-col items-center justify-center py-12 px-6 text-center w-full">
       <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mb-6">
         <Icon size={40} className="text-gray-400" />
       </div>
@@ -42,11 +42,11 @@ export default function EmptyState({
       {action && (
         <button
           onClick={action.onClick}
-          className="mt-6 bg-primary-orange text-white font-bold text-lg px-6 py-3 rounded-xl hover:bg-orange-600 transition-colors min-h-14"
+          className="mt-6 bg-primary-orange text-white font-bold px-8 py-4 rounded-xl hover:bg-orange-600 transition-colors w-full max-w-xs"
           aria-label={action.labelEn}
         >
-          <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>{action.labelHi}</span>
-          <span className="text-sm font-normal block">{action.labelEn}</span>
+          <span className="block text-base" style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>{action.labelHi}</span>
+          <span className="block text-sm font-normal mt-0.5">{action.labelEn}</span>
         </button>
       )}
     </div>

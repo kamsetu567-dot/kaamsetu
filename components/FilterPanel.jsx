@@ -193,13 +193,19 @@ export default function FilterPanel({ className = "" }) {
           <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>Filters</span>
         </button>
         {open && (
-          <div className="mt-3 bg-white rounded-2xl border-2 border-border-light p-5">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="font-bold text-lg">Filters</h3>
-              <button onClick={() => setOpen(false)} aria-label="Close filters"><X size={20} /></button>
+          <>
+            <div
+              className="fixed inset-0 bg-black/50 z-40"
+              onClick={() => setOpen(false)}
+            />
+            <div className="fixed bottom-0 left-0 right-0 w-full bg-white rounded-t-2xl z-50 max-h-[85vh] overflow-y-auto p-5">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="font-bold text-lg">Filters</h3>
+                <button onClick={() => setOpen(false)} aria-label="Close filters"><X size={20} /></button>
+              </div>
+              {panel}
             </div>
-            {panel}
-          </div>
+          </>
         )}
       </div>
       {/* Desktop sidebar */}

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Hammer, Briefcase, Users, Store, ArrowRight, Star } from "lucide-react";
+import { Hammer, Briefcase, Users, Store, ArrowRight } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import HeroSearch from "@/components/HeroSearch";
@@ -26,21 +26,12 @@ export default function HomePage() {
       <main className="flex-1">
         {/* Hero Section */}
         <section
-          className="relative overflow-hidden py-16 md:py-24 px-4"
+          className="relative py-16 md:py-24 px-4"
           style={{
             background: "linear-gradient(135deg, #1E3A8A 0%, #1e40af 30%, #7c3aed 60%, #F97316 100%)",
           }}
         >
           <div className="relative max-w-4xl mx-auto text-center">
-            {/* Trust badge */}
-            <div className="inline-flex items-center gap-2 bg-white/20 text-white text-sm px-4 py-2 rounded-full mb-6 backdrop-blur-sm">
-              <Star size={14} className="text-accent-yellow fill-accent-yellow" />
-              <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>
-                5–30 सेकंड में वर्कर मिलेगा!
-              </span>
-              <span className="opacity-70">/ Worker in 5–30 seconds!</span>
-            </div>
-
             {/* Main headline */}
             <h1
               className="text-4xl md:text-6xl font-black text-white leading-tight mb-3"
@@ -67,24 +58,11 @@ export default function HomePage() {
             {/* Search bar */}
             <HeroSearch />
 
-            {/* Quick category pills */}
-            <div className="flex flex-wrap justify-center gap-2 mt-6">
-              {["मिस्त्री", "हलवाई", "DJ", "ट्यूटर", "Painter", "Plumber"].map(tag => (
-                <Link
-                  key={tag}
-                  href={`/search?q=${encodeURIComponent(tag)}`}
-                  className="bg-white/20 hover:bg-white/30 text-white text-sm px-4 py-2 rounded-full transition-colors backdrop-blur-sm border border-white/20"
-                  style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
-                >
-                  {tag}
-                </Link>
-              ))}
-            </div>
           </div>
         </section>
 
         {/* Four Action Cards */}
-        <section className="max-w-7xl mx-auto px-4 -mt-6 relative z-10">
+        <section className="max-w-7xl mx-auto px-4 -mt-6 relative z-10 pb-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {ACTION_CARDS.map(card => (
               <ActionCard key={card.hindi} {...card} />

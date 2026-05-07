@@ -7,7 +7,8 @@ import {
 } from "lucide-react";
 import EmptyState from "@/components/EmptyState";
 import { TableRowSkeleton } from "@/components/LoadingSkeleton";
-import { getAllWorkers, approveWorker, rejectWorker, activateWorker, deactivateWorker, blockUser } from "@/lib/api/admin";
+import { getAllWorkers, approveWorker, rejectWorker, activateWorker, deactivateWorker, blockUser, boostWorker, extendWorkerSubscription } from "@/lib/api/admin";
+import { useToast } from "@/components/Toast";
 
 const STATUS_BADGE = {
   pending:   "bg-yellow-100 text-yellow-700 border-yellow-200",
@@ -21,7 +22,7 @@ const WORK_BADGE = {
   working: "bg-orange-50 text-working-orange",
 };
 
-function ActionBtn({ label, onClick, color = "blue", icon: Icon }) {
+function ActionBtn({ label, onClick, color = "blue", icon: Icon, disabled = false }) {
   const cls = {
     green:  "bg-green-100 text-green-700 hover:bg-green-200",
     red:    "bg-red-100 text-red-600 hover:bg-red-200",
@@ -32,7 +33,8 @@ function ActionBtn({ label, onClick, color = "blue", icon: Icon }) {
   return (
     <button
       onClick={onClick}
-      className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-lg transition-colors ${cls[color]}`}
+      disabled={disabled}
+      className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${cls[color]}`}
       aria-label={label}
     >
       {Icon && <Icon size={12} />}
@@ -42,24 +44,78 @@ function ActionBtn({ label, onClick, color = "blue", icon: Icon }) {
 }
 
 export default function AdminWorkersPage() {
+  const toast = useToast();
   const [workers, setWorkers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [actionInProgress, setActionInProgress] = useState(null);
 
   useEffect(() => {
     getAllWorkers().then(data => { setWorkers(data); setLoading(false); });
   }, []);
 
+  async function refreshWorkers() {
+    const data = await getAllWorkers();
+    setWorkers(data);
+  }
+
   async function handleAction(action, id) {
     const fns = { approve: approveWorker, reject: rejectWorker, activate: activateWorker, deactivate: deactivateWorker };
-    if (fns[action]) await fns[action](id);
-    // TODO: Refresh worker list from API after action
+    if (!fns[action] || actionInProgress) return;
+    setActionInProgress(`${action}-${id}`);
+    try {
+      await fns[action](id);
+      await refreshWorkers();
+      const labels = { approve: "Approved", reject: "Rejected", activate: "Activated", deactivate: "Deactivated" };
+      toast.success(`Worker ${labels[action] || action}!`);
+    } catch (err) {
+      toast.error(err?.message || "Action failed. Please try again.");
+    } finally {
+      setActionInProgress(null);
+    }
   }
 
   async function handleBlock(id) {
-    await blockUser(id, "worker");
-    // TODO: Refresh worker list from API after block
+    if (actionInProgress) return;
+    setActionInProgress(`block-${id}`);
+    try {
+      await blockUser(id, "worker");
+      await refreshWorkers();
+      toast.success("Worker blocked.");
+    } catch (err) {
+      toast.error(err?.message || "Block failed. Please try again.");
+    } finally {
+      setActionInProgress(null);
+    }
+  }
+
+  async function handleBoost(id) {
+    if (actionInProgress) return;
+    setActionInProgress(`boost-${id}`);
+    try {
+      await boostWorker(id);
+      await refreshWorkers();
+      toast.success("Worker boosted for 7 days! ⭐");
+    } catch (err) {
+      toast.error(err?.message || "Boost failed. Please try again.");
+    } finally {
+      setActionInProgress(null);
+    }
+  }
+
+  async function handleExtend(id) {
+    if (actionInProgress) return;
+    setActionInProgress(`extend-${id}`);
+    try {
+      await extendWorkerSubscription(id);
+      await refreshWorkers();
+      toast.success("Subscription extended by 30 days.");
+    } catch (err) {
+      toast.error(err?.message || "Extension failed. Please try again.");
+    } finally {
+      setActionInProgress(null);
+    }
   }
 
   const filtered = workers.filter(w => {
@@ -165,19 +221,19 @@ export default function AdminWorkersPage() {
                       <div className="flex flex-wrap gap-1">
                         {w.status === "pending" && (
                           <>
-                            <ActionBtn label="Approve" icon={CheckCircle} color="green" onClick={() => handleAction("approve", w.id)} />
-                            <ActionBtn label="Reject"  icon={XCircle}     color="red"   onClick={() => handleAction("reject",  w.id)} />
+                            <ActionBtn label="Approve" icon={CheckCircle} color="green" onClick={() => handleAction("approve", w.id)} disabled={!!actionInProgress} />
+                            <ActionBtn label="Reject"  icon={XCircle}     color="red"   onClick={() => handleAction("reject",  w.id)} disabled={!!actionInProgress} />
                           </>
                         )}
                         {w.status === "approved" && (
-                          <ActionBtn label="Deactivate" icon={ShieldOff}   color="yellow" onClick={() => handleAction("deactivate", w.id)} />
+                          <ActionBtn label="Deactivate" icon={ShieldOff} color="yellow" onClick={() => handleAction("deactivate", w.id)} disabled={!!actionInProgress} />
                         )}
                         {(w.status === "rejected" || w.status === "deactivated") && (
-                          <ActionBtn label="Activate" icon={ShieldCheck} color="green" onClick={() => handleAction("activate", w.id)} />
+                          <ActionBtn label="Activate" icon={ShieldCheck} color="green" onClick={() => handleAction("activate", w.id)} disabled={!!actionInProgress} />
                         )}
-                        <ActionBtn label="Block" icon={Ban} color="gray" onClick={() => handleBlock(w.id)} />
-                        <ActionBtn label="Boost ⭐" icon={Star} color="blue" onClick={() => {}} />
-                        <ActionBtn label="Extend" icon={CalendarCheck} color="blue" onClick={() => {}} />
+                        <ActionBtn label="Block"   icon={Ban}         color="gray" onClick={() => handleBlock(w.id)}  disabled={!!actionInProgress} />
+                        <ActionBtn label="Boost ⭐" icon={Star}        color="blue" onClick={() => handleBoost(w.id)}  disabled={!!actionInProgress} />
+                        <ActionBtn label="Extend"  icon={CalendarCheck} color="blue" onClick={() => handleExtend(w.id)} disabled={!!actionInProgress} />
                       </div>
                     </td>
                   </tr>

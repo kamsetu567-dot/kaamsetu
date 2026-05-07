@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ArrowRight, Search } from "lucide-react";
+import { ArrowRight, Search } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import EmptyState from "@/components/EmptyState";
@@ -10,8 +10,9 @@ export function generateStaticParams() {
   return CATEGORIES.map(c => ({ slug: c.slug }));
 }
 
-export function generateMetadata({ params }) {
-  const cat = getCategoryBySlug(params.slug);
+export async function generateMetadata({ params }) {
+  const { slug } = await params;
+  const cat = getCategoryBySlug(slug);
   if (!cat) return { title: "Category Not Found" };
   return {
     title: `${cat.nameEn} — ${cat.nameHi} | KaamSetu`,
@@ -19,34 +20,39 @@ export function generateMetadata({ params }) {
   };
 }
 
-export default function CategoryPage({ params }) {
-  const category = getCategoryBySlug(params.slug);
+export default async function CategoryPage({ params }) {
+  const { slug } = await params;
+  const category = getCategoryBySlug(slug);
   if (!category) notFound();
 
   return (
     <>
       <Header />
-      <main className="flex-1 max-w-7xl mx-auto px-4 py-8 w-full">
-        {/* Breadcrumb */}
-        <nav className="flex items-center gap-2 text-sm text-text-secondary mb-6">
-          <Link href="/" className="hover:text-primary-blue">Home</Link>
-          <span>/</span>
-          <Link href="/categories" className="hover:text-primary-blue">All Categories</Link>
-          <span>/</span>
-          <span className="text-text-primary font-semibold">{category.nameEn}</span>
-        </nav>
-
-        {/* Category Header */}
-        <div className="bg-gradient-to-r from-primary-navy to-primary-blue rounded-3xl p-8 mb-8 text-white">
-          <h1
-            className="text-3xl font-black mb-1"
-            style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
-          >
-            {category.nameHi}
-          </h1>
-          <p className="text-xl font-semibold opacity-90">{category.nameEn}</p>
-          <p className="text-white/70 mt-2">{category.subcategories.length} services available</p>
+      <main className="flex-1 w-full">
+        {/* Category Header with breadcrumb inside */}
+        <div className="bg-gradient-to-r from-primary-navy to-primary-blue px-4 py-6 mb-8">
+          <div className="max-w-7xl mx-auto">
+            <nav className="flex items-center gap-1.5 text-sm flex-wrap mb-4">
+              <Link href="/" className="text-yellow-300 hover:text-white transition-colors">Home</Link>
+              <span className="text-gray-400">/</span>
+              <Link href="/categories" className="text-yellow-300 hover:text-white transition-colors">
+                सभी कैटेगरी / All Categories
+              </Link>
+              <span className="text-gray-400">/</span>
+              <span className="text-white font-semibold">{category.nameEn}</span>
+            </nav>
+            <h1
+              className="text-3xl font-black text-white mb-1"
+              style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
+            >
+              {category.nameHi}
+            </h1>
+            <p className="text-xl font-semibold text-white/90">{category.nameEn}</p>
+            <p className="text-white/70 mt-2 text-sm">{category.subcategories.length} services available</p>
+          </div>
         </div>
+
+        <div className="max-w-7xl mx-auto px-4 pb-8">
 
         {/* Subcategories */}
         <div className="mb-8">
@@ -60,7 +66,7 @@ export default function CategoryPage({ params }) {
             {category.subcategories.map(sub => (
               <Link
                 key={sub}
-                href={`/workers?category=${params.slug}&subcategory=${encodeURIComponent(sub)}`}
+                href={`/workers?category=${slug}&subcategory=${encodeURIComponent(sub)}`}
                 className="flex items-center justify-between bg-white border-2 border-border-light rounded-2xl px-5 py-4 hover:border-primary-orange hover:shadow-md transition-all group"
                 aria-label={`Find ${sub} workers`}
               >
@@ -86,7 +92,7 @@ export default function CategoryPage({ params }) {
           </h3>
           <p className="text-white/80 mb-5">Need a worker right now? Send a request!</p>
           <Link
-            href={`/client/request-service?category=${params.slug}`}
+            href={`/client/request-service?category=${slug}`}
             className="inline-flex items-center gap-2 bg-white text-primary-orange font-black text-lg px-8 py-4 rounded-2xl hover:bg-accent-yellow hover:text-primary-navy transition-colors"
             aria-label="Request service now"
           >
@@ -94,6 +100,7 @@ export default function CategoryPage({ params }) {
             <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>Request भेजें</span>
             <span>/ Send Request</span>
           </Link>
+        </div>
         </div>
       </main>
       <Footer />

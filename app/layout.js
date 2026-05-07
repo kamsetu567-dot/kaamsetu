@@ -4,6 +4,7 @@ import "./globals.css";
 import { AuthProvider } from "@/lib/context/AuthContext";
 import { WorkerStatusProvider } from "@/lib/context/WorkerStatusContext";
 import { FilterProvider } from "@/lib/context/FilterContext";
+import { ToastProvider } from "@/components/Toast";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -37,7 +38,9 @@ export default function RootLayout({ children }) {
         <AuthProvider>
           <WorkerStatusProvider>
             <FilterProvider>
-              {children}
+              <ToastProvider>
+                {children}
+              </ToastProvider>
             </FilterProvider>
           </WorkerStatusProvider>
         </AuthProvider>

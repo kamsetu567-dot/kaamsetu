@@ -1,46 +1,38 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Wrench, ArrowLeft, CheckCircle } from "lucide-react";
+import { ArrowLeft, Wrench } from "lucide-react";
 import { useAuth } from "@/lib/context/AuthContext";
-import { sendOTP, loginWithOTP } from "@/lib/api/auth";
-import MobileInput from "@/components/MobileInput";
-import OTPInput from "@/components/OTPInput";
+import OTPVerification from "@/components/OTPVerification";
+import { useToast } from "@/components/Toast";
 
 export default function LoginPage() {
-  const [step, setStep] = useState("mobile"); // "mobile" | "otp" | "success"
-  const [mobile, setMobile] = useState("");
-  const [otp, setOtp] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
   const { login } = useAuth();
   const router = useRouter();
+  const toast = useToast();
 
-  async function handleSendOTP(e) {
-    e.preventDefault();
-    if (mobile.length !== 10) { setError("कृपया 10 अंकों का मोबाइल नंबर दर्ज करें / Please enter a 10-digit mobile number"); return; }
-    setError("");
-    setLoading(true);
-    await sendOTP(mobile);
-    setLoading(false);
-    setStep("otp");
+  function handleSuccess(data) {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("kaamsetu_token", data.token);
+      localStorage.setItem("kaamsetu_user", JSON.stringify(data.user));
+    }
+    login({ mobile: data.mobile, role: data.user?.role, token: data.token });
+
+    const role = data.user?.role;
+    if (role === "admin") router.push("/admin");
+    else if (role === "worker") router.push("/worker/dashboard");
+    else if (role === "shop") router.push("/shop/dashboard");
+    else if (data.isNewUser) router.push("/auth/signup");
+    else router.push("/client/dashboard");
   }
 
-  async function handleVerifyOTP(e) {
-    e.preventDefault();
-    if (otp.length !== 6) { setError("6 अंकों का OTP दर्ज करें / Enter 6-digit OTP"); return; }
-    setError("");
-    setLoading(true);
-    const res = await loginWithOTP(mobile, otp);
-    setLoading(false);
-    if (res.success) {
-      login({ mobile, role: null, token: res.user?.token });
-      setStep("success");
-      setTimeout(() => router.push("/"), 1500);
+  function handleError(message) {
+    if (message?.includes("Account does not exist") || message?.includes("Account exists नहीं")) {
+      toast.error("Account नहीं मिला। पहले sign up करें / Account not found. Please sign up first");
+      setTimeout(() => router.push("/auth/signup"), 2000);
     } else {
-      setError("गलत OTP / Invalid OTP. Please try again.");
+      toast.error(message);
     }
   }
 
@@ -59,98 +51,50 @@ export default function LoginPage() {
 
       <div className="flex-1 flex items-center justify-center px-4 py-8">
         <div className="w-full max-w-sm bg-white rounded-3xl border-2 border-border-light p-8 shadow-xl">
-          {step === "success" ? (
-            <div className="text-center py-4">
-              <CheckCircle size={56} className="text-primary-green mx-auto mb-4" />
-              <h2
-                className="text-2xl font-black text-text-primary mb-2"
-                style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
-              >
-                लॉगिन हो गया!
-              </h2>
-              <p className="text-text-secondary">Login successful! Redirecting...</p>
-            </div>
-          ) : (
-            <>
-              <div className="text-center mb-8">
-                <h1
-                  className="text-2xl font-black text-text-primary mb-1"
-                  style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
-                >
-                  लॉगिन करें
-                </h1>
-                <p className="text-text-secondary text-sm">Login to KaamSetu</p>
-              </div>
+          <div className="text-center mb-8">
+            <h1
+              className="text-2xl font-black text-text-primary mb-1"
+              style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
+            >
+              लॉगिन करें
+            </h1>
+            <p className="text-text-secondary text-sm">Login to KaamSetu</p>
+          </div>
 
-              {step === "mobile" && (
-                <form onSubmit={handleSendOTP} className="space-y-5">
-                  <div>
-                    <label className="block mb-2 font-semibold text-text-primary">
-                      <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>मोबाइल नंबर</span>
-                      <span className="text-text-secondary font-normal"> / Mobile Number</span>
-                    </label>
-                    <MobileInput value={mobile} onChange={setMobile} error={error} />
-                  </div>
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full bg-primary-orange text-white font-black text-lg py-4 rounded-2xl hover:bg-orange-600 transition-colors disabled:opacity-50 min-h-14"
-                    aria-label="Send OTP"
-                  >
-                    {loading ? "भेज रहे हैं..." : (
-                      <>
-                        <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>OTP भेजें</span>
-                        <span className="text-sm font-normal block">/ Send OTP</span>
-                      </>
-                    )}
-                  </button>
-                </form>
-              )}
+          {/* How it works */}
+          <div className="bg-blue-50 rounded-2xl p-4 mb-6 text-sm text-blue-800">
+            <p className="font-semibold mb-1" style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>
+              📱 मोबाइल से लॉगिन करें
+            </p>
+            <p style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>
+              नीचे बटन दबाएं → मोबाइल नंबर डालें → OTP डालें → Done!
+            </p>
+            <p className="text-xs mt-1 text-blue-600">
+              Tap button → Enter mobile → Enter OTP → Done!
+            </p>
+          </div>
 
-              {step === "otp" && (
-                <form onSubmit={handleVerifyOTP} className="space-y-5">
-                  <div className="text-center mb-4">
-                    <p
-                      className="text-text-secondary text-sm"
-                      style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
-                    >
-                      +91 {mobile} पर OTP भेजा गया
-                    </p>
-                    <button type="button" onClick={() => setStep("mobile")} className="text-primary-blue text-sm underline mt-1">
-                      Change number / नंबर बदलें
-                    </button>
-                  </div>
-                  <OTPInput value={otp} onChange={setOtp} />
-                  {error && <p className="text-red-500 text-sm text-center">{error}</p>}
-                  <p className="text-xs text-center text-text-secondary">
-                    (Demo: any 6-digit OTP works / कोई भी 6 अंक डालें)
-                  </p>
-                  <button
-                    type="submit"
-                    disabled={loading || otp.length !== 6}
-                    className="w-full bg-primary-orange text-white font-black text-lg py-4 rounded-2xl hover:bg-orange-600 transition-colors disabled:opacity-50 min-h-14"
-                    aria-label="Verify OTP"
-                  >
-                    {loading ? "Verify हो रहा है..." : (
-                      <>
-                        <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>OTP Verify करें</span>
-                        <span className="text-sm font-normal block">/ Verify OTP</span>
-                      </>
-                    )}
-                  </button>
-                </form>
-              )}
+          <OTPVerification
+            onSuccess={handleSuccess}
+            onError={handleError}
+            buttonText="मोबाइल से लॉगिन करें / Login with Mobile"
+          />
 
-              <p className="text-center text-sm text-text-secondary mt-6">
-                <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>Account नहीं है?</span>
-                {" "}
-                <Link href="/auth/signup" className="text-primary-blue font-semibold hover:underline">
-                  <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>साइनअप करें</span>
-                  <span> / Sign Up</span>
-                </Link>
-              </p>
-            </>
-          )}
+          <p className="text-center text-sm text-text-secondary mt-6">
+            <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>Account नहीं है?</span>
+            {" "}
+            <Link href="/auth/signup" className="text-primary-blue font-semibold hover:underline">
+              <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>साइनअप करें</span>
+              <span> / Sign Up</span>
+            </Link>
+          </p>
+
+          <p className="text-center text-xs text-text-secondary mt-4">
+            लॉगिन करने पर आप हमारी{" "}
+            <Link href="/terms" className="underline">Terms</Link> &{" "}
+            <Link href="/privacy" className="underline">Privacy Policy</Link>{" "}
+            से सहमत हैं
+          </p>
         </div>
       </div>
     </div>

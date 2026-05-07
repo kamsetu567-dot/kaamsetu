@@ -1,0 +1,65 @@
+
+> kaamsetu-claude@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.4 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://10.181.101.202:3000
+- Environments: .env.local
+✓ Ready in 1166ms
+
+ GET /api/admin/stats 401 in 355ms (next.js: 338ms, application-code: 17ms)
+ GET /api/workers 200 in 854ms (next.js: 34ms, application-code: 821ms)
+ GET /api/jobs 200 in 385ms (next.js: 26ms, application-code: 359ms)
+MSG91 verify response: {"message":"invalid access-token","type":"error","code":701}
+ POST /api/auth/verify-otp-widget 400 in 626ms (next.js: 52ms, application-code: 573ms)
+Job request received: {}
+ POST /api/jobs 400 in 5ms (next.js: 1579µs, application-code: 3ms)
+ POST /api/payments/create-order 401 in 329ms (next.js: 326ms, application-code: 3ms)
+ GET / 200 in 326ms (next.js: 89ms, application-code: 236ms)
+ GET / 200 in 204ms (next.js: 2ms, application-code: 202ms)
+[browser] Image with src "https://picsum.photos/seed/events/600/400" was detected as the Largest Contentful Paint (LCP). Please add the `loading="eager"` property if this image is above the fold.
+Read more: https://nextjs.org/docs/app/api-reference/components/image#loading
+ GET /auth/signup/worker 200 in 145ms (next.js: 83ms, application-code: 62ms)
+MSG91 verify response: {"message":"917495090600","type":"success"}
+ POST /api/auth/verify-otp-widget 200 in 774ms (next.js: 6ms, application-code: 769ms)
+Worker signup called with body: {"name":"Lokesh","experience":"0","city":"Jind","area":"sheetal puri colony","mobile":"7495090600","token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5ZjlkYzRjZjAwMzNjYTgyOWYyMzA0MSIsIm1vYmlsZSI6Ijc0OTUwOTA2MDAiLCJyb2xlIjoiY2xpZW50IiwiaWF0IjoxNzc4MDY5ODMyLCJleHAiOjE3Nzg2NzQ2MzJ9.osON34SoRv6HFKqbtLp1UQmefGJ7iw6MeUt3xeTqsj0","category":"construction-repair","subcategory":"गेट फैब्रिकेशन (Gate Fabrication)","gender":"male","serviceType":"both","workStatus":"free"}
+worker signup error: MongoServerError: E11000 duplicate key error collection: kaamsetu.users index: mobile_1 dup key: { mobile: "7495090600" }
+    at async POST (app\api\auth\signup\worker\route.js:49:18)
+  47 |     }
+  48 |
+> 49 |     const user = await User.create({ mobile, name, role: "worker" });
+     |                  ^
+  50 |
+  51 |     let worker;
+  52 |     try { {
+  errorLabelSet: Set(0) {},
+  errorResponse: {
+    index: 0,
+    code: 11000,
+    errmsg: 'E11000 duplicate key error collection: kaamsetu.users index: mobile_1 dup key: { mobile: "7495090600" }',
+    keyPattern: { mobile: 1 },
+    keyValue: { mobile: '7495090600' }
+  },
+  index: 0,
+  code: 11000,
+  keyPattern: { mobile: 1 },
+  keyValue: { mobile: '7495090600' }
+}
+ POST /api/auth/signup/worker 500 in 601ms (next.js: 74ms, application-code: 526ms)
+[browser] ⨯ unhandledRejection: Error: Server error
+    at apiFetch (lib/api/client.js:18:11)
+    at async signupWorker (lib/api/auth.js:13:18)
+    at async handleFinalSubmit (app/auth/signup/worker/page.jsx:45:7)
+  16 |   if (!res.ok) {
+  17 |     const msg = data.message || `Request failed (${res.status})`;
+> 18 |     throw new Error(msg);
+     |           ^
+  19 |   }
+  20 |
+  21 |   return data;
+ GET /auth/signup/worker 200 in 151ms (next.js: 3ms, application-code: 148ms)
+ GET /admin 200 in 340ms (next.js: 74ms, proxy.ts: 98ms, application-code: 168ms)
+ GET /api/admin/stats 200 in 530ms (next.js: 3ms, application-code: 527ms)
+ GET /admin 200 in 30ms (next.js: 7ms, proxy.ts: 11ms, application-code: 12ms)
+ GET /admin 200 in 49ms (next.js: 6ms, proxy.ts: 9ms, application-code: 34ms)

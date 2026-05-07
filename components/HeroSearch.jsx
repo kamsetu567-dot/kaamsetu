@@ -23,25 +23,34 @@ const fuse = new Fuse(allSearchItems, {
   includeScore: true,
 });
 
-export default function HeroSearch({ initialQuery = "" }) {
+export default function HeroSearch({ initialQuery = "", onQueryChange }) {
   const [query, setQuery] = useState(initialQuery);
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [activeSuggestion, setActiveSuggestion] = useState(-1);
+  const [inputError, setInputError] = useState(false);
   const router = useRouter();
   const inputRef = useRef(null);
   const containerRef = useRef(null);
 
+  // Sync when initialQuery prop changes (e.g. URL navigation between search pages)
+  useEffect(() => {
+    setQuery(initialQuery);
+  }, [initialQuery]);
+
   useEffect(() => {
     if (query.trim().length < 2) {
       setSuggestions([]);
+      setShowSuggestions(false);
+      onQueryChange?.(query);
       return;
     }
     const results = fuse.search(query).slice(0, 8).map(r => r.item);
     setSuggestions(results);
     setShowSuggestions(true);
     setActiveSuggestion(-1);
-  }, [query]);
+    onQueryChange?.(query);
+  }, [query]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     function handleClickOutside(e) {
@@ -49,13 +58,28 @@ export default function HeroSearch({ initialQuery = "" }) {
         setShowSuggestions(false);
       }
     }
+    function handleScroll(e) {
+      if (containerRef.current && containerRef.current.contains(e.target)) return;
+      setShowSuggestions(false);
+    }
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside);
+    window.addEventListener("scroll", handleScroll, true);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+      window.removeEventListener("scroll", handleScroll, true);
+    };
   }, []);
 
   function handleSubmit(e) {
     e.preventDefault();
-    if (!query.trim()) return;
+    if (!query.trim()) {
+      setInputError(true);
+      inputRef.current?.focus();
+      setTimeout(() => setInputError(false), 600);
+      return;
+    }
     setShowSuggestions(false);
     router.push(`/search?q=${encodeURIComponent(query.trim())}`);
   }
@@ -83,10 +107,10 @@ export default function HeroSearch({ initialQuery = "" }) {
   }
 
   return (
-    <div ref={containerRef} className="relative w-full max-w-2xl mx-auto">
-      <form onSubmit={handleSubmit} className="flex rounded-2xl overflow-hidden shadow-2xl bg-white">
-        <div className="flex items-center pl-5">
-          <Search size={22} className="text-gray-400 flex-shrink-0" />
+    <div ref={containerRef} className="relative w-full max-w-2xl mx-auto overflow-visible">
+      <form onSubmit={handleSubmit} className={`flex items-stretch w-full rounded-xl overflow-hidden border bg-white shadow-sm transition-colors ${inputError ? "border-red-400" : "border-gray-200"}`}>
+        <div className="flex items-center pl-4 pr-2 bg-white flex-shrink-0">
+          <Search size={20} className="text-gray-400 flex-shrink-0" />
         </div>
         <input
           ref={inputRef}
@@ -96,43 +120,51 @@ export default function HeroSearch({ initialQuery = "" }) {
           onKeyDown={handleKeyDown}
           onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
           placeholder="आपको क्या चाहिए? (Plumber, Halwai, Dancer...)"
-          className="flex-1 px-4 py-5 text-lg text-text-primary focus:outline-none bg-transparent"
+          className="flex-1 py-3.5 pr-2 text-base outline-none bg-white min-w-0 text-text-primary"
           aria-label="Search for services"
           aria-autocomplete="list"
           aria-expanded={showSuggestions}
         />
         {query && (
-          <button type="button" onClick={() => { setQuery(""); setSuggestions([]); inputRef.current?.focus(); }} className="px-3 text-gray-400 hover:text-gray-600" aria-label="Clear search">
-            <X size={18} />
+          <button type="button" onClick={() => { setQuery(""); setSuggestions([]); inputRef.current?.focus(); }} className="px-2 text-gray-400 hover:text-gray-600 flex-shrink-0" aria-label="Clear search">
+            <X size={16} />
           </button>
         )}
         <button
           type="submit"
-          className="bg-accent-yellow text-primary-navy font-black text-lg px-6 py-5 hover:bg-yellow-400 transition-colors flex-shrink-0"
+          className="bg-accent-yellow text-primary-navy font-bold px-5 py-3.5 flex-shrink-0 flex flex-col items-center justify-center leading-tight hover:bg-yellow-400 transition-colors"
           aria-label="Search"
         >
-          <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>खोजें</span>
-          <span className="text-sm font-normal block text-center">/ Search</span>
+          <span className="text-base font-bold" style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>खोजें</span>
+          <span className="text-xs font-normal hidden sm:block">/ Search</span>
         </button>
       </form>
 
-      {/* Suggestions dropdown */}
+      {/* Suggestions dropdown — fixed to escape any parent overflow:hidden */}
       {showSuggestions && suggestions.length > 0 && (
-        <div className="absolute left-0 right-0 top-full mt-1 bg-white rounded-2xl shadow-xl border border-border-light z-50 overflow-hidden">
+        <div
+          className="fixed bg-white rounded-xl shadow-2xl border border-gray-200 z-[9999] overflow-y-auto"
+          style={{
+            top: containerRef.current ? containerRef.current.getBoundingClientRect().bottom + 4 : "auto",
+            left: containerRef.current ? containerRef.current.getBoundingClientRect().left : 0,
+            width: containerRef.current ? containerRef.current.getBoundingClientRect().width : "100%",
+            maxHeight: "260px",
+          }}
+        >
           {suggestions.map((item, i) => (
             <button
               key={i}
               onClick={() => handleSuggestionClick(item)}
-              className={`w-full text-left px-5 py-3 flex items-center gap-3 hover:bg-orange-50 transition-colors ${
-                i === activeSuggestion ? "bg-orange-50" : ""
+              className={`w-full text-left px-4 py-3 flex items-center gap-3 hover:bg-gray-50 border-b border-gray-100 last:border-0 transition-colors ${
+                i === activeSuggestion ? "bg-gray-50" : ""
               }`}
               aria-label={item.label}
             >
               <Search size={16} className="text-gray-400 flex-shrink-0" />
-              <div>
-                <span className="font-medium text-text-primary">{item.label}</span>
+              <div className="min-w-0">
+                <span className="font-medium text-text-primary text-sm block truncate">{item.label}</span>
                 {item.category && (
-                  <span className="text-xs text-text-secondary ml-2">in {item.category}</span>
+                  <span className="text-xs text-text-secondary">in {item.category}</span>
                 )}
                 {item.type === "category" && (
                   <span className="ml-2 text-xs bg-primary-navy text-white px-1.5 py-0.5 rounded">Category</span>

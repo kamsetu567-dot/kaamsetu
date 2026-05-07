@@ -1,11 +1,27 @@
 "use client";
 
+import { useEffect } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import AdminSidebar from "@/components/AdminSidebar";
-import { Menu, X } from "lucide-react";
+import { Menu } from "lucide-react";
 import { useState } from "react";
+import { isAdminLoggedIn } from "@/lib/utils/adminAuth";
 
 export default function AdminLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const router = useRouter();
+  const pathname = usePathname();
+
+  useEffect(() => {
+    if (pathname === "/admin/login") return;
+    if (!isAdminLoggedIn()) {
+      router.replace("/admin/login");
+    }
+  }, [pathname]);
+
+  if (pathname === "/admin/login") {
+    return children;
+  }
 
   return (
     <div className="min-h-screen flex bg-neutral-bg">
@@ -17,7 +33,7 @@ export default function AdminLayout({ children }) {
         />
       )}
 
-      {/* Sidebar — hidden on mobile, slide-in overlay */}
+      {/* Sidebar */}
       <div
         className={`fixed inset-y-0 left-0 z-50 lg:static lg:block transition-transform duration-200 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"

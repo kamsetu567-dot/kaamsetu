@@ -1,49 +1,112 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, CheckCircle, Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import MobileInput from "@/components/MobileInput";
-import OTPInput from "@/components/OTPInput";
+import OTPVerification from "@/components/OTPVerification";
 import CategorySelect from "@/components/CategorySelect";
 import LocationPicker from "@/components/LocationPicker";
 import { createJobRequest } from "@/lib/api/jobs";
+import { useToast } from "@/components/Toast";
 
 function RequestForm() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const preCategory = searchParams.get("category") || "";
+  const toast = useToast();
 
+  const [currentUser, setCurrentUser] = useState(null);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [mobile, setMobile] = useState("");
-  const [otp, setOtp] = useState("");
-  const [otpSent, setOtpSent] = useState(false);
   const [mobileVerified, setMobileVerified] = useState(false);
   const [category, setCategory] = useState(preCategory);
   const [subcategory, setSubcategory] = useState("");
   const [location, setLocation] = useState("");
   const [stage, setStage] = useState("form"); // "form" | "searching" | "success"
   const [searchProgress, setSearchProgress] = useState(0);
+  const [submitting, setSubmitting] = useState(false);
 
-  const { register, handleSubmit, formState: { errors } } = useForm();
+  const { register, handleSubmit, setValue, formState: { errors } } = useForm();
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem("kaamsetu_token");
+      const userData = localStorage.getItem("kaamsetu_user");
+      if (token && userData) {
+        try {
+          const user = JSON.parse(userData);
+          setCurrentUser(user);
+          if (user.name) setValue("name", user.name);
+        } catch {}
+      }
+      setIsCheckingAuth(false);
+    }
+  }, [setValue]);
 
   async function onSubmit(data) {
-    if (!mobileVerified) return;
+    const mobileToUse = currentUser?.mobile || (mobileVerified ? mobile : null);
+    if (!mobileToUse) {
+      toast.error("पहले मोबाइल verify करें / Please verify your mobile first");
+      return;
+    }
+    if (!category) {
+      toast.error("Category चुनें / Please select a category");
+      return;
+    }
+    if (submitting) return;
+
+    setSubmitting(true);
     setStage("searching");
-    // Animate progress 0→100 over 5 seconds
+    setSearchProgress(0);
+
+    // Animate progress 0→95 over 5s while API call runs
     let p = 0;
     const interval = setInterval(() => {
       p += 4;
-      setSearchProgress(Math.min(p, 100));
-      if (p >= 100) {
-        clearInterval(interval);
-        setStage("success");
-      }
+      setSearchProgress(Math.min(p, 95));
+      if (p >= 95) clearInterval(interval);
     }, 200);
-    // Fire API (result unused for now)
-    createJobRequest({ ...data, mobile, category, subcategory, location });
+
+    try {
+      await createJobRequest({
+        clientMobile: mobileToUse,
+        clientName: data.name,
+        clientId: currentUser?.id || null,
+        category,
+        subcategory,
+        location,
+        city: location,
+        description: data.notes || "",
+        source: "search",
+      });
+      clearInterval(interval);
+      setSearchProgress(100);
+      setTimeout(() => {
+        setStage("success");
+        // Redirect to dashboard after showing success briefly
+        setTimeout(() => router.push("/client/dashboard"), 2000);
+      }, 300);
+    } catch (err) {
+      clearInterval(interval);
+      setStage("form");
+      setSearchProgress(0);
+      const msg = err?.message || "";
+      if (msg.includes("fetch") || msg.includes("network")) {
+        toast.error("इंटरनेट कनेक्शन चेक करें / Please check your internet connection");
+      } else {
+        toast.error("Request नहीं भेजी गई। फिर try करें / Request failed. Please try again");
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  if (isCheckingAuth) {
+    return <div className="py-12 text-center text-text-secondary">Loading...</div>;
   }
 
   if (stage === "searching") {
@@ -77,15 +140,8 @@ function RequestForm() {
         <p className="text-text-secondary mb-2" style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>
           पहला worker accept करते ही आपको call आएगी।
         </p>
-        <p className="text-text-secondary text-sm mb-8">First available worker will call you right away!</p>
-        <div className="flex gap-3 flex-col sm:flex-row w-full max-w-xs">
-          <Link href="/" className="flex-1 text-center bg-primary-navy text-white font-bold py-4 rounded-2xl hover:bg-blue-900 transition-colors">
-            Home / होम
-          </Link>
-          <button onClick={() => { setStage("form"); setSearchProgress(0); }} className="flex-1 border-2 border-primary-orange text-primary-orange font-bold py-4 rounded-2xl hover:bg-orange-50 transition-colors">
-            New Request
-          </button>
-        </div>
+        <p className="text-text-secondary text-sm mb-4">First available worker will call you right away!</p>
+        <p className="text-text-secondary text-xs">Dashboard पर redirect हो रहे हैं... / Redirecting to dashboard...</p>
       </div>
     );
   }
@@ -112,20 +168,25 @@ function RequestForm() {
           <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>मोबाइल</span>
           <span className="text-text-secondary font-normal"> / Mobile *</span>
         </label>
-        <MobileInput value={mobile} onChange={setMobile} />
-        {!otpSent && (
-          <button type="button" onClick={() => mobile.length === 10 && setOtpSent(true)} className="mt-2 text-primary-blue text-sm font-semibold">
-            OTP भेजें / Send OTP
-          </button>
-        )}
-        {otpSent && !mobileVerified && (
-          <div className="mt-3 space-y-2">
-            <OTPInput value={otp} onChange={setOtp} />
-            <button type="button" onClick={() => otp.length === 6 && setMobileVerified(true)} className="w-full bg-primary-blue text-white font-bold py-2 rounded-xl text-sm">Verify OTP</button>
-            <p className="text-xs text-center text-text-secondary">(Demo: any 6 digits)</p>
+        {currentUser ? (
+          <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+            <p className="text-green-700 font-semibold text-sm">✅ {currentUser.mobile} verified</p>
+            <p className="text-green-600 text-xs mt-1" style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>
+              आप पहले से logged in हैं / You are already logged in
+            </p>
           </div>
+        ) : mobileVerified ? (
+          <p className="text-primary-green text-sm font-semibold">✓ +91 {mobile} verified</p>
+        ) : (
+          <OTPVerification
+            onSuccess={(data) => {
+              setMobile(data.mobile);
+              setMobileVerified(true);
+            }}
+            onError={(msg) => toast.error(msg)}
+            buttonText="मोबाइल वेरीफाई करें / Verify Mobile"
+          />
         )}
-        {mobileVerified && <p className="text-primary-green text-sm mt-1 font-semibold">✓ Verified!</p>}
       </div>
 
       {/* Category */}
@@ -200,8 +261,8 @@ function RequestForm() {
 
       <button
         type="submit"
-        disabled={!mobileVerified || !category}
-        className="w-full bg-primary-orange text-white font-black text-xl py-5 rounded-2xl hover:bg-orange-600 transition-colors disabled:opacity-50 min-h-16"
+        disabled={(!currentUser && !mobileVerified) || !category || submitting}
+        className="w-full bg-primary-orange text-white font-black text-xl py-5 rounded-2xl hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-16"
         aria-label="Submit service request"
       >
         <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>Worker ढूंढें</span>

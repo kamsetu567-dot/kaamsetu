@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Search } from "lucide-react";
 import EmptyState from "@/components/EmptyState";
 import { TableRowSkeleton } from "@/components/LoadingSkeleton";
+import { getAllJobs } from "@/lib/api/admin";
 
 const STATUS_BADGE = {
   open:       "bg-blue-100 text-primary-blue border-blue-200",
@@ -18,15 +19,27 @@ export default function AdminJobsPage() {
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    // TODO: Replace with real API call when backend is ready
-    setTimeout(() => { setJobs([]); setLoading(false); }, 400);
+    getAllJobs({ search: search || undefined }).then(data => {
+      setJobs(data);
+      setLoading(false);
+    });
   }, []);
 
+  function refresh() {
+    setLoading(true);
+    getAllJobs({ search: search || undefined }).then(data => {
+      setJobs(data);
+      setLoading(false);
+    });
+  }
+
+  const q = search.toLowerCase();
   const filtered = jobs.filter(j =>
     !search ||
-    j.id?.toLowerCase().includes(search.toLowerCase()) ||
-    j.category?.toLowerCase().includes(search.toLowerCase()) ||
-    j.location?.toLowerCase().includes(search.toLowerCase())
+    j.clientName?.toLowerCase().includes(q) ||
+    j.clientMobile?.includes(q) ||
+    j.category?.toLowerCase().includes(q) ||
+    j.location?.toLowerCase().includes(q)
   );
 
   return (
@@ -57,7 +70,7 @@ export default function AdminJobsPage() {
           <table className="w-full text-sm min-w-[700px]">
             <thead>
               <tr className="border-b-2 border-border-light bg-neutral-bg">
-                {["Job ID", "Type", "Category", "Location", "Status", "Worker Assigned"].map(h => (
+                {["Job ID", "Client", "Category", "Location", "Source", "Status", "Worker"].map(h => (
                   <th key={h} className="text-left px-4 py-3 text-text-secondary font-semibold text-xs whitespace-nowrap">
                     {h}
                   </th>
@@ -66,10 +79,10 @@ export default function AdminJobsPage() {
             </thead>
             <tbody>
               {loading ? (
-                Array.from({ length: 5 }).map((_, i) => <TableRowSkeleton key={i} cols={6} />)
+                Array.from({ length: 5 }).map((_, i) => <TableRowSkeleton key={i} cols={7} />)
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-12">
+                  <td colSpan={7} className="py-12">
                     <EmptyState
                       icon="default"
                       titleHi="कोई Job नहीं"
@@ -82,16 +95,20 @@ export default function AdminJobsPage() {
               ) : (
                 filtered.map(j => (
                   <tr key={j.id} className="border-b border-border-light hover:bg-neutral-bg last:border-0 transition-colors">
-                    <td className="px-4 py-3 font-mono text-xs text-text-secondary">{j.id}</td>
-                    <td className="px-4 py-3 text-text-secondary capitalize">{j.type ?? "—"}</td>
+                    <td className="px-4 py-3 font-mono text-xs text-text-secondary truncate max-w-[100px]">{String(j.id).slice(-8)}</td>
+                    <td className="px-4 py-3 text-text-secondary">
+                      <p className="font-semibold">{j.clientName ?? "—"}</p>
+                      <p className="text-xs">{j.clientMobile ?? ""}</p>
+                    </td>
                     <td className="px-4 py-3 text-text-primary">{j.category ?? "—"}</td>
                     <td className="px-4 py-3 text-text-secondary">{j.location ?? "—"}</td>
+                    <td className="px-4 py-3 text-text-secondary capitalize">{j.source ?? "—"}</td>
                     <td className="px-4 py-3">
                       <span className={`text-xs font-semibold px-2 py-1 rounded-full border ${STATUS_BADGE[j.status] ?? STATUS_BADGE.open}`}>
-                        {j.status ?? "open"}
+                        {j.status ?? "pending"}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-text-secondary">{j.workerName ?? "—"}</td>
+                    <td className="px-4 py-3 text-text-secondary text-xs">{j.worker ? String(j.worker).slice(-8) : "—"}</td>
                   </tr>
                 ))
               )}

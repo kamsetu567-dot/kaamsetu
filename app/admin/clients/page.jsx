@@ -23,7 +23,8 @@ export default function AdminClientsPage() {
 
   async function handleBlock(id) {
     await blockUser(id, "client");
-    // TODO: Refresh client list from API after block
+    const data = await getAllClients();
+    setClients(data);
   }
 
   return (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Bell } from "lucide-react";
 import JobNotificationCard from "@/components/JobNotificationCard";
 import EmptyState from "@/components/EmptyState";
@@ -10,12 +10,27 @@ import { getIncomingJobs } from "@/lib/api/jobs";
 export default function WorkerJobsPage() {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const pollRef = useRef(null);
 
   useEffect(() => {
-    // TODO: Replace with real workerId from auth context when backend is ready
-    getIncomingJobs(null)
-      .then(setJobs)
-      .finally(() => setLoading(false));
+    const token = typeof window !== "undefined" ? localStorage.getItem("kaamsetu_token") : null;
+    let workerId = null;
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        workerId = payload.id || null;
+      } catch {}
+    }
+
+    function fetchJobs() {
+      getIncomingJobs(workerId)
+        .then(setJobs)
+        .finally(() => setLoading(false));
+    }
+
+    fetchJobs();
+    pollRef.current = setInterval(fetchJobs, 10_000);
+    return () => clearInterval(pollRef.current);
   }, []);
 
   function handleAccepted(jobId) {

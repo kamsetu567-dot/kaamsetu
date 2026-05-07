@@ -1,48 +1,125 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { PlusCircle, Clock, CheckCircle, XCircle, Loader2 } from "lucide-react";
+import { PlusCircle } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import EmptyState from "@/components/EmptyState";
-import LoadingSkeleton from "@/components/LoadingSkeleton";
+import { apiGet } from "@/lib/api/client";
+import { useToast } from "@/components/Toast";
 
-// TODO: Persist via API when backend is ready
 const STATUS_CONFIG = {
-  pending: { label: "Pending", hi: "लंबित", color: "bg-yellow-100 text-yellow-700", icon: Clock },
-  accepted: { label: "Accepted", hi: "Accept हुई", color: "bg-green-100 text-primary-green", icon: CheckCircle },
-  rejected: { label: "Not Found", hi: "Worker नहीं मिला", color: "bg-red-100 text-red-600", icon: XCircle },
+  pending: {
+    bg: "bg-yellow-100",
+    text: "text-yellow-700",
+    labelHi: "⏳ Worker ढूंढ रहे हैं",
+    labelEn: "Finding worker",
+  },
+  accepted: {
+    bg: "bg-green-100",
+    text: "text-green-700",
+    labelHi: "✅ Accept हुई",
+    labelEn: "Accepted",
+  },
+  completed: {
+    bg: "bg-blue-100",
+    text: "text-blue-700",
+    labelHi: "✓ पूरी हुई",
+    labelEn: "Completed",
+  },
+  saved: {
+    bg: "bg-orange-100",
+    text: "text-orange-700",
+    labelHi: "📞 हम call करेंगे",
+    labelEn: "We will call",
+  },
+  cancelled: {
+    bg: "bg-red-100",
+    text: "text-red-600",
+    labelHi: "✗ Cancel हुई",
+    labelEn: "Cancelled",
+  },
+  rejected: {
+    bg: "bg-red-100",
+    text: "text-red-600",
+    labelHi: "Worker नहीं मिला",
+    labelEn: "No worker found",
+  },
 };
 
+function StatusBadge({ status }) {
+  const cfg = STATUS_CONFIG[status] || STATUS_CONFIG.pending;
+  return (
+    <span className={`${cfg.bg} ${cfg.text} text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap`}>
+      <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>{cfg.labelHi}</span>
+      <span className="hidden sm:inline"> / {cfg.labelEn}</span>
+    </span>
+  );
+}
+
 export default function ClientDashboardPage() {
+  const router = useRouter();
+  const toast = useToast();
+  const [user, setUser] = useState(null);
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const loadRequests = useCallback(async () => {
+    try {
+      const data = await apiGet("/api/client/requests");
+      setRequests(data.requests || []);
+    } catch {
+      toast.error("Requests load नहीं हुईं / Failed to load requests");
+    } finally {
+      setLoading(false);
+    }
+  }, [toast]);
+
   useEffect(() => {
-    // TODO: Fetch client job history from API
-    setTimeout(() => { setRequests([]); setLoading(false); }, 600);
-  }, []);
+    if (typeof window === "undefined") return;
+
+    const token = localStorage.getItem("kaamsetu_token");
+    const userData = localStorage.getItem("kaamsetu_user");
+
+    if (!token || !userData) {
+      router.replace("/auth/login");
+      return;
+    }
+
+    try {
+      setUser(JSON.parse(userData));
+    } catch {
+      router.replace("/auth/login");
+      return;
+    }
+
+    loadRequests();
+  }, [router, loadRequests]);
+
+  if (!user) return null;
 
   return (
     <>
       <Header />
       <main className="flex-1 bg-neutral-bg">
+        {/* Hero bar */}
         <div className="bg-primary-orange px-4 py-6">
           <div className="max-w-4xl mx-auto">
             <h1
-              className="text-2xl font-black text-white mb-1"
+              className="text-2xl font-black text-white mb-0.5"
               style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
             >
-              Client Dashboard
+              नमस्ते, {user.name || "Client"} 👋
             </h1>
-            <p className="text-white/80">Manage your service requests</p>
+            <p className="text-white/80 text-sm">{user.mobile}</p>
           </div>
         </div>
 
         <div className="max-w-4xl mx-auto px-4 py-8">
           {/* CTA */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
             <div>
               <h2
                 className="text-xl font-black text-text-primary"
@@ -59,12 +136,19 @@ export default function ClientDashboardPage() {
             >
               <PlusCircle size={20} />
               <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>नई Request</span>
-              <span>/ New Request</span>
+              <span> / New Request</span>
             </Link>
           </div>
 
           {loading ? (
-            <LoadingSkeleton type="card" count={3} />
+            <div className="space-y-3">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="bg-white rounded-2xl border-2 border-border-light p-5 animate-pulse">
+                  <div className="h-4 bg-gray-200 rounded w-1/3 mb-3" />
+                  <div className="h-3 bg-gray-100 rounded w-1/2" />
+                </div>
+              ))}
+            </div>
           ) : requests.length === 0 ? (
             <EmptyState
               icon="jobs"
@@ -75,28 +159,66 @@ export default function ClientDashboardPage() {
               action={{
                 labelHi: "Request भेजें",
                 labelEn: "Send Request",
-                onClick: () => (window.location.href = "/client/request-service"),
+                onClick: () => router.push("/client/request-service"),
               }}
             />
           ) : (
-            <div className="space-y-4">
-              {requests.map(req => {
-                const sc = STATUS_CONFIG[req.status] || STATUS_CONFIG.pending;
-                return (
-                  <div key={req.id} className="bg-white rounded-2xl border-2 border-border-light p-5">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <p className="font-bold text-text-primary">{req.category}</p>
-                        <p className="text-text-secondary text-sm">{req.subcategory}</p>
-                      </div>
-                      <span className={`text-xs font-bold px-3 py-1 rounded-full ${sc.color}`}>
-                        <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>{sc.hi}</span>
-                      </span>
+            <div className="space-y-3">
+              {requests.map(req => (
+                <div
+                  key={req._id}
+                  className="bg-white rounded-2xl border-2 border-border-light p-5"
+                >
+                  <div className="flex items-start justify-between gap-3 mb-2">
+                    <div className="min-w-0">
+                      <p className="font-bold text-text-primary">
+                        {req.subcategory || req.category}
+                      </p>
+                      <p className="text-text-secondary text-sm mt-0.5">
+                        📍 {req.location?.city || "—"}
+                        {req.location?.address && `, ${req.location.address}`}
+                      </p>
                     </div>
-                    <p className="text-text-secondary text-sm mt-2">{req.location} · {req.date}</p>
+                    <StatusBadge status={req.status} />
                   </div>
-                );
-              })}
+
+                  {req.description && (
+                    <p className="text-sm text-text-secondary mt-2 bg-gray-50 rounded-lg p-2">
+                      "{req.description}"
+                    </p>
+                  )}
+
+                  {req.workerDetails && (
+                    <div className="mt-3 pt-3 border-t border-border-light flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-xs text-text-secondary mb-0.5">
+                          <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>Worker:</span>
+                        </p>
+                        <p className="font-semibold text-sm text-text-primary">{req.workerDetails.name}</p>
+                        <p className="text-xs text-text-secondary">
+                          ⭐ {req.workerDetails.rating || "New"} · {req.workerDetails.experience} yr exp
+                        </p>
+                      </div>
+                      <a
+                        href={`tel:${req.workerDetails.mobile}`}
+                        className="bg-primary-green text-white px-4 py-2 rounded-xl text-sm font-bold flex-shrink-0 hover:bg-green-700 transition-colors"
+                      >
+                        📞 Call
+                      </a>
+                    </div>
+                  )}
+
+                  <p className="text-xs text-gray-400 mt-3">
+                    {new Date(req.createdAt).toLocaleString("en-IN", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </p>
+                </div>
+              ))}
             </div>
           )}
         </div>
