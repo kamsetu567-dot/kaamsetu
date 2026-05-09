@@ -1,14 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { PlusCircle } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import EmptyState from "@/components/EmptyState";
-import { apiGet } from "@/lib/api/client";
-import { useToast } from "@/components/Toast";
 
 const STATUS_CONFIG = {
   pending: {
@@ -61,21 +59,9 @@ function StatusBadge({ status }) {
 
 export default function ClientDashboardPage() {
   const router = useRouter();
-  const toast = useToast();
   const [user, setUser] = useState(null);
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  const loadRequests = useCallback(async () => {
-    try {
-      const data = await apiGet("/api/client/requests");
-      setRequests(data.requests || []);
-    } catch {
-      toast.error("Requests load नहीं हुईं / Failed to load requests");
-    } finally {
-      setLoading(false);
-    }
-  }, [toast]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -89,14 +75,35 @@ export default function ClientDashboardPage() {
     }
 
     try {
-      setUser(JSON.parse(userData));
+      const parsedUser = JSON.parse(userData);
+      setUser(parsedUser);
     } catch {
       router.replace("/auth/login");
       return;
     }
 
-    loadRequests();
-  }, [router, loadRequests]);
+    async function fetchRequests() {
+      setLoading(true);
+      try {
+        const t = localStorage.getItem("kaamsetu_token");
+        const res = await fetch("/api/client/requests", {
+          headers: { Authorization: `Bearer ${t}` },
+        });
+        const data = await res.json();
+        if (data.success) {
+          setRequests(data.requests || []);
+        } else if (res.status !== 401) {
+          console.error("Failed to load requests:", data.message);
+        }
+      } catch (err) {
+        console.error("Request fetch error:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchRequests();
+  }, []); // runs once on mount
 
   if (!user) return null;
 

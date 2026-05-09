@@ -12,6 +12,10 @@ const nextConfig = {
       },
     ],
   },
+  // TODO: BEFORE GOING LIVE - Restore strict CSP headers
+  // Current: CSP removed for testing phase
+  // Production CSP should whitelist only: msg91.com, razorpay.com, fonts.googleapis.com
+  // Remove this comment and restore headers when going live
   async headers() {
     return [
       {
@@ -19,7 +23,7 @@ const nextConfig = {
         headers: [
           {
             key: 'Content-Security-Policy',
-            value: "frame-ancestors 'self' https://control.msg91.com https://*.msg91.com",
+            value: '',
           },
         ],
       },

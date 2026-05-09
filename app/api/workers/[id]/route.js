@@ -20,6 +20,11 @@ export async function GET(request, { params }) {
 export async function PATCH(request, { params }) {
   try {
     const { id } = await params;
+
+    if (!id || id === "null" || id === "undefined") {
+      return error("Invalid worker ID", 400);
+    }
+
     const body = await request.json();
 
     await connectDB();

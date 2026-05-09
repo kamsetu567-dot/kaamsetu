@@ -1,15 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CheckCircle, Upload, X, User } from "lucide-react";
 import { useForm } from "react-hook-form";
 import CategorySelect from "@/components/CategorySelect";
 import WorkerStatusBadge from "@/components/WorkerStatusBadge";
 import { useWorkerStatus } from "@/lib/context/WorkerStatusContext";
 import { updateWorker } from "@/lib/api/workers";
+import { useToast } from "@/components/Toast";
 
 export default function WorkerProfileEditPage() {
   const { status, updateStatus } = useWorkerStatus();
+  const toast = useToast();
+  const [workerId, setWorkerId] = useState(null);
   const [category, setCategory] = useState("");
   const [subcategory, setSubcategory] = useState("");
   const [gender, setGender] = useState("");
@@ -18,7 +21,37 @@ export default function WorkerProfileEditPage() {
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const { register, handleSubmit, formState: { errors } } = useForm();
+  const { register, handleSubmit, setValue, formState: { errors } } = useForm();
+
+  useEffect(() => {
+    async function loadProfile() {
+      try {
+        const token = typeof window !== "undefined" ? localStorage.getItem("kaamsetu_token") : null;
+        if (!token) return;
+        const res = await fetch("/api/workers/me", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (data.success && data.worker) {
+          const w = data.worker;
+          setWorkerId(w._id || w.id);
+          setValue("name", w.name || "");
+          setValue("city", w.location?.city || "");
+          setValue("area", w.location?.address || "");
+          setValue("experience", w.experience ?? 0);
+          if (w.category) setCategory(w.category);
+          if (w.subcategory) setSubcategory(w.subcategory);
+          if (w.gender) setGender(w.gender);
+          if (w.serviceType) setServiceType(w.serviceType);
+          if (w.workStatus) updateStatus(w.workStatus);
+          if (w.photo) setProfilePhoto(w.photo);
+        }
+      } catch (err) {
+        console.error("Failed to load profile:", err);
+      }
+    }
+    loadProfile();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   function handlePhotoUpload(e) {
     const file = e.target.files?.[0];
@@ -26,9 +59,12 @@ export default function WorkerProfileEditPage() {
   }
 
   async function onSubmit(data) {
+    if (!workerId) {
+      toast.error("Profile not loaded, please refresh");
+      return;
+    }
     setLoading(true);
-    // TODO: Persist via API when backend is ready
-    await updateWorker(null, { ...data, category, subcategory, gender, serviceType });
+    await updateWorker(workerId, { ...data, category, subcategory, gender, serviceType });
     setLoading(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);

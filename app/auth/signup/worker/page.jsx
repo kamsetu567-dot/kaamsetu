@@ -33,6 +33,7 @@ export default function WorkerSignupPage() {
   const [workStatus, setWorkStatus] = useState("free");
   const [profilePhoto, setProfilePhoto] = useState(null);
   const [workPhotos, setWorkPhotos] = useState([]);
+  const [aadharPhoto, setAadharPhoto] = useState(null);
   const [stepErrors, setStepErrors] = useState({});
 
   const { register, getValues, formState: { errors } } = useForm();
@@ -48,6 +49,7 @@ export default function WorkerSignupPage() {
         gender,
         serviceType,
         workStatus,
+        aadharPhoto,
       });
     },
     onSuccess: (result) => {
@@ -57,8 +59,9 @@ export default function WorkerSignupPage() {
       toast.success("Registration हो गई! Dashboard पर जाएं / Registration successful!");
       router.push("/worker/dashboard");
     },
-    onError: (message) => {
-      toast.error(message);
+    onError: (message, originalError) => {
+      console.error('Worker signup failed:', message, originalError);
+      toast.error(message || 'Something went wrong. Please try again.');
     },
   });
 
@@ -95,6 +98,10 @@ export default function WorkerSignupPage() {
   }
 
   async function handleFinalSubmit() {
+    if (!aadharPhoto) {
+      toast.error('आधार कार्ड upload करें / Please upload Aadhar card');
+      return;
+    }
     try {
       await submit();
     } catch {
@@ -422,14 +429,31 @@ export default function WorkerSignupPage() {
 
               {/* Aadhar */}
               <div>
-                <label className="block mb-2 font-semibold">
+                <p className="font-semibold text-text-primary mb-2">
                   <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>आधार कार्ड</span>
-                  <span className="text-text-secondary font-normal"> / Aadhar Card</span>
-                </label>
-                <label className="block cursor-pointer border-2 border-dashed border-border-light rounded-2xl p-4 text-center hover:border-primary-orange transition-colors">
-                  <Upload size={24} className="text-gray-400 mx-auto mb-1" />
-                  <p className="text-text-secondary text-sm">Upload Aadhar Card Image</p>
-                  <input type="file" accept="image/*" className="hidden" aria-label="Upload Aadhar card" />
+                  {" / Aadhar Card "}
+                  <span className="text-red-500">*</span>
+                </p>
+                <label className="block cursor-pointer">
+                  {aadharPhoto ? (
+                    <div className="relative inline-block w-full">
+                      <img src={aadharPhoto} alt="Aadhar preview" className="w-full rounded-2xl border-2 border-primary-orange object-cover max-h-40" />
+                      <button type="button" onClick={() => setAadharPhoto(null)}
+                        className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5">
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="border-2 border-dashed border-border-light rounded-2xl p-4 text-center hover:border-primary-orange transition-colors">
+                      <Upload size={24} className="text-gray-400 mx-auto mb-1" />
+                      <p className="text-text-secondary text-sm">Upload Aadhar Card Image</p>
+                    </div>
+                  )}
+                  <input type="file" accept="image/*" className="hidden" aria-label="Upload Aadhar card"
+                    onChange={e => {
+                      const file = e.target.files?.[0];
+                      if (file) setAadharPhoto(URL.createObjectURL(file));
+                    }} />
                 </label>
               </div>
 

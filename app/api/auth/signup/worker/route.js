@@ -9,11 +9,15 @@ export async function POST(request) {
     const body = await request.json();
     console.log("Worker signup called with body:", JSON.stringify(body));
 
-    const { mobile, name, category, subcategory, gender, experience, serviceType, city, area, token } = body;
+    const { mobile, name, category, subcategory, gender, experience, serviceType, city, area, token, aadharPhoto } = body;
     const location = { city: city || "", address: area || "" };
 
     if (!mobile || !name) {
       return error("mobile and name are required");
+    }
+
+    if (!aadharPhoto) {
+      return error('आधार कार्ड जरूरी है / Aadhar card is required', 400);
     }
 
     if (!token) return error("OTP verification required before signup");
@@ -77,7 +81,23 @@ export async function POST(request) {
       worker: { id: worker._id, name, status: "pending" },
     });
   } catch (err) {
-    console.error("worker signup error:", err);
-    return error("Server error", 500);
+    console.error('[WORKER_SIGNUP] Full error:', {
+      message: err.message,
+      code: err.code,
+      name: err.name,
+      stack: err.stack,
+    });
+
+    if (err.code === 11000) {
+      const field = Object.keys(err.keyPattern || {})[0] || 'field';
+      return error(`${field} already registered / पहले से registered है`, 409);
+    }
+
+    if (err.name === 'ValidationError') {
+      const messages = Object.values(err.errors).map(e => e.message).join(', ');
+      return error(`Validation failed: ${messages}`, 400);
+    }
+
+    return error(`Server error: ${err.message}`, 500);
   }
 }
