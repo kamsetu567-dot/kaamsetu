@@ -19,12 +19,13 @@ export default function OTPVerification({
   const tokenAuth = process.env.NEXT_PUBLIC_MSG91_TOKEN_AUTH;
 
   useEffect(() => {
-    if (!document.querySelector(`script[src="${SCRIPT_SRC}"]`)) {
-      const script = document.createElement("script");
-      script.src = SCRIPT_SRC;
-      script.async = true;
-      document.body.appendChild(script);
-    }
+    const script = document.createElement("script");
+    script.src = SCRIPT_SRC;
+    script.defer = false;
+    script.async = false;
+    script.onload = () => console.log("MSG91 script loaded");
+    script.onerror = () => console.log("MSG91 script failed to load");
+    document.head.appendChild(script);
   }, []);
 
   function initializeWidget() {
@@ -86,6 +87,7 @@ export default function OTPVerification({
   }
 
   function handleClick() {
+    console.log('Button clicked, initSendOTP:', typeof window.initSendOTP);
     if (!window.initSendOTP) {
       toast.error("OTP service not available. Please refresh the page / OTP सेवा उपलब्ध नहीं। Page refresh करें");
       return;

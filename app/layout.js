@@ -1,5 +1,6 @@
 import { Inter } from "next/font/google";
 import { Noto_Sans_Devanagari } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import { AuthProvider } from "@/lib/context/AuthContext";
 import { WorkerStatusProvider } from "@/lib/context/WorkerStatusContext";
@@ -35,6 +36,10 @@ export default function RootLayout({ children }) {
   return (
     <html lang="hi" className={`${inter.variable} ${notoDevanagari.variable}`}>
       <body className="min-h-screen flex flex-col bg-neutral-bg text-text-primary antialiased">
+        <Script
+          src="https://control.msg91.com/app/assets/otp-provider/otp-provider.js"
+          strategy="beforeInteractive"
+        />
         <AuthProvider>
           <WorkerStatusProvider>
             <FilterProvider>
