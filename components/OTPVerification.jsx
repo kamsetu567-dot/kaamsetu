@@ -34,6 +34,7 @@ export default function OTPVerification({
   }
 
   async function handleSendOTP(e) {
+    console.log('Send OTP clicked, mobile:', mobile);
     e.preventDefault();
     if (!/^\d{10}$/.test(mobile)) {
       toast.error("10 अंकों का मोबाइल नंबर डालें / Enter 10 digit mobile number");
@@ -146,7 +147,7 @@ export default function OTPVerification({
   return (
     <div className="space-y-4">
       {step === 1 ? (
-        <form onSubmit={handleSendOTP} className="space-y-3">
+        <form onSubmit={(e) => e.preventDefault()} className="space-y-3">
           <div className="flex gap-2">
             <div className="flex items-center bg-gray-100 border-2 border-border-light rounded-xl px-3 font-semibold text-text-secondary text-sm flex-shrink-0">
               +91
@@ -162,7 +163,8 @@ export default function OTPVerification({
             />
           </div>
           <button
-            type="submit"
+            type="button"
+            onClick={handleSendOTP}
             disabled={loading}
             className="w-full bg-primary-navy text-white font-black text-lg py-4 px-6 rounded-2xl flex items-center justify-center gap-3 hover:bg-blue-900 transition-colors disabled:opacity-50 min-h-14"
           >
