@@ -61,9 +61,11 @@ export default function Header() {
 
   const navLinks = [
     { href: '/', label: 'होम' },
-    { href: '/workers', label: 'सेवाएँ' },
-    { href: '/categories', label: 'Category' },
+    { href: '/workers', label: 'सेवाएं' },
+    { href: '/#how-it-works', label: 'कैसे काम करें' },
+    { href: '/workers', label: 'वर्कर्स' },
     { href: '/about', label: 'हमारे बारे में' },
+    { href: '/about#contact', label: 'संपर्क करें' },
   ];
 
   return (

@@ -55,8 +55,14 @@ body {
 }
 
 .gradient-hero {
-  background: linear-gradient(135deg, #1B2D6B 0%, #2438A0 50%, #7C3AED 100%);
+  background: linear-gradient(135deg, #1B2D6B 0%, #2438A0 40%, #7C3AED 80%, #9D44C0 100%);
 }
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.5; transform: scale(1.4); }
+}
+.animate-pulse { animation: pulse-dot 1.8s ease-in-out infinite; }
 
 .card-hover {
   transition: all 0.2s ease;

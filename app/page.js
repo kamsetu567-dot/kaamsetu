@@ -2,12 +2,28 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Hammer, Home, PartyPopper, GraduationCap, Sparkles, Car, Store, Settings, Heart, Shield, Package, Search, MapPin, Users, Briefcase, CheckCircle, MessageCircle, Zap, BadgeCheck, ArrowRight, Wrench } from 'lucide-react';
+import { MapPin, Users, Briefcase, Shield, Search, MessageCircle, Zap, BadgeCheck, ArrowRight, CheckCircle } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { CATEGORIES } from '@/lib/data/categories';
 
-const ICON_MAP = { Hammer, Home, PartyPopper, GraduationCap, Sparkles, Car, Store, Settings, Heart, Shield, Package };
+const SERVICE_TILES = [
+  { emoji: '🔨', nameHi: 'मिस्त्री',          count: '200+', color: 'bg-orange-50',  border: 'border-orange-200', href: '/workers?q=mistri' },
+  { emoji: '🔧', nameHi: 'प्लंबर',            count: '150+', color: 'bg-blue-50',    border: 'border-blue-200',   href: '/workers?q=plumber' },
+  { emoji: '⚡', nameHi: 'इलेक्ट्रीशियन',     count: '180+', color: 'bg-yellow-50',  border: 'border-yellow-200', href: '/workers?q=electrician' },
+  { emoji: '🎨', nameHi: 'पेंटर',             count: '120+', color: 'bg-pink-50',    border: 'border-pink-200',   href: '/workers?q=painter' },
+  { emoji: '🪚', nameHi: 'कारपेंटर',          count: '100+', color: 'bg-amber-50',   border: 'border-amber-200',  href: '/workers?q=carpenter' },
+  { emoji: '🚗', nameHi: 'ड्राइवर',           count: '250+', color: 'bg-cyan-50',    border: 'border-cyan-200',   href: '/workers?category=vehicle-travel' },
+  { emoji: '🍽️', nameHi: 'कैटरर',             count: '80+',  color: 'bg-green-50',   border: 'border-green-200',  href: '/workers?q=caterer' },
+  { emoji: '🎧', nameHi: 'DJ',                count: '60+',  color: 'bg-purple-50',  border: 'border-purple-200', href: '/workers?q=dj' },
+  { emoji: '💃', nameHi: 'डांसर',             count: '50+',  color: 'bg-rose-50',    border: 'border-rose-200',   href: '/workers?q=dancer' },
+  { emoji: '🎤', nameHi: 'सिंगर',             count: '40+',  color: 'bg-indigo-50',  border: 'border-indigo-200', href: '/workers?q=singer' },
+  { emoji: '📚', nameHi: 'ट्यूटर',            count: '90+',  color: 'bg-teal-50',    border: 'border-teal-200',   href: '/workers?category=talent-training' },
+  { emoji: '🏠', nameHi: 'होम केयरटेकर',      count: '70+',  color: 'bg-sky-50',     border: 'border-sky-200',    href: '/workers?category=home-care-living' },
+  { emoji: '🛡️', nameHi: 'बाउंसर (मेल/फीमेल)', count: '60+', color: 'bg-slate-50',  border: 'border-slate-200',  href: '/workers?category=security-event-safety' },
+  { emoji: '🚚', nameHi: 'होम लॉजिस्टिक',     count: '50+',  color: 'bg-lime-50',    border: 'border-lime-200',   href: '/workers?category=packing-logistics' },
+  { emoji: '📦', nameHi: 'पैकिंग सर्विस',     count: '40+',  color: 'bg-orange-50',  border: 'border-orange-100', href: '/workers?q=packing' },
+  { emoji: '✨', nameHi: 'और भी बहुत कुछ',    count: 'अन्य कैटेगरी', color: 'bg-gray-50', border: 'border-gray-200', href: '/categories' },
+];
 
 export default function HomePage() {
   const router = useRouter();
@@ -28,88 +44,122 @@ export default function HomePage() {
     <div className="min-h-screen flex flex-col">
       <Header />
 
-      {/* HERO */}
-      <section className="gradient-hero">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16 md:py-24">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
+      {/* ─── HERO ─────────────────────────────────────────────────── */}
+      <section className="gradient-hero overflow-hidden relative">
+        {/* decorative dots */}
+        <div className="absolute inset-0 pointer-events-none">
+          {[...Array(20)].map((_, i) => (
+            <div key={i} className="absolute rounded-full bg-white/5"
+              style={{ width: `${8 + (i % 4) * 4}px`, height: `${8 + (i % 4) * 4}px`, top: `${(i * 17) % 90}%`, left: `${(i * 13 + 5) % 95}%` }} />
+          ))}
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-14 md:py-20 relative">
+          <div className="grid md:grid-cols-2 gap-10 items-center">
+
+            {/* Left — text + search */}
             <div>
-              <div className="inline-flex items-center gap-2 bg-white/10 rounded-full px-4 py-1.5 mb-6">
+              <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur rounded-full px-4 py-1.5 mb-5">
                 <span className="text-brand-yellow text-xs">⭐</span>
                 <span className="text-white/90 text-xs font-medium font-hindi">भारत का #1 लोकल सर्विस प्लेटफ़ॉर्म</span>
               </div>
-              <h1 className="text-4xl md:text-5xl font-black text-white mb-2 font-hindi leading-tight">
+
+              <h1 className="text-4xl md:text-5xl font-black text-white mb-1 font-hindi leading-tight">
                 हर काम, हर जगह
               </h1>
-              <p className="text-2xl font-bold text-brand-yellow mb-4 font-hindi">
+              <h2 className="text-2xl md:text-3xl font-black text-brand-yellow mb-4 font-hindi">
                 सही वर्कर अब एक क्लिक पर!
+              </h2>
+              <p className="text-white/75 mb-1 font-hindi text-sm">
+                मिस्त्री, प्लंबर, कैटरर, डांसर, ट्यूटर — सभी सेवाएँ एक ही जगह
               </p>
-              <p className="text-white/70 mb-1 font-hindi">
-                मिस्त्री, प्लंबर, केटरर, डांसर, ट्यूटर — सभी सेवाएँ एक ही जगह
-              </p>
-              <p className="text-white/50 text-sm mb-8">
+              <p className="text-white/45 text-xs mb-8">
                 Plumber, Caterer, Dancer, Tutor — All services in one place
               </p>
 
               {/* Search */}
-              <form onSubmit={handleSearch} className="bg-white rounded-2xl shadow-2xl p-3 mb-8">
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <select value={searchCategory} onChange={e => setSearchCategory(e.target.value)}
-                    className="sm:w-40 px-3 py-3 rounded-xl border border-gray-200 text-gray-700 text-sm focus:outline-none focus:border-brand-navy bg-white">
-                    <option value="">All Categories</option>
-                    {CATEGORIES.map(c => <option key={c.id} value={c.id}>{c.nameHi}</option>)}
-                  </select>
-                  <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
-                    placeholder="आपको क्या चाहिए? (जैसे — Plumber)"
-                    className="flex-1 px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-brand-navy font-hindi" />
-                  <div className="flex gap-2">
-                    <div className="relative flex-1">
-                      <MapPin size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                      <input type="text" value={searchCity} onChange={e => setSearchCity(e.target.value)}
-                        placeholder="City"
-                        className="w-full pl-8 pr-3 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-brand-navy" />
-                    </div>
-                    <button type="submit"
-                      className="bg-brand-yellow text-brand-navy font-bold px-5 py-3 rounded-xl hover:bg-amber-400 transition-colors whitespace-nowrap font-hindi min-h-0">
-                      खोजें
-                    </button>
+              <form onSubmit={handleSearch}
+                className="bg-white rounded-2xl shadow-2xl p-2.5 mb-7 flex flex-col sm:flex-row gap-2">
+                <select value={searchCategory} onChange={e => setSearchCategory(e.target.value)}
+                  className="sm:w-36 px-3 py-2.5 rounded-xl border border-gray-100 text-gray-600 text-sm focus:outline-none focus:border-brand-navy bg-gray-50 font-hindi">
+                  <option value="">सभी कैटेगरी</option>
+                  <option value="construction-repair">मिस्त्री / प्लंबर</option>
+                  <option value="event-services">इवेंट सेवाएँ</option>
+                  <option value="home-services">घरेलू सेवाएँ</option>
+                  <option value="talent-training">ट्यूटर / ट्रेनर</option>
+                  <option value="vehicle-travel">ड्राइवर / वाहन</option>
+                  <option value="beauty-personal-care">ब्यूटी सर्विस</option>
+                  <option value="repair-technical">रिपेयर सेवाएँ</option>
+                </select>
+
+                <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
+                  placeholder="आपको क्या चाहिए? (जैसे — Plumber, Painter)"
+                  className="flex-1 px-4 py-2.5 rounded-xl border border-gray-100 bg-gray-50 text-sm focus:outline-none focus:border-brand-navy font-hindi" />
+
+                <div className="flex gap-2">
+                  <div className="relative">
+                    <MapPin size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <input type="text" value={searchCity} onChange={e => setSearchCity(e.target.value)}
+                      placeholder="आपका शहर"
+                      className="w-28 pl-8 pr-3 py-2.5 rounded-xl border border-gray-100 bg-gray-50 text-sm focus:outline-none focus:border-brand-navy font-hindi" />
                   </div>
+                  <button type="submit"
+                    className="bg-brand-yellow text-brand-navy font-bold px-5 py-2.5 rounded-xl hover:bg-amber-400 transition-colors font-hindi text-sm whitespace-nowrap">
+                    खोजें
+                  </button>
                 </div>
               </form>
 
               {/* Stats */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="flex flex-wrap gap-x-6 gap-y-2">
                 {[
-                  { icon: Users, val: '1000+', label: 'वर्कर्स' },
-                  { icon: Briefcase, val: '500+', label: 'दैनिक जॉब्स' },
-                  { icon: Shield, val: '50+', label: 'कैटेगरी' },
-                  { icon: MapPin, val: '100+', label: 'शहरों में सेवा' },
+                  { icon: '👷', val: '1000+', label: 'वर्कर्स' },
+                  { icon: '💼', val: '500+',  label: 'दैनिक जॉब्स' },
+                  { icon: '🏷️', val: '50+',   label: 'कैटेगरी' },
+                  { icon: '📍', val: '100+',  label: 'शहरों में सेवा' },
                 ].map(s => (
                   <div key={s.label} className="flex items-center gap-2">
-                    <s.icon size={16} className="text-brand-yellow flex-shrink-0" />
+                    <span className="text-base">{s.icon}</span>
                     <div>
-                      <p className="text-white font-bold text-sm">{s.val}</p>
-                      <p className="text-white/60 text-xs font-hindi">{s.label}</p>
+                      <span className="text-white font-bold text-sm">{s.val} </span>
+                      <span className="text-white/60 text-xs font-hindi">{s.label}</span>
                     </div>
                   </div>
                 ))}
               </div>
-
-              <div className="flex flex-wrap gap-3 mt-8">
-                <Link href="/auth/select-role"
-                  className="bg-brand-yellow text-brand-navy font-bold px-6 py-3 rounded-xl hover:bg-amber-400 transition-colors font-hindi">
-                  काम करवाएँ / Hire Worker
-                </Link>
-                <Link href="/auth/select-role"
-                  className="border-2 border-white text-white font-bold px-6 py-3 rounded-xl hover:bg-white/10 transition-colors font-hindi">
-                  काम ढूंढें / Find Work
-                </Link>
-              </div>
             </div>
 
-            <div className="hidden md:flex items-center justify-center">
-              <div className="w-72 h-72 rounded-full bg-white/10 border-4 border-white/20 flex items-center justify-center">
-                <div className="w-52 h-52 rounded-full bg-white/10 border-4 border-brand-yellow/30 flex items-center justify-center">
-                  <Wrench size={80} className="text-brand-yellow" />
+            {/* Right — worker illustration */}
+            <div className="hidden md:flex items-end justify-center relative">
+              {/* glowing circle backdrop */}
+              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-72 h-72 rounded-full"
+                style={{ background: 'radial-gradient(circle, rgba(245,166,35,0.25) 0%, transparent 70%)' }} />
+
+              {/* main illustration card */}
+              <div className="relative z-10 flex flex-col items-center">
+                {/* worker avatar */}
+                <div className="w-56 h-64 rounded-3xl flex flex-col items-center justify-end pb-4 relative overflow-hidden"
+                  style={{ background: 'linear-gradient(160deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.04) 100%)', border: '1.5px solid rgba(255,255,255,0.15)', backdropFilter: 'blur(12px)' }}>
+                  {/* hard hat */}
+                  <div className="absolute top-5 left-1/2 -translate-x-1/2 text-7xl leading-none select-none">👷</div>
+                  {/* tool belt row */}
+                  <div className="flex gap-3 text-2xl mt-24 select-none">🔧🔨⚡</div>
+                  {/* name tag */}
+                  <div className="mt-3 bg-brand-yellow/90 text-brand-navy text-xs font-bold px-4 py-1.5 rounded-full font-hindi">
+                    वेरिफाइड वर्कर ✓
+                  </div>
+                </div>
+
+                {/* floating badges */}
+                <div className="absolute -top-3 -right-4 bg-white rounded-2xl shadow-lg px-3 py-2 text-xs font-bold text-green-600 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse inline-block" />
+                  <span>Available Now</span>
+                </div>
+                <div className="absolute bottom-20 -left-6 bg-white rounded-2xl shadow-lg px-3 py-2 text-xs font-bold text-brand-navy flex items-center gap-1.5">
+                  ⭐ <span>4.9 Rating</span>
+                </div>
+                <div className="absolute top-20 -left-5 bg-brand-yellow rounded-xl shadow-lg px-3 py-1.5 text-xs font-bold text-brand-navy">
+                  🏆 Top Rated
                 </div>
               </div>
             </div>
@@ -117,65 +167,121 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* CATEGORIES */}
-      <section className="bg-brand-bg py-16">
+      {/* ─── POPULAR SERVICES ─────────────────────────────────────── */}
+      <section className="bg-white py-14">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          {/* section header with decorative lines */}
           <div className="text-center mb-10">
-            <h2 className="text-3xl font-black text-brand-navy font-hindi mb-1">लोकप्रिय सेवाएँ</h2>
-            <p className="text-gray-500 text-sm">Popular Services</p>
-            <p className="text-gray-500 text-sm mt-1 font-hindi">आपको जो भी काम चाहिए, हमारे पास सही वर्कर है</p>
+            <div className="flex items-center justify-center gap-3 mb-2">
+              <div className="h-px w-16 bg-brand-navy/30" />
+              <h2 className="text-2xl md:text-3xl font-black text-brand-navy font-hindi">लोकप्रिय सेवाएं</h2>
+              <div className="h-px w-16 bg-brand-navy/30" />
+            </div>
+            <p className="text-gray-500 text-sm font-hindi">आपको जो भी काम चाहिए, हमारे पास सही वर्कर है</p>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-            {CATEGORIES.map(cat => {
-              const Icon = ICON_MAP[cat.icon] || Hammer;
-              return (
-                <Link key={cat.id} href={`/workers?category=${cat.id}`}
-                  className="bg-white rounded-2xl p-5 shadow-sm card-hover border border-gray-100 group block">
-                  <div className={`w-12 h-12 rounded-xl ${cat.color} flex items-center justify-center mb-3`}>
-                    <Icon size={22} />
-                  </div>
-                  <p className="font-bold text-brand-navy text-sm font-hindi mb-0.5">{cat.nameHi}</p>
-                  <p className="text-gray-400 text-xs mb-2">{cat.nameEn}</p>
-                  <p className="text-gray-500 text-xs font-hindi">200+ वर्कर</p>
-                  <ArrowRight size={14} className="text-brand-navy mt-2 opacity-0 group-hover:opacity-100 transition-opacity" />
-                </Link>
-              );
-            })}
+
+          <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-3">
+            {SERVICE_TILES.map(tile => (
+              <Link key={tile.nameHi} href={tile.href}
+                className={`${tile.color} ${tile.border} border rounded-2xl p-3 flex flex-col items-center text-center card-hover`}>
+                <span className="text-3xl mb-2 leading-none">{tile.emoji}</span>
+                <p className="text-brand-navy font-bold text-xs font-hindi leading-tight mb-1">{tile.nameHi}</p>
+                <p className="text-gray-400 text-[10px] font-hindi">{tile.count} वर्कर</p>
+              </Link>
+            ))}
           </div>
+
           <div className="text-center mt-8">
             <Link href="/categories"
-              className="inline-flex items-center gap-2 bg-brand-navy text-white font-bold px-6 py-3 rounded-xl hover:bg-brand-navy-dark transition-colors font-hindi">
-              सभी सेवाएँ देखें / View All <ArrowRight size={16} />
+              className="inline-flex items-center gap-2 bg-brand-navy text-white font-bold px-6 py-2.5 rounded-xl hover:bg-brand-navy-dark transition-colors font-hindi text-sm">
+              सभी सेवाएँ देखें <ArrowRight size={15} />
             </Link>
           </div>
         </div>
       </section>
 
-      {/* HOW IT WORKS */}
-      <section id="how-it-works" className="bg-brand-navy py-16">
+      {/* ─── WHY KAAMSETU ─────────────────────────────────────────── */}
+      <section className="bg-brand-bg py-14">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-black text-white font-hindi mb-1">कैसे काम करता है?</h2>
-            <p className="text-white/60 text-sm">How It Works</p>
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* left card: Why choose */}
+            <div className="bg-brand-navy rounded-3xl p-8 text-white">
+              <h3 className="text-2xl font-black font-hindi mb-6">KaamSetu क्यों चुनें?</h3>
+              <div className="grid grid-cols-2 gap-4">
+                {[
+                  { icon: '✅', hi: 'वेरिफाइड वर्कर', sub: 'सभी वर्कर वेरिफाइड हैं' },
+                  { icon: '💬', hi: 'सीधी बातचीत',   sub: 'वर्कर से सीधा संपर्क करें' },
+                  { icon: '🔒', hi: 'सुरक्षित और भरोसेमंद', sub: 'आपकी सुरक्षा हमारी प्राथमिकता' },
+                  { icon: '⚡', hi: 'तेज़ और आसान',   sub: 'कुछ ही क्लिक में बुक करें' },
+                ].map(f => (
+                  <div key={f.hi} className="flex gap-3 items-start">
+                    <span className="text-xl mt-0.5 flex-shrink-0">{f.icon}</span>
+                    <div>
+                      <p className="font-bold text-sm font-hindi">{f.hi}</p>
+                      <p className="text-white/55 text-xs font-hindi">{f.sub}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* right card: Worker CTA */}
+            <div className="rounded-3xl p-8 relative overflow-hidden"
+              style={{ background: 'linear-gradient(135deg, #F5A623 0%, #F59E0B 100%)' }}>
+              {/* decorative worker silhouette */}
+              <div className="absolute right-4 bottom-0 text-8xl opacity-20 select-none">👷</div>
+
+              <div className="relative z-10">
+                <p className="text-brand-navy/70 text-sm font-hindi mb-1">Become a Worker</p>
+                <h3 className="text-2xl font-black text-brand-navy font-hindi mb-1">
+                  वर्कर बनें और कमाई शुरू करें
+                </h3>
+                <p className="text-brand-navy font-bold text-lg mb-4 font-hindi">
+                  सिर्फ ₹199 में पूरा महीना
+                </p>
+                <ul className="space-y-2 mb-6">
+                  {['रोज नए काम पाएं', 'अपने प्रोफाइल से क्लाइंट पाएं'].map(item => (
+                    <li key={item} className="flex items-center gap-2 text-brand-navy font-hindi text-sm">
+                      <CheckCircle size={15} className="flex-shrink-0" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+                <Link href="/auth/signup/worker"
+                  className="inline-block bg-brand-navy text-white font-bold px-6 py-2.5 rounded-xl hover:bg-brand-navy-dark transition-colors font-hindi text-sm">
+                  अभी रजिस्टर करें
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── HOW IT WORKS ─────────────────────────────────────────── */}
+      <section id="how-it-works" className="bg-brand-navy py-14">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="text-center mb-10">
+            <h2 className="text-2xl md:text-3xl font-black text-white font-hindi mb-1">कैसे काम करता है?</h2>
+            <p className="text-white/50 text-sm">How It Works — 3 simple steps</p>
           </div>
           <div className="grid md:grid-cols-3 gap-8">
             {[
-              { icon: Search, step: '1', hi: 'सेवा चुनें', en: 'Choose Service', desc: 'अपनी जरूरत के अनुसार category और service चुनें' },
-              { icon: Briefcase, step: '2', hi: 'Request भेजें', en: 'Send Request', desc: 'अपना नाम, मोबाइल और काम की जानकारी भरें' },
-              { icon: MessageCircle, step: '3', hi: 'Worker से मिलें', en: 'Meet Worker', desc: 'हम आपको verified worker से तुरंत connect करेंगे' },
+              { emoji: '🔍', step: '1', hi: 'सेवा चुनें',     en: 'Choose Service',  desc: 'अपनी जरूरत के अनुसार category और service चुनें' },
+              { emoji: '📝', step: '2', hi: 'Request भेजें',  en: 'Send Request',    desc: 'अपना नाम, मोबाइल और काम की जानकारी भरें' },
+              { emoji: '🤝', step: '3', hi: 'Worker से मिलें', en: 'Meet Worker',    desc: 'हम आपको verified worker से तुरंत connect करेंगे' },
             ].map((s, i) => (
               <div key={i} className="text-center">
                 <div className="relative inline-block mb-4">
-                  <div className="w-16 h-16 bg-brand-yellow rounded-2xl flex items-center justify-center">
-                    <s.icon size={28} className="text-brand-navy" />
+                  <div className="w-16 h-16 bg-brand-yellow rounded-2xl flex items-center justify-center text-3xl">
+                    {s.emoji}
                   </div>
                   <span className="absolute -top-2 -right-2 w-7 h-7 bg-white rounded-full flex items-center justify-center text-brand-navy font-black text-sm">
                     {s.step}
                   </span>
                 </div>
-                <h3 className="text-white font-bold text-lg font-hindi mb-1">{s.hi}</h3>
-                <p className="text-white/50 text-xs mb-2">{s.en}</p>
-                <p className="text-white/70 text-sm font-hindi">{s.desc}</p>
+                <h3 className="text-white font-bold text-lg font-hindi mb-0.5">{s.hi}</h3>
+                <p className="text-white/40 text-xs mb-2">{s.en}</p>
+                <p className="text-white/65 text-sm font-hindi">{s.desc}</p>
               </div>
             ))}
           </div>
@@ -184,62 +290,6 @@ export default function HomePage() {
               className="bg-brand-yellow text-brand-navy font-bold px-8 py-3 rounded-xl hover:bg-amber-400 transition-colors font-hindi">
               अभी शुरू करें / Get Started
             </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* WHY KAAMSETU */}
-      <section className="bg-white py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="text-center mb-10">
-            <h2 className="text-3xl font-black text-brand-navy font-hindi mb-1">KaamSetu क्यों चुनें?</h2>
-            <p className="text-gray-500 text-sm">Why KaamSetu?</p>
-          </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              { icon: BadgeCheck, hi: 'वेरिफाइड वर्कर', en: 'Verified Workers', bg: 'bg-blue-50', color: 'text-brand-navy' },
-              { icon: MessageCircle, hi: 'सीधी बातचीत', en: 'Direct Contact', bg: 'bg-green-50', color: 'text-green-600' },
-              { icon: Shield, hi: 'सुरक्षित और भरोसेमंद', en: 'Safe & Trusted', bg: 'bg-purple-50', color: 'text-purple-600' },
-              { icon: Zap, hi: 'तेज़ और आसान', en: 'Fast & Easy', bg: 'bg-yellow-50', color: 'text-brand-yellow' },
-            ].map(f => (
-              <div key={f.en} className="text-center p-6 rounded-2xl border border-gray-100 card-hover">
-                <div className={`w-14 h-14 ${f.bg} rounded-2xl flex items-center justify-center mx-auto mb-4`}>
-                  <f.icon size={26} className={f.color} />
-                </div>
-                <h3 className="font-bold text-brand-navy font-hindi mb-1">{f.hi}</h3>
-                <p className="text-gray-400 text-sm">{f.en}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* WORKER CTA */}
-      <section className="py-16 px-4" style={{ background: 'linear-gradient(135deg,#F5A623 0%,#F59E0B 100%)' }}>
-        <div className="max-w-4xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-10 items-center">
-            <div>
-              <h2 className="text-3xl font-black text-brand-navy font-hindi mb-1">वर्कर बनें और कमाई शुरू करें</h2>
-              <p className="text-brand-navy/70 text-sm mb-1">Become a Worker</p>
-              <p className="text-brand-navy font-bold text-lg mb-5">सिर्फ ₹199 में पूरा महीना / Only ₹199/month</p>
-              <ul className="space-y-2 mb-6">
-                {['रोज नए काम पाएँ', 'अपने प्रोफाइल से क्लाइंट पाएँ', 'सीधे संपर्क करें'].map(item => (
-                  <li key={item} className="flex items-center gap-2 text-brand-navy font-hindi text-sm">
-                    <CheckCircle size={16} className="text-brand-navy flex-shrink-0" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <Link href="/auth/select-role"
-                className="inline-block bg-brand-navy text-white font-bold px-6 py-3 rounded-xl hover:bg-brand-navy-dark transition-colors font-hindi">
-                अभी Register करें
-              </Link>
-            </div>
-            <div className="hidden md:flex justify-center">
-              <div className="w-48 h-48 rounded-full bg-brand-navy/10 flex items-center justify-center">
-                <Wrench size={64} className="text-brand-navy" />
-              </div>
-            </div>
           </div>
         </div>
       </section>
