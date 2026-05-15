@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { CheckCircle, Upload, X, User } from "lucide-react";
@@ -75,19 +75,19 @@ export default function WorkerProfileEditPage() {
       {/* Header */}
       <div>
         <h2
-          className="text-xl font-black text-text-primary"
+          className="text-xl font-black text-brand-navy"
           style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
         >
           प्रोफ़ाइल संपादित करें
         </h2>
-        <p className="text-text-secondary text-sm mt-0.5">Edit Profile</p>
+        <p className="text-gray-500 text-sm mt-0.5">Edit Profile</p>
       </div>
 
       {saved && (
-        <div className="flex items-center gap-3 bg-green-50 border-2 border-primary-green rounded-2xl px-4 py-3">
-          <CheckCircle size={20} className="text-primary-green flex-shrink-0" />
+        <div className="flex items-center gap-3 bg-green-50 border-2 border-green-500 rounded-2xl px-4 py-3">
+          <CheckCircle size={20} className="text-green-600 flex-shrink-0" />
           <p
-            className="text-primary-green font-semibold"
+            className="text-green-600 font-semibold"
             style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
           >
             Profile save हो गई! / Profile saved!
@@ -98,24 +98,24 @@ export default function WorkerProfileEditPage() {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
 
         {/* Profile photo */}
-        <div className="bg-white rounded-3xl border-2 border-border-light p-5">
+        <div className="bg-white rounded-3xl border-2 border-gray-200 p-5">
           <h3
-            className="font-bold text-text-primary mb-3"
+            className="font-bold text-brand-navy mb-3"
             style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
           >
             प्रोफाइल फ़ोटो / Profile Photo
           </h3>
           <div className="flex items-center gap-4">
-            <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center border-2 border-border-light flex-shrink-0">
+            <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center border-2 border-gray-200 flex-shrink-0">
               {profilePhoto ? (
                 <img src={profilePhoto} alt="Profile preview" className="w-full h-full object-cover" />
               ) : (
                 <User size={36} className="text-gray-400" />
               )}
             </div>
-            <label className="cursor-pointer flex items-center gap-2 border-2 border-dashed border-border-light rounded-xl px-4 py-3 hover:border-primary-orange transition-colors">
-              <Upload size={18} className="text-text-secondary" />
-              <span className="text-text-secondary text-sm">
+            <label className="cursor-pointer flex items-center gap-2 border-2 border-dashed border-gray-200 rounded-xl px-4 py-3 hover:border-orange-500 transition-colors">
+              <Upload size={18} className="text-gray-500" />
+              <span className="text-gray-500 text-sm">
                 <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>फ़ोटो बदलें</span>
                 {" / Change"}
               </span>
@@ -130,9 +130,9 @@ export default function WorkerProfileEditPage() {
         </div>
 
         {/* Basic info */}
-        <div className="bg-white rounded-3xl border-2 border-border-light p-5 space-y-4">
+        <div className="bg-white rounded-3xl border-2 border-gray-200 p-5 space-y-4">
           <h3
-            className="font-bold text-text-primary"
+            className="font-bold text-brand-navy"
             style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
           >
             बेसिक जानकारी / Basic Info
@@ -142,7 +142,7 @@ export default function WorkerProfileEditPage() {
             <input
               {...register("name", { required: "नाम जरूरी है" })}
               placeholder="पूरा नाम / Full Name"
-              className="w-full px-4 py-4 text-base border-2 border-border-light rounded-xl focus:outline-none focus:border-primary-orange"
+              className="w-full px-4 py-4 text-base border-2 border-gray-200 rounded-xl focus:outline-none focus:border-brand-navy"
             />
             {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>}
           </FieldWrapper>
@@ -152,14 +152,14 @@ export default function WorkerProfileEditPage() {
               <input
                 {...register("city")}
                 placeholder="City"
-                className="w-full px-4 py-3 text-sm border-2 border-border-light rounded-xl focus:outline-none focus:border-primary-orange"
+                className="w-full px-4 py-3 text-sm border-2 border-gray-200 rounded-xl focus:outline-none focus:border-brand-navy"
               />
             </FieldWrapper>
             <FieldWrapper labelHi="एरिया" labelEn="Area">
               <input
                 {...register("area")}
                 placeholder="Mohalla / Area"
-                className="w-full px-4 py-3 text-sm border-2 border-border-light rounded-xl focus:outline-none focus:border-primary-orange"
+                className="w-full px-4 py-3 text-sm border-2 border-gray-200 rounded-xl focus:outline-none focus:border-brand-navy"
               />
             </FieldWrapper>
           </div>
@@ -170,15 +170,15 @@ export default function WorkerProfileEditPage() {
               type="number"
               min={0}
               placeholder="0"
-              className="w-full px-4 py-4 text-base border-2 border-border-light rounded-xl focus:outline-none focus:border-primary-orange"
+              className="w-full px-4 py-4 text-base border-2 border-gray-200 rounded-xl focus:outline-none focus:border-brand-navy"
             />
           </FieldWrapper>
         </div>
 
         {/* Profession */}
-        <div className="bg-white rounded-3xl border-2 border-border-light p-5 space-y-4">
+        <div className="bg-white rounded-3xl border-2 border-gray-200 p-5 space-y-4">
           <h3
-            className="font-bold text-text-primary"
+            className="font-bold text-brand-navy"
             style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
           >
             काम की जानकारी / Profession
@@ -204,9 +204,9 @@ export default function WorkerProfileEditPage() {
         </div>
 
         {/* Gender */}
-        <div className="bg-white rounded-3xl border-2 border-border-light p-5 space-y-3">
+        <div className="bg-white rounded-3xl border-2 border-gray-200 p-5 space-y-3">
           <h3
-            className="font-bold text-text-primary"
+            className="font-bold text-brand-navy"
             style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
           >
             लिंग / Gender
@@ -219,8 +219,8 @@ export default function WorkerProfileEditPage() {
                 onClick={() => setGender(g.value)}
                 className={`flex-1 py-3 rounded-xl border-2 font-semibold transition-colors ${
                   gender === g.value
-                    ? "bg-primary-blue text-white border-primary-blue"
-                    : "border-border-light text-text-secondary hover:border-primary-blue"
+                    ? "bg-brand-navy text-white border-brand-navy"
+                    : "border-gray-200 text-gray-500 hover:border-brand-navy"
                 }`}
                 aria-label={g.en}
               >
@@ -232,9 +232,9 @@ export default function WorkerProfileEditPage() {
         </div>
 
         {/* Service Type */}
-        <div className="bg-white rounded-3xl border-2 border-border-light p-5 space-y-3">
+        <div className="bg-white rounded-3xl border-2 border-gray-200 p-5 space-y-3">
           <h3
-            className="font-bold text-text-primary"
+            className="font-bold text-brand-navy"
             style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
           >
             सेवा का प्रकार / Service Type
@@ -251,8 +251,8 @@ export default function WorkerProfileEditPage() {
                 onClick={() => setServiceType(st.value)}
                 className={`w-full py-3 px-4 rounded-xl border-2 font-semibold text-left transition-colors ${
                   serviceType === st.value
-                    ? "bg-primary-green text-white border-primary-green"
-                    : "border-border-light text-text-secondary hover:border-primary-green"
+                    ? "bg-green-600 text-white border-green-600"
+                    : "border-gray-200 text-gray-500 hover:border-green-600"
                 }`}
                 aria-label={st.en}
               >
@@ -264,16 +264,16 @@ export default function WorkerProfileEditPage() {
         </div>
 
         {/* Work Status toggle */}
-        <div className="bg-white rounded-3xl border-2 border-border-light p-5 space-y-3">
+        <div className="bg-white rounded-3xl border-2 border-gray-200 p-5 space-y-3">
           <div className="flex items-center justify-between">
             <div>
               <h3
-                className="font-bold text-text-primary"
+                className="font-bold text-brand-navy"
                 style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
               >
                 काम की स्थिति / Work Status
               </h3>
-              <p className="text-text-secondary text-xs mt-0.5">
+              <p className="text-gray-500 text-xs mt-0.5">
                 Current: <WorkerStatusBadge status={status} size="sm" />
               </p>
             </div>
@@ -283,7 +283,7 @@ export default function WorkerProfileEditPage() {
               type="button"
               onClick={() => updateStatus("free")}
               className={`flex-1 py-3 rounded-xl border-2 font-semibold transition-colors ${
-                status === "free" ? "bg-primary-green text-white border-primary-green" : "border-border-light text-text-secondary"
+                status === "free" ? "bg-green-600 text-white border-green-600" : "border-gray-200 text-gray-500"
               }`}
             >
               🟢 <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>खाली हूँ / Free</span>
@@ -292,7 +292,7 @@ export default function WorkerProfileEditPage() {
               type="button"
               onClick={() => updateStatus("working")}
               className={`flex-1 py-3 rounded-xl border-2 font-semibold transition-colors ${
-                status === "working" ? "bg-working-orange text-white border-working-orange" : "border-border-light text-text-secondary"
+                status === "working" ? "bg-orange-500 text-white border-orange-500" : "border-gray-200 text-gray-500"
               }`}
             >
               🔴 <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>व्यस्त / Working</span>
@@ -305,7 +305,7 @@ export default function WorkerProfileEditPage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-primary-blue text-white font-black text-xl py-5 rounded-2xl hover:bg-blue-700 transition-colors disabled:opacity-50 min-h-16"
+          className="w-full bg-brand-navy text-white font-black text-xl py-5 rounded-2xl hover:opacity-90 transition-colors disabled:opacity-50 min-h-16"
           aria-label="Save profile"
         >
           {loading ? "Save हो रहा है..." : (
@@ -322,9 +322,9 @@ export default function WorkerProfileEditPage() {
 function FieldWrapper({ labelHi, labelEn, children }) {
   return (
     <div>
-      <label className="block mb-1.5 font-semibold text-text-primary">
+      <label className="block mb-1.5 font-semibold text-brand-navy">
         <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>{labelHi}</span>
-        {labelEn && <span className="text-text-secondary font-normal"> / {labelEn}</span>}
+        {labelEn && <span className="text-gray-500 font-normal"> / {labelEn}</span>}
       </label>
       {children}
     </div>

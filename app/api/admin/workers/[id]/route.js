@@ -29,7 +29,7 @@ export async function PATCH(request, { params }) {
     if (action === "block") {
       worker.status = "blocked";
       await worker.save();
-      await User.findOneAndUpdate({ mobile: worker.mobile }, { status: "blocked" });
+      await User.findByIdAndUpdate(worker.user, { status: "blocked" });
       return ok({ message: "Worker blocked", status: "blocked" });
     }
 

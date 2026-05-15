@@ -15,6 +15,9 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
     const search = searchParams.get("search");
+    const page = Math.max(1, parseInt(searchParams.get("page")) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit")) || 20));
+    const skip = (page - 1) * limit;
 
     const filter = {};
     if (status && status !== "all") filter.status = status;
@@ -25,10 +28,10 @@ export async function GET(request) {
       ];
     }
 
-    const workers = await Worker.find(filter)
-      .sort({ createdAt: -1 })
-      .limit(100)
-      .lean();
+    const [workers, total] = await Promise.all([
+      Worker.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+      Worker.countDocuments(filter),
+    ]);
 
     const formatted = workers.map(w => ({
       id: w._id,
@@ -45,7 +48,11 @@ export async function GET(request) {
       createdAt: w.createdAt,
     }));
 
-    return ok({ workers: formatted });
+    const pages = Math.ceil(total / limit);
+    return ok({
+      workers: formatted,
+      pagination: { total, page, limit, pages, hasNext: page < pages, hasPrev: page > 1 },
+    });
   } catch (err) {
     console.error("admin GET workers error:", err);
     return error("Server error", 500);

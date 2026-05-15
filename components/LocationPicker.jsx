@@ -31,10 +31,10 @@ export default function LocationPicker({ value = "", onChange, error = "", place
     <div>
       <div
         className={`flex items-center border-2 rounded-xl overflow-hidden bg-white transition-colors ${
-          error ? "border-red-400" : "border-border-light focus-within:border-primary-orange"
+          error ? "border-red-400" : "border-gray-200 focus-within:border-brand-navy"
         }`}
       >
-        <MapPin size={20} className="ml-4 text-text-secondary flex-shrink-0" />
+        <MapPin size={20} className="ml-4 text-gray-400 flex-shrink-0" />
         <input
           type="text"
           value={value}
@@ -47,7 +47,7 @@ export default function LocationPicker({ value = "", onChange, error = "", place
           type="button"
           onClick={useMyLocation}
           disabled={locating}
-          className="px-4 py-4 text-primary-blue font-semibold text-sm border-l-2 border-border-light hover:bg-blue-50 transition-colors flex items-center gap-1 whitespace-nowrap"
+          className="px-4 py-4 text-brand-navy font-semibold text-sm border-l-2 border-gray-200 hover:bg-gray-50 transition-colors flex items-center gap-1 whitespace-nowrap"
           aria-label="Use my current location"
         >
           {locating ? <Loader2 size={16} className="animate-spin" /> : <MapPin size={16} />}

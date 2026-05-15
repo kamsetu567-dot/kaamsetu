@@ -6,7 +6,7 @@ function SkeletonBox({ className = "" }) {
 
 export function WorkerCardSkeleton() {
   return (
-    <div className="bg-white rounded-2xl border border-border-light p-4 space-y-3">
+    <div className="bg-white rounded-2xl border border-gray-200 p-4 space-y-3">
       <div className="flex gap-3">
         <SkeletonBox className="w-16 h-16 rounded-full flex-shrink-0" />
         <div className="flex-1 space-y-2">
@@ -38,7 +38,7 @@ export function TableRowSkeleton({ cols = 5 }) {
 
 export function StatCardSkeleton() {
   return (
-    <div className="bg-white rounded-2xl border border-border-light p-5 space-y-3">
+    <div className="bg-white rounded-2xl border border-gray-200 p-5 space-y-3">
       <SkeletonBox className="h-4 w-1/2" />
       <SkeletonBox className="h-8 w-1/3" />
     </div>

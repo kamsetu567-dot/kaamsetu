@@ -135,11 +135,9 @@ export default function OTPVerification({
 
   if (isVerified) {
     return (
-      <div className="flex items-center gap-2 text-primary-green font-semibold py-3">
+      <div className="flex items-center gap-2 text-green-700 font-semibold py-3">
         <span className="text-xl">✅</span>
-        <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>
-          मोबाइल वेरीफाई हो गया / Mobile Verified
-        </span>
+        <span className="font-hindi">मोबाइल वेरीफाई हो गया / Mobile Verified</span>
       </div>
     );
   }
@@ -149,7 +147,7 @@ export default function OTPVerification({
       {step === 1 ? (
         <form onSubmit={(e) => e.preventDefault()} className="space-y-3">
           <div className="flex gap-2">
-            <div className="flex items-center bg-gray-100 border-2 border-border-light rounded-xl px-3 font-semibold text-text-secondary text-sm flex-shrink-0">
+            <div className="flex items-center bg-gray-100 border-2 border-gray-200 rounded-xl px-3 font-semibold text-gray-500 text-sm flex-shrink-0">
               +91
             </div>
             <input
@@ -159,14 +157,14 @@ export default function OTPVerification({
               value={mobile}
               onChange={(e) => setMobile(e.target.value.replace(/\D/g, "").slice(0, 10))}
               placeholder="मोबाइल नंबर / Mobile number"
-              className="flex-1 px-4 py-4 text-base border-2 border-border-light rounded-xl focus:outline-none focus:border-primary-orange"
+              className="flex-1 px-4 py-4 text-base border-2 border-gray-200 rounded-xl focus:outline-none focus:border-brand-navy"
             />
           </div>
           <button
             type="button"
             onClick={handleSendOTP}
             disabled={loading}
-            className="w-full bg-primary-navy text-white font-black text-lg py-4 px-6 rounded-2xl flex items-center justify-center gap-3 hover:bg-blue-900 transition-colors disabled:opacity-50 min-h-14"
+            className="w-full bg-brand-navy text-white font-black text-lg py-4 px-6 rounded-2xl flex items-center justify-center gap-3 hover:opacity-90 transition-opacity disabled:opacity-50 min-h-14"
           >
             {loading ? (
               <>
@@ -176,16 +174,16 @@ export default function OTPVerification({
             ) : (
               <>
                 <span>📱</span>
-                <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>{buttonText}</span>
+                <span className="font-hindi">{buttonText}</span>
               </>
             )}
           </button>
         </form>
       ) : (
         <form onSubmit={handleVerify} className="space-y-4">
-          <p className="text-text-secondary text-sm text-center">
+          <p className="text-gray-500 text-sm text-center">
             OTP भेजा गया /{" "}
-            <span className="font-bold text-text-primary">+91{mobile}</span> पर OTP sent
+            <span className="font-bold text-brand-navy">+91{mobile}</span> पर OTP sent
           </p>
           <div className="flex gap-2 justify-center">
             {otp.map((digit, i) => (
@@ -198,14 +196,14 @@ export default function OTPVerification({
                 value={digit}
                 onChange={(e) => handleOtpChange(i, e.target.value.replace(/\D/g, ""))}
                 onKeyDown={(e) => handleOtpKeyDown(i, e)}
-                className="w-11 h-14 text-center text-xl font-bold border-2 border-border-light rounded-xl focus:outline-none focus:border-primary-orange"
+                className="w-11 h-14 text-center text-xl font-bold border-2 border-gray-200 rounded-xl focus:outline-none focus:border-brand-navy"
               />
             ))}
           </div>
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-primary-navy text-white font-black text-lg py-4 px-6 rounded-2xl flex items-center justify-center gap-3 hover:bg-blue-900 transition-colors disabled:opacity-50 min-h-14"
+            className="w-full bg-brand-navy text-white font-black text-lg py-4 px-6 rounded-2xl flex items-center justify-center gap-3 hover:opacity-90 transition-opacity disabled:opacity-50 min-h-14"
           >
             {loading ? (
               <>
@@ -213,14 +211,12 @@ export default function OTPVerification({
                 <span>Verify हो रहा है...</span>
               </>
             ) : (
-              <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>
-                Verify करें / Verify
-              </span>
+              <span className="font-hindi">Verify करें / Verify</span>
             )}
           </button>
           <div className="text-center">
             {resendTimer > 0 ? (
-              <p className="text-text-secondary text-xs">
+              <p className="text-gray-400 text-xs">
                 {resendTimer}s में Resend कर सकते हैं / Resend available in {resendTimer}s
               </p>
             ) : (
@@ -228,11 +224,9 @@ export default function OTPVerification({
                 type="button"
                 onClick={handleResend}
                 disabled={loading}
-                className="text-primary-blue text-sm font-semibold hover:underline"
+                className="text-brand-navy text-sm font-semibold hover:underline"
               >
-                <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>
-                  दोबारा भेजें / Resend
-                </span>
+                <span className="font-hindi">दोबारा भेजें / Resend</span>
               </button>
             )}
           </div>

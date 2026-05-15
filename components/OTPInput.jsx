@@ -43,7 +43,7 @@ export default function OTPInput({ value = "", onChange, length = 6, disabled = 
           onChange={e => handleChange(i, e)}
           onKeyDown={e => handleKeyDown(i, e)}
           disabled={disabled}
-          className="w-12 h-14 text-center text-2xl font-bold border-2 border-border-light rounded-xl focus:border-primary-orange focus:outline-none bg-white"
+          className="w-12 h-14 text-center text-2xl font-bold border-2 border-gray-200 rounded-xl focus:border-brand-navy focus:outline-none bg-white"
           aria-label={`OTP digit ${i + 1}`}
         />
       ))}

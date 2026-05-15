@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -46,47 +46,47 @@ export default function AdminPaymentsPage() {
     <div className="space-y-6 max-w-2xl">
       <div>
         <h1
-          className="text-2xl font-black text-text-primary"
+          className="text-2xl font-black text-brand-navy"
           style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
         >
           भुगतान सेटिंग / Payment Settings
         </h1>
-        <p className="text-text-secondary text-sm mt-0.5">Configure UPI ID, QR code, and bank details for worker subscriptions</p>
+        <p className="text-gray-500 text-sm mt-0.5">Configure UPI ID, QR code, and bank details for worker subscriptions</p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
 
         {/* UPI */}
-        <div className="bg-white rounded-3xl border-2 border-border-light p-5">
+        <div className="bg-white rounded-3xl border-2 border-gray-200 p-5">
           <h2
-            className="font-black text-text-primary mb-4 flex items-center gap-2"
+            className="font-black text-brand-navy mb-4 flex items-center gap-2"
             style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
           >
-            <CreditCard size={18} className="text-primary-blue" />
+            <CreditCard size={18} className="text-blue-600" />
             UPI Details
           </h2>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-semibold text-text-primary mb-1.5">
+              <label className="block text-sm font-semibold text-brand-navy mb-1.5">
                 UPI ID
               </label>
               <input
                 {...register("upiId", { required: "UPI ID required" })}
                 placeholder="yourname@upi"
-                className="w-full border-2 border-border-light rounded-xl px-4 py-3 text-sm outline-none focus:border-primary-blue transition-colors"
+                className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-blue-600 transition-colors"
               />
               {errors.upiId && <p className="text-red-500 text-xs mt-1">{errors.upiId.message}</p>}
             </div>
 
             {/* QR code upload */}
             <div>
-              <label className="block text-sm font-semibold text-text-primary mb-1.5">
+              <label className="block text-sm font-semibold text-brand-navy mb-1.5">
                 QR Code Image / QR कोड
               </label>
               <div className="flex items-start gap-4">
                 {qrPreview ? (
                   <div className="relative w-28 h-28 flex-shrink-0">
-                    <img src={qrPreview} alt="QR Code" className="w-full h-full object-contain border-2 border-border-light rounded-xl" />
+                    <img src={qrPreview} alt="QR Code" className="w-full h-full object-contain border-2 border-gray-200 rounded-xl" />
                     <button
                       type="button"
                       onClick={() => setQrPreview(null)}
@@ -96,11 +96,11 @@ export default function AdminPaymentsPage() {
                     </button>
                   </div>
                 ) : (
-                  <div className="w-28 h-28 flex-shrink-0 border-2 border-dashed border-border-light rounded-xl flex items-center justify-center bg-neutral-bg text-text-secondary">
+                  <div className="w-28 h-28 flex-shrink-0 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center bg-brand-bg text-gray-500">
                     <Upload size={24} />
                   </div>
                 )}
-                <label className="flex items-center gap-2 bg-neutral-bg border-2 border-border-light text-text-primary text-sm font-semibold px-4 py-2.5 rounded-xl cursor-pointer hover:border-primary-blue transition-colors">
+                <label className="flex items-center gap-2 bg-brand-bg border-2 border-gray-200 text-brand-navy text-sm font-semibold px-4 py-2.5 rounded-xl cursor-pointer hover:border-blue-600 transition-colors">
                   <Upload size={16} />
                   Upload QR
                   <input type="file" accept="image/*" onChange={handleQrChange} className="hidden" />
@@ -111,9 +111,9 @@ export default function AdminPaymentsPage() {
         </div>
 
         {/* Bank details */}
-        <div className="bg-white rounded-3xl border-2 border-border-light p-5">
+        <div className="bg-white rounded-3xl border-2 border-gray-200 p-5">
           <h2
-            className="font-black text-text-primary mb-4"
+            className="font-black text-brand-navy mb-4"
             style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
           >
             Bank Details / बैंक जानकारी
@@ -126,11 +126,11 @@ export default function AdminPaymentsPage() {
               { name: "ifsc",          label: "IFSC Code",           placeholder: "e.g. SBIN0001234" },
             ].map(f => (
               <div key={f.name}>
-                <label className="block text-sm font-semibold text-text-primary mb-1.5">{f.label}</label>
+                <label className="block text-sm font-semibold text-brand-navy mb-1.5">{f.label}</label>
                 <input
                   {...register(f.name)}
                   placeholder={f.placeholder}
-                  className="w-full border-2 border-border-light rounded-xl px-4 py-3 text-sm outline-none focus:border-primary-blue transition-colors"
+                  className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-blue-600 transition-colors"
                 />
               </div>
             ))}
@@ -141,7 +141,7 @@ export default function AdminPaymentsPage() {
         <button
           type="submit"
           disabled={submitting}
-          className="flex items-center gap-2 bg-primary-navy text-white font-black px-8 py-3.5 rounded-2xl hover:bg-blue-900 transition-colors disabled:opacity-60"
+          className="flex items-center gap-2 bg-brand-navy text-white font-black px-8 py-3.5 rounded-2xl hover:bg-blue-900 transition-colors disabled:opacity-60"
         >
           {saved ? <CheckCircle size={18} /> : null}
           {submitting ? "Saving..." : saved ? "Saved! / सहेजा गया!" : "Save Settings / सहेजें"}

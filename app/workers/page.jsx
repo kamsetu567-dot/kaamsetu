@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
@@ -21,11 +21,11 @@ function SaveRequestModal({ onClose }) {
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
         <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl text-center">
           <p className="text-4xl mb-3">✅</p>
-          <p className="text-xl font-black text-text-primary mb-2" style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>
+          <p className="text-xl font-black text-brand-navy mb-2" style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>
             Request Save हो गई!
           </p>
-          <p className="text-text-secondary text-sm mb-5">हम जल्द call करेंगे / We will call you soon.</p>
-          <button onClick={onClose} className="w-full bg-primary-orange text-white font-bold py-3 rounded-xl">
+          <p className="text-gray-500 text-sm mb-5">हम जल्द call करेंगे / We will call you soon.</p>
+          <button onClick={onClose} className="w-full bg-orange-500 text-white font-bold py-3 rounded-xl">
             <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>ठीक है / OK</span>
           </button>
         </div>
@@ -36,10 +36,10 @@ function SaveRequestModal({ onClose }) {
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl">
-        <h3 className="font-black text-xl mb-1 text-text-primary" style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>
+        <h3 className="font-black text-xl mb-1 text-brand-navy" style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>
           Request Save करें
         </h3>
-        <p className="text-text-secondary text-sm mb-5">
+        <p className="text-gray-500 text-sm mb-5">
           <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>
             हम आपको जल्द call करेंगे!
           </span>
@@ -50,10 +50,10 @@ function SaveRequestModal({ onClose }) {
             value={name}
             onChange={e => setName(e.target.value)}
             placeholder="आपका नाम / Your Name"
-            className="w-full px-4 py-4 border-2 border-border-light rounded-xl focus:outline-none focus:border-primary-orange text-base"
+            className="w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-orange-500 text-base"
           />
-          <div className="flex items-center border-2 border-border-light rounded-xl overflow-hidden focus-within:border-primary-orange">
-            <span className="px-4 py-4 bg-gray-50 border-r-2 border-border-light text-text-secondary font-semibold">+91</span>
+          <div className="flex items-center border-2 border-gray-200 rounded-xl overflow-hidden focus-within:border-orange-500">
+            <span className="px-4 py-4 bg-gray-50 border-r-2 border-gray-200 text-gray-500 font-semibold">+91</span>
             <input
               value={mobile}
               onChange={e => setMobile(e.target.value.replace(/\D/g, "").slice(0, 10))}
@@ -65,14 +65,14 @@ function SaveRequestModal({ onClose }) {
           <div className="flex gap-3 pt-1">
             <button
               onClick={onClose}
-              className="flex-1 border-2 border-border-light text-text-secondary font-bold py-3 rounded-xl hover:border-gray-400 transition-colors"
+              className="flex-1 border-2 border-gray-200 text-gray-500 font-bold py-3 rounded-xl hover:border-gray-400 transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={() => name && mobile.length === 10 && setSaved(true)}
               disabled={!name || mobile.length !== 10}
-              className="flex-1 bg-primary-orange text-white font-bold py-3 rounded-xl hover:bg-orange-600 transition-colors disabled:opacity-50"
+              className="flex-1 bg-orange-500 text-white font-bold py-3 rounded-xl hover:bg-orange-600 transition-colors disabled:opacity-50"
             >
               <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>Save करें</span>
             </button>
@@ -153,9 +153,9 @@ export default function WorkersPage() {
   return (
     <>
       <Header />
-      <main className="flex-1 bg-neutral-bg">
+      <main className="flex-1 bg-brand-bg">
         {/* Page header */}
-        <div className="bg-primary-blue px-4 py-6">
+        <div className="bg-blue-600 px-4 py-6">
           <div className="max-w-7xl mx-auto">
             <h1
               className="text-2xl md:text-3xl font-black text-white mb-1"

@@ -1,4 +1,4 @@
-import { Inter } from "next/font/google";
+﻿import { Inter } from "next/font/google";
 import { Noto_Sans_Devanagari } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/lib/context/AuthContext";
@@ -34,7 +34,7 @@ export const viewport = {
 export default function RootLayout({ children }) {
   return (
     <html lang="hi" className={`${inter.variable} ${notoDevanagari.variable}`}>
-      <body className="min-h-screen flex flex-col bg-neutral-bg text-text-primary antialiased">
+      <body className="min-h-screen flex flex-col bg-brand-bg text-brand-navy antialiased">
         <AuthProvider>
           <WorkerStatusProvider>
             <FilterProvider>

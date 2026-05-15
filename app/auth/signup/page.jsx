@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { ArrowLeft, Hammer, Briefcase, Store, Wrench } from "lucide-react";
 
 export const metadata = {
@@ -9,7 +9,7 @@ const ROLES = [
   {
     href: "/auth/signup/client",
     icon: Hammer,
-    color: "bg-primary-orange",
+    color: "bg-orange-500",
     hover: "hover:bg-orange-600",
     hi: "काम करवाना है",
     en: "I need a worker",
@@ -18,7 +18,7 @@ const ROLES = [
   {
     href: "/auth/signup/worker",
     icon: Briefcase,
-    color: "bg-primary-blue",
+    color: "bg-blue-600",
     hover: "hover:bg-blue-700",
     hi: "काम ढूंढना है",
     en: "I want to find work",
@@ -27,7 +27,7 @@ const ROLES = [
   {
     href: "/auth/signup/shop",
     icon: Store,
-    color: "bg-primary-navy",
+    color: "bg-brand-navy",
     hover: "hover:bg-blue-900",
     hi: "दुकान / विज्ञापन",
     en: "Shop / Advertise",
@@ -37,14 +37,14 @@ const ROLES = [
 
 export default function SignupPage() {
   return (
-    <div className="min-h-screen bg-neutral-bg flex flex-col">
-      <div className="bg-primary-navy px-4 py-4 flex items-center gap-3">
+    <div className="min-h-screen bg-brand-bg flex flex-col">
+      <div className="bg-brand-navy px-4 py-4 flex items-center gap-3">
         <Link href="/" className="text-white/70 hover:text-white" aria-label="Back to home">
           <ArrowLeft size={24} />
         </Link>
         <div className="flex items-center gap-2">
-          <Wrench size={20} className="text-accent-yellow" />
-          <span className="font-black text-white text-lg">KAAM<span className="text-accent-yellow">SETU</span></span>
+          <Wrench size={20} className="text-brand-yellow" />
+          <span className="font-black text-white text-lg">KAAM<span className="text-brand-yellow">SETU</span></span>
         </div>
       </div>
 
@@ -52,12 +52,12 @@ export default function SignupPage() {
         <div className="w-full max-w-sm">
           <div className="text-center mb-8">
             <h1
-              className="text-2xl font-black text-text-primary mb-1"
+              className="text-2xl font-black text-brand-navy mb-1"
               style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
             >
               आप कौन हैं?
             </h1>
-            <p className="text-text-secondary text-sm">Who are you? Select your role</p>
+            <p className="text-gray-500 text-sm">Who are you? Select your role</p>
           </div>
 
           <div className="space-y-4">
@@ -85,10 +85,10 @@ export default function SignupPage() {
             ))}
           </div>
 
-          <p className="text-center text-sm text-text-secondary mt-8">
+          <p className="text-center text-sm text-gray-500 mt-8">
             <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>पहले से Account है?</span>
             {" "}
-            <Link href="/auth/login" className="text-primary-blue font-semibold hover:underline">
+            <Link href="/auth/login" className="text-blue-600 font-semibold hover:underline">
               <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>लॉगिन करें</span>
               <span> / Login</span>
             </Link>

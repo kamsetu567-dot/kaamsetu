@@ -23,18 +23,12 @@ export default function EmptyState({
       <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mb-6">
         <Icon size={40} className="text-gray-400" />
       </div>
-      <h3
-        className="text-xl font-bold text-text-primary mb-2"
-        style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
-      >
+      <h3 className="text-xl font-bold text-brand-navy mb-2 font-hindi">
         {titleHi}
       </h3>
-      <p className="text-sm text-text-secondary mb-1">{titleEn}</p>
+      <p className="text-sm text-gray-500 mb-1">{titleEn}</p>
       {descHi && (
-        <p
-          className="text-sm text-text-secondary mt-2 max-w-sm"
-          style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
-        >
+        <p className="text-sm text-gray-500 mt-2 max-w-sm font-hindi">
           {descHi}
         </p>
       )}
@@ -42,10 +36,10 @@ export default function EmptyState({
       {action && (
         <button
           onClick={action.onClick}
-          className="mt-6 bg-primary-orange text-white font-bold px-8 py-4 rounded-xl hover:bg-orange-600 transition-colors w-full max-w-xs"
+          className="mt-6 bg-brand-navy text-white font-bold px-8 py-4 rounded-xl hover:opacity-90 transition-opacity w-full max-w-xs"
           aria-label={action.labelEn}
         >
-          <span className="block text-base" style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>{action.labelHi}</span>
+          <span className="block text-base font-hindi">{action.labelHi}</span>
           <span className="block text-sm font-normal mt-0.5">{action.labelEn}</span>
         </button>
       )}

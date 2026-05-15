@@ -15,9 +15,12 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
     const search = searchParams.get("search");
+    const page = Math.max(1, parseInt(searchParams.get("page")) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit")) || 20));
+    const skip = (page - 1) * limit;
 
     const filter = {};
-    if (status) filter.status = status;
+    if (status && status !== "all") filter.status = status;
     if (search) {
       filter.$or = [
         { category: { $regex: search, $options: "i" } },
@@ -26,25 +29,33 @@ export async function GET(request) {
       ];
     }
 
-    const jobs = await JobRequest.find(filter)
-      .sort({ createdAt: -1 })
-      .limit(100)
-      .lean();
+    const [jobs, total] = await Promise.all([
+      JobRequest.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+      JobRequest.countDocuments(filter),
+    ]);
 
     const formatted = jobs.map(j => ({
+      _id: j._id,
       id: j._id,
       clientName: j.clientName,
       clientMobile: j.clientMobile,
       category: j.category,
       subcategory: j.subcategory,
-      location: j.location?.city || j.location?.address || "—",
+      location: j.location || {},
+      city: j.location?.city || j.city || "",
+      area: j.location?.address || "",
+      description: j.description || "",
       status: j.status,
       source: j.source,
       worker: j.worker,
       createdAt: j.createdAt,
     }));
 
-    return ok({ jobs: formatted });
+    const pages = Math.ceil(total / limit);
+    return ok({
+      jobs: formatted,
+      pagination: { total, page, limit, pages, hasNext: page < pages, hasPrev: page > 1 },
+    });
   } catch (err) {
     console.error("admin jobs error:", err);
     return error("Server error", 500);

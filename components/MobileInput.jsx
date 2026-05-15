@@ -9,10 +9,10 @@ export default function MobileInput({ value = "", onChange, error = "", disabled
     <div>
       <div
         className={`flex items-center border-2 rounded-xl overflow-hidden bg-white transition-colors ${
-          error ? "border-red-400" : "border-border-light focus-within:border-primary-orange"
+          error ? "border-red-400" : "border-gray-200 focus-within:border-brand-navy"
         }`}
       >
-        <span className="px-4 py-4 bg-gray-50 border-r-2 border-border-light text-text-secondary font-semibold text-lg select-none">
+        <span className="px-4 py-4 bg-gray-50 border-r-2 border-gray-200 text-gray-500 font-semibold text-lg select-none">
           +91
         </span>
         <input

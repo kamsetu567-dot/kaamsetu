@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -13,16 +13,16 @@ import Footer from "@/components/Footer";
 // Stat tile — same visual language as StatCard but self-contained
 function ShopStat({ icon: Icon, hi, en, value, sub, color }) {
   const styles = {
-    navy:   "bg-blue-50 border-blue-100 text-primary-navy",
-    orange: "bg-orange-50 border-orange-100 text-primary-orange",
-    green:  "bg-green-50 border-green-100 text-primary-green",
+    navy:   "bg-blue-50 border-blue-100 text-brand-navy",
+    orange: "bg-orange-50 border-orange-100 text-orange-500",
+    green:  "bg-green-50 border-green-100 text-green-600",
     yellow: "bg-yellow-50 border-yellow-100 text-yellow-700",
   };
   const iconBg = {
-    navy:   "bg-primary-navy",
-    orange: "bg-primary-orange",
-    green:  "bg-primary-green",
-    yellow: "bg-accent-yellow",
+    navy:   "bg-brand-navy",
+    orange: "bg-orange-500",
+    green:  "bg-green-600",
+    yellow: "bg-brand-yellow",
   };
   return (
     <div className={`rounded-2xl border-2 p-5 ${styles[color] || styles.navy}`}>
@@ -49,18 +49,18 @@ function ShopStat({ icon: Icon, hi, en, value, sub, color }) {
 // Inline ad card for the active-ads list
 function AdCard({ ad }) {
   const statusStyle = {
-    active:  { dot: "bg-primary-green",  label: "Active",  hi: "चालू",  bg: "bg-green-50  text-green-700  border-green-200"  },
-    pending: { dot: "bg-accent-yellow",  label: "Pending", hi: "Pending", bg: "bg-yellow-50 text-yellow-700 border-yellow-200" },
+    active:  { dot: "bg-green-600",  label: "Active",  hi: "चालू",  bg: "bg-green-50  text-green-700  border-green-200"  },
+    pending: { dot: "bg-brand-yellow",  label: "Pending", hi: "Pending", bg: "bg-yellow-50 text-yellow-700 border-yellow-200" },
     expired: { dot: "bg-red-400",        label: "Expired", hi: "खत्म",   bg: "bg-red-50    text-red-600    border-red-200"    },
   };
   const s = statusStyle[ad.status] || statusStyle.pending;
 
   return (
-    <div className="bg-white rounded-2xl border-2 border-border-light p-5 hover:border-primary-navy transition-colors">
+    <div className="bg-white rounded-2xl border-2 border-gray-200 p-5 hover:border-brand-navy transition-colors">
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="flex-1 min-w-0">
-          <p className="font-bold text-text-primary truncate">{ad.title}</p>
-          <p className="text-text-secondary text-sm mt-0.5">{ad.type} · {ad.category}</p>
+          <p className="font-bold text-brand-navy truncate">{ad.title}</p>
+          <p className="text-gray-500 text-sm mt-0.5">{ad.type} · {ad.category}</p>
         </div>
         <span className={`inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full border flex-shrink-0 ${s.bg}`}>
           <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
@@ -75,21 +75,21 @@ function AdCard({ ad }) {
           { icon: MousePointerClick, val: ad.clicks      ?? 0, label: "Clicks"  },
           { icon: TrendingUp,        val: ad.ctr         ?? "0%", label: "CTR"  },
         ].map(m => (
-          <div key={m.label} className="bg-neutral-bg rounded-xl py-2">
-            <m.icon size={14} className="text-text-secondary mx-auto mb-0.5" />
-            <p className="font-black text-text-primary text-sm">{m.val}</p>
-            <p className="text-xs text-text-secondary">{m.label}</p>
+          <div key={m.label} className="bg-brand-bg rounded-xl py-2">
+            <m.icon size={14} className="text-gray-500 mx-auto mb-0.5" />
+            <p className="font-black text-brand-navy text-sm">{m.val}</p>
+            <p className="text-xs text-gray-500">{m.label}</p>
           </div>
         ))}
       </div>
 
-      <div className="flex items-center justify-between text-xs text-text-secondary">
+      <div className="flex items-center justify-between text-xs text-gray-500">
         <span>
           <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>खत्म होगा</span>
           {" / Expires: "}
-          <span className="font-semibold text-text-primary">{ad.expiresAt ?? "—"}</span>
+          <span className="font-semibold text-brand-navy">{ad.expiresAt ?? "—"}</span>
         </span>
-        <span className="font-semibold text-primary-navy">₹{ad.budget ?? "—"}</span>
+        <span className="font-semibold text-brand-navy">₹{ad.budget ?? "—"}</span>
       </div>
     </div>
   );
@@ -133,7 +133,7 @@ export default function ShopDashboardPage() {
         {/* Stats row */}
         <div>
           <h2
-            className="text-lg font-black text-text-primary mb-3"
+            className="text-lg font-black text-brand-navy mb-3"
             style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
           >
             Overview / ओवरव्यू
@@ -153,21 +153,21 @@ export default function ShopDashboardPage() {
         </div>
 
         {/* Shop profile summary */}
-        <div className="bg-white rounded-3xl border-2 border-border-light p-5">
+        <div className="bg-white rounded-3xl border-2 border-gray-200 p-5">
           <div className="flex items-start justify-between mb-4">
             <div>
               <h3
-                className="font-black text-text-primary text-lg"
+                className="font-black text-brand-navy text-lg"
                 style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
               >
                 दुकान की जानकारी / Shop Info
               </h3>
-              <p className="text-text-secondary text-sm">Your shop profile</p>
+              <p className="text-gray-500 text-sm">Your shop profile</p>
             </div>
             {/* Edit link — points to shop signup to re-enter details for now */}
             <Link
               href="/auth/signup/shop"
-              className="text-primary-navy text-sm font-semibold hover:underline"
+              className="text-brand-navy text-sm font-semibold hover:underline"
               aria-label="Edit shop profile"
             >
               <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>संपादित करें</span>
@@ -176,13 +176,13 @@ export default function ShopDashboardPage() {
           </div>
 
           <div className="flex gap-4 items-center">
-            <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center flex-shrink-0 border-2 border-border-light">
+            <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center flex-shrink-0 border-2 border-gray-200">
               <Store size={28} className="text-gray-400" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-black text-text-primary">—</p>
-              <p className="text-text-secondary text-sm">Shop name not set</p>
-              <p className="text-text-secondary text-xs mt-0.5">Location: —</p>
+              <p className="font-black text-brand-navy">—</p>
+              <p className="text-gray-500 text-sm">Shop name not set</p>
+              <p className="text-gray-500 text-xs mt-0.5">Location: —</p>
             </div>
           </div>
         </div>
@@ -192,16 +192,16 @@ export default function ShopDashboardPage() {
           <div className="flex items-center justify-between mb-3">
             <div>
               <h3
-                className="font-black text-text-primary text-lg"
+                className="font-black text-brand-navy text-lg"
                 style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
               >
                 मेरे Ads / My Ads
               </h3>
-              <p className="text-text-secondary text-sm">Your active advertisements</p>
+              <p className="text-gray-500 text-sm">Your active advertisements</p>
             </div>
             <Link
               href="/shop/ads"
-              className="flex items-center gap-2 bg-primary-navy text-white font-bold px-4 py-2.5 rounded-xl hover:bg-blue-900 transition-colors text-sm"
+              className="flex items-center gap-2 bg-brand-navy text-white font-bold px-4 py-2.5 rounded-xl hover:bg-blue-900 transition-colors text-sm"
               aria-label="Create new ad"
             >
               <PlusCircle size={16} />
@@ -233,7 +233,7 @@ export default function ShopDashboardPage() {
         </div>
 
         {/* Quick tip */}
-        <div className="bg-primary-navy rounded-3xl p-5 text-white">
+        <div className="bg-brand-navy rounded-3xl p-5 text-white">
           <h4
             className="font-black mb-1"
             style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}

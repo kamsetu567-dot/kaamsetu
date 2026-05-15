@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import {
@@ -68,23 +68,23 @@ function CreateAdForm({ onCreated, onCancel }) {
   // ── Success screen ──────────────────────────────────────────────
   if (submitted) {
     return (
-      <div className="bg-white rounded-3xl border-2 border-primary-green p-8 text-center">
-        <CheckCircle size={56} className="text-primary-green mx-auto mb-4" />
+      <div className="bg-white rounded-3xl border-2 border-green-600 p-8 text-center">
+        <CheckCircle size={56} className="text-green-600 mx-auto mb-4" />
         <h3
-          className="text-xl font-black text-text-primary mb-2"
+          className="text-xl font-black text-brand-navy mb-2"
           style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
         >
           Ad Submit हो गया!
         </h3>
-        <p className="text-text-secondary text-sm mb-1">
+        <p className="text-gray-500 text-sm mb-1">
           Admin review के बाद आपका ad live होगा।
         </p>
-        <p className="text-text-secondary text-xs mb-6">
+        <p className="text-gray-500 text-xs mb-6">
           Your ad will go live after admin review.
         </p>
         <button
           onClick={onCreated}
-          className="w-full bg-primary-navy text-white font-black text-lg py-4 rounded-2xl hover:bg-blue-900 transition-colors min-h-14"
+          className="w-full bg-brand-navy text-white font-black text-lg py-4 rounded-2xl hover:bg-blue-900 transition-colors min-h-14"
           aria-label="Done"
         >
           <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>
@@ -97,23 +97,23 @@ function CreateAdForm({ onCreated, onCancel }) {
 
   // ── Form ────────────────────────────────────────────────────────
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="bg-white rounded-3xl border-2 border-primary-navy p-6 space-y-6">
+    <form onSubmit={handleSubmit(onSubmit)} className="bg-white rounded-3xl border-2 border-brand-navy p-6 space-y-6">
 
       {/* Form header */}
       <div className="flex items-center justify-between">
         <div>
           <h3
-            className="font-black text-text-primary text-xl"
+            className="font-black text-brand-navy text-xl"
             style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
           >
             नया Ad बनाएं
           </h3>
-          <p className="text-text-secondary text-sm">Create New Advertisement</p>
+          <p className="text-gray-500 text-sm">Create New Advertisement</p>
         </div>
         <button
           type="button"
           onClick={onCancel}
-          className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors text-text-secondary"
+          className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors text-gray-500"
           aria-label="Cancel ad creation"
         >
           <X size={18} />
@@ -130,37 +130,37 @@ function CreateAdForm({ onCreated, onCancel }) {
               onClick={() => setAdType(type.value)}
               className={`w-full flex items-center gap-4 p-4 rounded-2xl border-2 text-left transition-all ${
                 adType === type.value
-                  ? "border-primary-navy bg-blue-50"
-                  : "border-border-light hover:border-primary-navy"
+                  ? "border-brand-navy bg-blue-50"
+                  : "border-gray-200 hover:border-brand-navy"
               }`}
               aria-label={type.hi}
             >
               <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                adType === type.value ? "bg-primary-navy text-white" : "bg-gray-100 text-text-secondary"
+                adType === type.value ? "bg-brand-navy text-white" : "bg-gray-100 text-gray-500"
               }`}>
                 <type.icon size={20} />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <p
-                    className="font-bold text-text-primary"
+                    className="font-bold text-brand-navy"
                     style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
                   >
                     {type.hi}
                   </p>
                   {type.tag && (
-                    <span className="text-xs bg-accent-yellow text-primary-navy font-bold px-2 py-0.5 rounded-full">
+                    <span className="text-xs bg-brand-yellow text-brand-navy font-bold px-2 py-0.5 rounded-full">
                       {type.tag}
                     </span>
                   )}
                 </div>
-                <p className="text-text-secondary text-sm">{type.en}</p>
+                <p className="text-gray-500 text-sm">{type.en}</p>
               </div>
               {/* Radio indicator */}
               <div className={`w-5 h-5 rounded-full border-2 flex-shrink-0 ${
                 adType === type.value
-                  ? "border-primary-navy bg-primary-navy"
-                  : "border-border-light"
+                  ? "border-brand-navy bg-brand-navy"
+                  : "border-gray-200"
               }`}>
                 {adType === type.value && (
                   <div className="w-full h-full flex items-center justify-center">
@@ -193,8 +193,8 @@ function CreateAdForm({ onCreated, onCancel }) {
               onClick={() => setDuration(opt.days)}
               className={`flex flex-col items-center py-3 px-2 rounded-2xl border-2 transition-all ${
                 duration === opt.days
-                  ? "border-primary-navy bg-blue-50 text-primary-navy"
-                  : "border-border-light text-text-secondary hover:border-primary-navy"
+                  ? "border-brand-navy bg-blue-50 text-brand-navy"
+                  : "border-gray-200 text-gray-500 hover:border-brand-navy"
               }`}
               aria-label={`${opt.days} days duration`}
             >
@@ -206,7 +206,7 @@ function CreateAdForm({ onCreated, onCancel }) {
                 {opt.label}
               </span>
               {opt.discount && (
-                <span className="text-xs mt-1 text-primary-green font-semibold">{opt.discount}</span>
+                <span className="text-xs mt-1 text-green-600 font-semibold">{opt.discount}</span>
               )}
             </button>
           ))}
@@ -216,7 +216,7 @@ function CreateAdForm({ onCreated, onCancel }) {
       {/* Step 4 — Budget */}
       <FieldSection labelHi="Budget / बजट" labelEn="How much do you want to spend? *">
         <div className="relative">
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary font-bold text-lg">₹</span>
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold text-lg">₹</span>
           <input
             {...register("budget", {
               required: "Budget जरूरी है / Budget is required",
@@ -226,7 +226,7 @@ function CreateAdForm({ onCreated, onCancel }) {
             min={100}
             inputMode="numeric"
             placeholder="500"
-            className="w-full pl-10 pr-4 py-4 text-lg border-2 border-border-light rounded-xl focus:outline-none focus:border-primary-navy"
+            className="w-full pl-10 pr-4 py-4 text-lg border-2 border-gray-200 rounded-xl focus:outline-none focus:border-brand-navy"
             aria-label="Ad budget in rupees"
           />
         </div>
@@ -234,8 +234,8 @@ function CreateAdForm({ onCreated, onCancel }) {
           <p className="text-red-500 text-sm mt-1">{errors.budget.message}</p>
         )}
         {budget && Number(budget) >= 100 && (
-          <p className="text-text-secondary text-xs mt-1">
-            {duration} days × estimated reach — Final amount: <span className="font-bold text-text-primary">₹{budget}</span>
+          <p className="text-gray-500 text-xs mt-1">
+            {duration} days × estimated reach — Final amount: <span className="font-bold text-brand-navy">₹{budget}</span>
           </p>
         )}
       </FieldSection>
@@ -244,7 +244,7 @@ function CreateAdForm({ onCreated, onCancel }) {
       <FieldSection labelHi="Ad Creative / विज्ञापन इमेज" labelEn="Upload banner image or logo (optional)">
         <label className="block cursor-pointer">
           {creative ? (
-            <div className="relative rounded-2xl overflow-hidden border-2 border-primary-navy">
+            <div className="relative rounded-2xl overflow-hidden border-2 border-brand-navy">
               <img
                 src={creative}
                 alt="Ad creative preview"
@@ -258,21 +258,21 @@ function CreateAdForm({ onCreated, onCancel }) {
               >
                 <X size={14} />
               </button>
-              <div className="absolute bottom-2 left-2 bg-primary-green text-white text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1">
+              <div className="absolute bottom-2 left-2 bg-green-600 text-white text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1">
                 <CheckCircle size={12} />
                 Image uploaded
               </div>
             </div>
           ) : (
-            <div className="border-2 border-dashed border-border-light rounded-2xl p-8 text-center hover:border-primary-navy transition-colors group">
-              <Upload size={32} className="text-gray-400 mx-auto mb-3 group-hover:text-primary-navy transition-colors" />
+            <div className="border-2 border-dashed border-gray-200 rounded-2xl p-8 text-center hover:border-brand-navy transition-colors group">
+              <Upload size={32} className="text-gray-400 mx-auto mb-3 group-hover:text-brand-navy transition-colors" />
               <p
-                className="text-text-secondary font-semibold"
+                className="text-gray-500 font-semibold"
                 style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
               >
                 Banner / Logo Upload करें
               </p>
-              <p className="text-text-secondary text-xs mt-1">PNG, JPG — max 2MB</p>
+              <p className="text-gray-500 text-xs mt-1">PNG, JPG — max 2MB</p>
             </div>
           )}
           <input
@@ -287,8 +287,8 @@ function CreateAdForm({ onCreated, onCancel }) {
 
       {/* Summary box before submit */}
       {adType && category && budget && Number(budget) >= 100 && (
-        <div className="bg-neutral-bg border-2 border-border-light rounded-2xl p-4 space-y-2 text-sm">
-          <p className="font-bold text-text-primary">
+        <div className="bg-brand-bg border-2 border-gray-200 rounded-2xl p-4 space-y-2 text-sm">
+          <p className="font-bold text-brand-navy">
             <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>Ad Summary / सारांश</span>
           </p>
           <SummaryRow label="Type" value={AD_TYPES.find(t => t.value === adType)?.hi || adType} />
@@ -302,7 +302,7 @@ function CreateAdForm({ onCreated, onCancel }) {
       <button
         type="submit"
         disabled={loading || !adType || !category || !budget || Number(budget) < 100}
-        className="w-full bg-primary-navy text-white font-black text-xl py-5 rounded-2xl hover:bg-blue-900 transition-colors disabled:opacity-40 min-h-16"
+        className="w-full bg-brand-navy text-white font-black text-xl py-5 rounded-2xl hover:bg-blue-900 transition-colors disabled:opacity-40 min-h-16"
         aria-label="Submit ad for review"
       >
         {loading ? (
@@ -322,8 +322,8 @@ function CreateAdForm({ onCreated, onCancel }) {
 // ─── Status badge used in the ads list ──────────────────────────────
 function AdStatusBadge({ status }) {
   const map = {
-    active:  { hi: "चालू",   bg: "bg-green-50  text-green-700  border-green-200",  dot: "bg-primary-green" },
-    pending: { hi: "Pending", bg: "bg-yellow-50 text-yellow-700 border-yellow-200", dot: "bg-accent-yellow" },
+    active:  { hi: "चालू",   bg: "bg-green-50  text-green-700  border-green-200",  dot: "bg-green-600" },
+    pending: { hi: "Pending", bg: "bg-yellow-50 text-yellow-700 border-yellow-200", dot: "bg-brand-yellow" },
     expired: { hi: "खत्म",   bg: "bg-red-50    text-red-600    border-red-200",    dot: "bg-red-400"       },
   };
   const s = map[status] || map.pending;
@@ -338,14 +338,14 @@ function AdStatusBadge({ status }) {
 // ─── Ads management list card ────────────────────────────────────────
 function ManagedAdCard({ ad, onDelete }) {
   return (
-    <div className="bg-white rounded-2xl border-2 border-border-light p-5">
+    <div className="bg-white rounded-2xl border-2 border-gray-200 p-5">
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap mb-0.5">
-            <p className="font-bold text-text-primary truncate">{ad.title}</p>
+            <p className="font-bold text-brand-navy truncate">{ad.title}</p>
             <AdStatusBadge status={ad.status} />
           </div>
-          <p className="text-text-secondary text-sm">{ad.type} · {ad.category}</p>
+          <p className="text-gray-500 text-sm">{ad.type} · {ad.category}</p>
         </div>
         <button
           onClick={() => onDelete(ad.id)}
@@ -363,21 +363,21 @@ function ManagedAdCard({ ad, onDelete }) {
           { icon: MousePointerClick, label: "Clicks", val: ad.clicks      ?? 0 },
           { icon: TrendingUp,        label: "CTR",    val: ad.ctr         ?? "0%" },
         ].map(m => (
-          <div key={m.label} className="bg-neutral-bg rounded-xl py-2.5">
-            <m.icon size={14} className="text-text-secondary mx-auto mb-0.5" />
-            <p className="font-black text-text-primary text-base">{m.val}</p>
-            <p className="text-xs text-text-secondary">{m.label}</p>
+          <div key={m.label} className="bg-brand-bg rounded-xl py-2.5">
+            <m.icon size={14} className="text-gray-500 mx-auto mb-0.5" />
+            <p className="font-black text-brand-navy text-base">{m.val}</p>
+            <p className="text-xs text-gray-500">{m.label}</p>
           </div>
         ))}
       </div>
 
-      <div className="flex items-center justify-between text-xs text-text-secondary border-t border-border-light pt-3">
+      <div className="flex items-center justify-between text-xs text-gray-500 border-t border-gray-200 pt-3">
         <span>
           <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>खत्म</span>
           {" / Expires: "}
-          <span className="font-semibold text-text-primary">{ad.expiresAt ?? "—"}</span>
+          <span className="font-semibold text-brand-navy">{ad.expiresAt ?? "—"}</span>
         </span>
-        <span className="font-bold text-primary-navy text-sm">₹{ad.budget ?? "—"}</span>
+        <span className="font-bold text-brand-navy text-sm">₹{ad.budget ?? "—"}</span>
       </div>
     </div>
   );
@@ -412,19 +412,19 @@ export default function ShopAdsPage() {
         <div className="flex items-start sm:items-center justify-between gap-4 flex-col sm:flex-row">
           <div>
             <h2
-              className="text-xl font-black text-text-primary"
+              className="text-xl font-black text-brand-navy"
               style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
             >
               Ads प्रबंधन
             </h2>
-            <p className="text-text-secondary text-sm mt-0.5">
+            <p className="text-gray-500 text-sm mt-0.5">
               Manage Advertisements · {ads.length} total
             </p>
           </div>
           {!showForm && (
             <button
               onClick={() => setShowForm(true)}
-              className="flex items-center gap-2 bg-primary-navy text-white font-bold px-5 py-3 rounded-xl hover:bg-blue-900 transition-colors"
+              className="flex items-center gap-2 bg-brand-navy text-white font-bold px-5 py-3 rounded-xl hover:bg-blue-900 transition-colors"
               aria-label="Create new ad"
             >
               <PlusCircle size={20} />
@@ -448,24 +448,24 @@ export default function ShopAdsPage() {
             {AD_TYPES.map(type => (
               <div
                 key={type.value}
-                className="bg-white rounded-2xl border-2 border-border-light p-4 flex items-start gap-3"
+                className="bg-white rounded-2xl border-2 border-gray-200 p-4 flex items-start gap-3"
               >
                 <div className="w-10 h-10 bg-navy-50 bg-blue-50 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <type.icon size={20} className="text-primary-navy" />
+                  <type.icon size={20} className="text-brand-navy" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2 mb-0.5">
                     <p
-                      className="font-bold text-text-primary text-sm"
+                      className="font-bold text-brand-navy text-sm"
                       style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
                     >
                       {type.hi}
                     </p>
-                    <span className="text-xs bg-accent-yellow text-primary-navy font-bold px-1.5 py-0.5 rounded-full">
+                    <span className="text-xs bg-brand-yellow text-brand-navy font-bold px-1.5 py-0.5 rounded-full">
                       {type.tag}
                     </span>
                   </div>
-                  <p className="text-text-secondary text-xs">{type.en}</p>
+                  <p className="text-gray-500 text-xs">{type.en}</p>
                 </div>
               </div>
             ))}
@@ -475,7 +475,7 @@ export default function ShopAdsPage() {
         {/* Ads list */}
         <div>
           <h3
-            className="font-bold text-text-primary mb-3"
+            className="font-bold text-brand-navy mb-3"
             style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
           >
             मेरे सभी Ads / All My Ads
@@ -506,9 +506,9 @@ export default function ShopAdsPage() {
         </div>
 
         {/* Pricing info */}
-        <div className="bg-white rounded-3xl border-2 border-border-light p-5">
+        <div className="bg-white rounded-3xl border-2 border-gray-200 p-5">
           <h3
-            className="font-black text-text-primary mb-4"
+            className="font-black text-brand-navy mb-4"
             style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
           >
             Pricing / कीमत
@@ -519,21 +519,21 @@ export default function ShopAdsPage() {
               { duration: "60 दिन / 60 days", price: "10% discount",           note: "More reach" },
               { duration: "90 दिन / 90 days", price: "20% discount",           note: "Best value" },
             ].map(row => (
-              <div key={row.duration} className="flex items-center justify-between py-2.5 border-b border-border-light last:border-0">
+              <div key={row.duration} className="flex items-center justify-between py-2.5 border-b border-gray-200 last:border-0">
                 <div>
                   <p
-                    className="font-semibold text-text-primary"
+                    className="font-semibold text-brand-navy"
                     style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
                   >
                     {row.duration}
                   </p>
-                  <p className="text-text-secondary text-xs">{row.note}</p>
+                  <p className="text-gray-500 text-xs">{row.note}</p>
                 </div>
-                <span className="font-bold text-primary-green">{row.price}</span>
+                <span className="font-bold text-green-600">{row.price}</span>
               </div>
             ))}
           </div>
-          <p className="text-text-secondary text-xs mt-3">
+          <p className="text-gray-500 text-xs mt-3">
             Payment via UPI · Admin review before ad goes live.
           </p>
         </div>
@@ -548,9 +548,9 @@ export default function ShopAdsPage() {
 function FieldSection({ labelHi, labelEn, children }) {
   return (
     <div>
-      <label className="block mb-2 font-semibold text-text-primary">
+      <label className="block mb-2 font-semibold text-brand-navy">
         <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>{labelHi}</span>
-        {labelEn && <span className="text-text-secondary font-normal text-sm"> / {labelEn}</span>}
+        {labelEn && <span className="text-gray-500 font-normal text-sm"> / {labelEn}</span>}
       </label>
       {children}
     </div>
@@ -560,8 +560,8 @@ function FieldSection({ labelHi, labelEn, children }) {
 function SummaryRow({ label, value, bold }) {
   return (
     <div className="flex items-center justify-between">
-      <span className="text-text-secondary">{label}</span>
-      <span className={bold ? "font-black text-text-primary" : "font-semibold text-text-primary"}>
+      <span className="text-gray-500">{label}</span>
+      <span className={bold ? "font-black text-brand-navy" : "font-semibold text-brand-navy"}>
         {value}
       </span>
     </div>

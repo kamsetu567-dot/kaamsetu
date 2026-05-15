@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { Shield, Ban, AlertTriangle, CheckCircle, X, PlusCircle } from "lucide-react";
@@ -33,7 +33,7 @@ export default function AdminSecurityPage() {
       <button
         onClick={onToggle}
         className={`relative inline-flex items-center w-12 h-6 rounded-full transition-colors flex-shrink-0 ${
-          enabled ? "bg-primary-green" : "bg-gray-300"
+          enabled ? "bg-green-600" : "bg-gray-300"
         }`}
         role="switch"
         aria-checked={enabled}
@@ -51,21 +51,21 @@ export default function AdminSecurityPage() {
     <div className="space-y-5 max-w-2xl">
       <div>
         <h1
-          className="text-2xl font-black text-text-primary"
+          className="text-2xl font-black text-brand-navy"
           style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
         >
           सुरक्षा / Security
         </h1>
-        <p className="text-text-secondary text-sm mt-0.5">Platform security toggles and fraud management</p>
+        <p className="text-gray-500 text-sm mt-0.5">Platform security toggles and fraud management</p>
       </div>
 
       {/* Toggles */}
-      <div className="bg-white rounded-3xl border-2 border-border-light p-5 space-y-4">
+      <div className="bg-white rounded-3xl border-2 border-gray-200 p-5 space-y-4">
         <h2
-          className="font-black text-text-primary flex items-center gap-2"
+          className="font-black text-brand-navy flex items-center gap-2"
           style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
         >
-          <Shield size={18} className="text-primary-navy" />
+          <Shield size={18} className="text-brand-navy" />
           Security Settings
         </h2>
 
@@ -85,15 +85,15 @@ export default function AdminSecurityPage() {
             onChange: () => setIdVerify(v => !v),
           },
         ].map(t => (
-          <div key={t.key} className="flex items-center justify-between gap-4 py-2 border-b border-border-light last:border-0">
+          <div key={t.key} className="flex items-center justify-between gap-4 py-2 border-b border-gray-200 last:border-0">
             <div>
               <p
-                className="font-semibold text-text-primary"
+                className="font-semibold text-brand-navy"
                 style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
               >
                 {t.hi}
               </p>
-              <p className="text-text-secondary text-xs">{t.en}</p>
+              <p className="text-gray-500 text-xs">{t.en}</p>
             </div>
             <Toggle enabled={t.value} onToggle={t.onChange} />
           </div>
@@ -101,15 +101,15 @@ export default function AdminSecurityPage() {
       </div>
 
       {/* Fraud block list */}
-      <div className="bg-white rounded-3xl border-2 border-border-light p-5">
+      <div className="bg-white rounded-3xl border-2 border-gray-200 p-5">
         <h2
-          className="font-black text-text-primary mb-1 flex items-center gap-2"
+          className="font-black text-brand-navy mb-1 flex items-center gap-2"
           style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
         >
           <Ban size={18} className="text-red-500" />
           Fraud Block List / ब्लॉक सूची
         </h2>
-        <p className="text-text-secondary text-xs mb-4">
+        <p className="text-gray-500 text-xs mb-4">
           Blocked mobile numbers or user IDs — these users cannot register or log in.
         </p>
 
@@ -120,7 +120,7 @@ export default function AdminSecurityPage() {
             onChange={e => setFraudInput(e.target.value)}
             onKeyDown={e => e.key === "Enter" && addFraud()}
             placeholder="Mobile number or User ID"
-            className="flex-1 border-2 border-border-light rounded-xl px-4 py-2.5 text-sm outline-none focus:border-red-400 transition-colors"
+            className="flex-1 border-2 border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-red-400 transition-colors"
           />
           <button
             onClick={addFraud}
@@ -133,7 +133,7 @@ export default function AdminSecurityPage() {
 
         {fraudList.length === 0 ? (
           <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-xl px-4 py-3">
-            <CheckCircle size={16} className="text-primary-green flex-shrink-0" />
+            <CheckCircle size={16} className="text-green-600 flex-shrink-0" />
             <p className="text-green-700 text-sm">No blocked users. Block list is empty.</p>
           </div>
         ) : (
@@ -171,7 +171,7 @@ export default function AdminSecurityPage() {
       {/* Save */}
       <button
         onClick={saveSettings}
-        className="flex items-center gap-2 bg-primary-navy text-white font-black px-8 py-3.5 rounded-2xl hover:bg-blue-900 transition-colors"
+        className="flex items-center gap-2 bg-brand-navy text-white font-black px-8 py-3.5 rounded-2xl hover:bg-blue-900 transition-colors"
       >
         {savedMsg ? <CheckCircle size={18} /> : <Shield size={18} />}
         {savedMsg || "Save Security Settings / सहेजें"}

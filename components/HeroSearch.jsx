@@ -120,7 +120,7 @@ export default function HeroSearch({ initialQuery = "", onQueryChange }) {
           onKeyDown={handleKeyDown}
           onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
           placeholder="आपको क्या चाहिए? (Plumber, Halwai, Dancer...)"
-          className="flex-1 py-3.5 pr-2 text-base outline-none bg-white min-w-0 text-text-primary"
+          className="flex-1 py-3.5 pr-2 text-base outline-none bg-white min-w-0 text-brand-navy"
           aria-label="Search for services"
           aria-autocomplete="list"
           aria-expanded={showSuggestions}
@@ -132,10 +132,10 @@ export default function HeroSearch({ initialQuery = "", onQueryChange }) {
         )}
         <button
           type="submit"
-          className="bg-accent-yellow text-primary-navy font-bold px-5 py-3.5 flex-shrink-0 flex flex-col items-center justify-center leading-tight hover:bg-yellow-400 transition-colors"
+          className="bg-brand-yellow text-brand-navy font-bold px-5 py-3.5 flex-shrink-0 flex flex-col items-center justify-center leading-tight hover:opacity-90 transition-opacity"
           aria-label="Search"
         >
-          <span className="text-base font-bold" style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>खोजें</span>
+          <span className="text-base font-bold font-hindi">खोजें</span>
           <span className="text-xs font-normal hidden sm:block">/ Search</span>
         </button>
       </form>
@@ -162,12 +162,12 @@ export default function HeroSearch({ initialQuery = "", onQueryChange }) {
             >
               <Search size={16} className="text-gray-400 flex-shrink-0" />
               <div className="min-w-0">
-                <span className="font-medium text-text-primary text-sm block truncate">{item.label}</span>
+                <span className="font-medium text-brand-navy text-sm block truncate">{item.label}</span>
                 {item.category && (
-                  <span className="text-xs text-text-secondary">in {item.category}</span>
+                  <span className="text-xs text-gray-400">in {item.category}</span>
                 )}
                 {item.type === "category" && (
-                  <span className="ml-2 text-xs bg-primary-navy text-white px-1.5 py-0.5 rounded">Category</span>
+                  <span className="ml-2 text-xs bg-brand-navy text-white px-1.5 py-0.5 rounded">Category</span>
                 )}
               </div>
             </button>

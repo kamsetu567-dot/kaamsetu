@@ -1,138 +1,183 @@
-"use client";
-
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { ArrowLeft, Wrench } from "lucide-react";
-import { useForm } from "react-hook-form";
-import { signupClient } from "@/lib/api/auth";
-import OTPVerification from "@/components/OTPVerification";
-import useFormSubmit from "@/lib/hooks/useFormSubmit";
-import { useToast } from "@/components/Toast";
+'use client';
+import { useState, useRef } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { ChevronLeft, UserCheck, RefreshCw } from 'lucide-react';
+import { useToast } from '@/components/Toast';
 
 export default function ClientSignupPage() {
   const router = useRouter();
   const toast = useToast();
-  const [verifiedData, setVerifiedData] = useState(null);
+  const [step, setStep] = useState(1);
+  const [mobile, setMobile] = useState('');
+  const [otp, setOtp] = useState(['', '', '', '', '', '']);
+  const [tempToken, setTempToken] = useState('');
+  const [name, setName] = useState('');
+  const [city, setCity] = useState('');
+  const [area, setArea] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [resendTimer, setResendTimer] = useState(0);
+  const otpRefs = [useRef(), useRef(), useRef(), useRef(), useRef(), useRef()];
+  const submitRef = useRef(false);
 
-  const { register, handleSubmit, formState: { errors } } = useForm();
+  function startResendTimer() {
+    setResendTimer(30);
+    const interval = setInterval(() => {
+      setResendTimer(prev => { if (prev <= 1) { clearInterval(interval); return 0; } return prev - 1; });
+    }, 1000);
+  }
 
-  const { submit, isSubmitting } = useFormSubmit({
-    onSubmit: async (data) => {
-      return await signupClient({
-        name: data.name,
-        mobile: verifiedData.mobile,
-        otpToken: verifiedData.token,
-      });
-    },
-    onSuccess: (result) => {
-      if (typeof window !== "undefined" && result?.token) {
-        localStorage.setItem("kaamsetu_token", result.token);
-        if (result?.user) localStorage.setItem("kaamsetu_user", JSON.stringify(result.user));
-      }
-      toast.success("Registration हो गई! / Registration successful!");
-      router.push("/client/dashboard");
-    },
-    onError: (message) => {
-      if (message.includes("already registered")) {
-        toast.error(
-          <>
-            {message}{" "}
-            <Link href="/auth/login" className="underline font-bold">Login करें / Login</Link>
-          </>
-        );
-      } else {
-        toast.error(message);
-      }
-    },
-  });
-
-  async function onSubmit(data) {
-    if (!verifiedData) {
-      toast.error("पहले मोबाइल verify करें / Please verify your mobile first");
-      return;
-    }
+  async function handleSendOTP(e) {
+    e.preventDefault();
+    if (!/^[6-9]\d{9}$/.test(mobile)) { toast.error('10 अंकों का सही नंबर डालें'); return; }
+    setLoading(true);
     try {
-      await submit(data);
-    } catch {
-      // error shown via toast
-    }
+      const res = await fetch('/api/auth/send-otp', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mobile }) });
+      const data = await res.json();
+      if (!res.ok) { toast.error(data.message || 'OTP भेजने में error'); return; }
+      setOtp(['', '', '', '', '', '']); setStep(2); startResendTimer();
+      setTimeout(() => otpRefs[0].current?.focus(), 100);
+    } catch { toast.error('इंटरनेट कनेक्शन चेक करें'); } finally { setLoading(false); }
+  }
+
+  function handleOtpChange(index, value) {
+    if (!/^\d*$/.test(value)) return;
+    const n = [...otp]; n[index] = value.slice(-1); setOtp(n);
+    if (value && index < 5) otpRefs[index + 1].current?.focus();
+  }
+  function handleOtpKeyDown(index, e) {
+    if (e.key === 'Backspace' && !otp[index] && index > 0) otpRefs[index - 1].current?.focus();
+  }
+  function handleOtpPaste(e) {
+    e.preventDefault();
+    const p = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+    if (p.length === 6) { setOtp(p.split('')); otpRefs[5].current?.focus(); }
+  }
+
+  async function handleVerifyOTP(e) {
+    e?.preventDefault();
+    if (submitRef.current) return;
+    const otpValue = otp.join('');
+    if (otpValue.length !== 6) { toast.error('6 अंकों का OTP डालें'); return; }
+    submitRef.current = true; setLoading(true);
+    try {
+      const res = await fetch('/api/auth/verify-otp', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mobile, otp: otpValue, mode: 'signup' }) });
+      const data = await res.json();
+      if (!res.ok) { toast.error(data.message || 'OTP गलत है'); setOtp(['','','','','','']); otpRefs[0].current?.focus(); return; }
+      setTempToken(data.token); setStep(3);
+    } catch { toast.error('कुछ गड़बड़ हुई'); } finally { setLoading(false); submitRef.current = false; }
+  }
+
+  async function handleSignup(e) {
+    e.preventDefault();
+    if (!name.trim()) { toast.error('नाम डालें / Enter name'); return; }
+    if (!city.trim()) { toast.error('शहर डालें / Enter city'); return; }
+    if (submitRef.current) return;
+    submitRef.current = true; setLoading(true);
+    try {
+      const res = await fetch('/api/auth/signup/client', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mobile, name, city, area, token: tempToken }) });
+      const data = await res.json();
+      if (!res.ok) { toast.error(data.message || 'Signup failed'); return; }
+      const token = data.token || data.data?.token;
+      const user = data.user || data.data?.user || { mobile, name, role: 'client' };
+      localStorage.setItem('kaamsetu_token', token);
+      localStorage.setItem('kaamsetu_user', JSON.stringify(user));
+      toast.success('Account बन गया! / Account created!');
+      setTimeout(() => router.push('/client/dashboard'), 800);
+    } catch { toast.error('कुछ गड़बड़ हुई'); } finally { setLoading(false); submitRef.current = false; }
   }
 
   return (
-    <div className="min-h-screen bg-neutral-bg flex flex-col">
-      <div className="bg-primary-navy px-4 py-4 flex items-center gap-3">
-        <Link href="/auth/signup" className="text-white/70 hover:text-white" aria-label="Back">
-          <ArrowLeft size={24} />
-        </Link>
-        <div className="flex items-center gap-2">
-          <Wrench size={20} className="text-accent-yellow" />
-          <span className="font-black text-white text-lg">KAAM<span className="text-accent-yellow">SETU</span></span>
-        </div>
+    <div className="min-h-screen bg-brand-bg flex flex-col">
+      <div className="bg-brand-navy px-4 py-4 flex items-center gap-3">
+        <button onClick={() => step > 1 ? setStep(step - 1) : router.push('/auth/select-role')}
+          className="text-white/70 hover:text-white min-h-0"><ChevronLeft size={24} /></button>
+        <span className="font-black text-white">KAAM<span className="text-brand-yellow">SETU</span></span>
       </div>
 
-      <div className="flex-1 flex items-center justify-center px-4 py-8">
-        <div className="w-full max-w-sm bg-white rounded-3xl border-2 border-border-light p-8 shadow-xl">
-          <h1 className="text-2xl font-black text-text-primary mb-1 text-center"
-            style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>
-            Client Registration
-          </h1>
-          <p className="text-text-secondary text-sm text-center mb-6">Quick sign up — 2 minutes!</p>
+      <div className="bg-white border-b border-gray-100 px-4 py-3">
+        <div className="max-w-sm mx-auto flex gap-2">
+          {[1,2,3].map(i => <div key={i} className={`flex-1 h-1.5 rounded-full ${i <= step ? 'bg-brand-navy' : 'bg-gray-200'}`} />)}
+        </div>
+        <p className="text-center text-xs text-gray-400 mt-1">Step {step} of 3</p>
+      </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
-            {/* Name */}
-            <div>
-              <label className="block mb-1.5 font-semibold">
-                <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>नाम</span>
-                <span className="text-text-secondary font-normal"> / Name *</span>
-              </label>
-              <input
-                {...register("name", {
-                  required: "नाम जरूरी है / Name is required",
-                  minLength: { value: 2, message: "नाम कम से कम 2 अक्षर का हो / Min 2 characters" },
-                })}
-                type="text"
-                placeholder="आपका नाम / Your Name"
-                disabled={isSubmitting}
-                className="w-full px-4 py-4 text-base border-2 border-border-light rounded-xl focus:outline-none focus:border-primary-orange disabled:opacity-60"
-              />
-              {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
-            </div>
+      <div className="flex-1 flex items-center justify-center px-4 py-10">
+        <div className="w-full max-w-sm bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
+          <div className="flex items-center justify-center w-14 h-14 bg-blue-100 rounded-2xl mx-auto mb-5">
+            <UserCheck size={28} className="text-brand-navy" />
+          </div>
+          <h1 className="text-xl font-black text-brand-navy text-center font-hindi mb-1">Client Sign Up</h1>
+          <p className="text-gray-400 text-sm text-center mb-6">काम करवाने के लिए register करें</p>
 
-            {/* Mobile + OTP */}
-            <div>
-              <label className="block mb-1.5 font-semibold">
-                <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>मोबाइल</span>
-                <span className="text-text-secondary font-normal"> / Mobile *</span>
-              </label>
-              {verifiedData ? (
-                <p className="text-primary-green text-sm font-semibold">✓ +91 {verifiedData.mobile} verified</p>
-              ) : (
-                <OTPVerification
-                  mode="signup"
-                  onSuccess={(data) => setVerifiedData(data)}
-                  onError={(msg) => toast.error(msg)}
-                  buttonText="मोबाइल वेरीफाई करें / Verify Mobile"
-                />
-              )}
-            </div>
+          {step === 1 && (
+            <form onSubmit={handleSendOTP} className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5 font-hindi">मोबाइल नंबर</label>
+                <div className="flex gap-2">
+                  <span className="flex items-center bg-gray-100 border border-gray-200 rounded-xl px-3 text-gray-600 text-sm">+91</span>
+                  <input type="tel" inputMode="numeric" maxLength={10} value={mobile}
+                    onChange={e => setMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                    placeholder="10-digit mobile"
+                    className="flex-1 px-4 py-3.5 border border-gray-200 rounded-xl focus:outline-none focus:border-brand-navy text-base" autoFocus />
+                </div>
+              </div>
+              <button type="submit" disabled={loading}
+                className="w-full bg-brand-navy text-white font-bold py-4 rounded-xl hover:bg-brand-navy-dark disabled:opacity-50 font-hindi">
+                {loading ? '⏳ भेज रहे हैं...' : 'OTP भेजें / Send OTP'}
+              </button>
+            </form>
+          )}
 
-            <button
-              type="submit"
-              disabled={isSubmitting || !verifiedData}
-              className="w-full bg-primary-orange text-white font-black text-lg py-4 rounded-2xl hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-14"
-            >
-              {isSubmitting
-                ? "Register हो रहा है... / Registering..."
-                : "Register करें / Sign Up"}
-            </button>
-          </form>
+          {step === 2 && (
+            <form onSubmit={handleVerifyOTP} className="space-y-5">
+              <p className="text-gray-500 text-sm text-center font-hindi">+91{mobile} पर OTP भेजा गया</p>
+              <div className="flex gap-2 justify-center">
+                {otp.map((d, i) => (
+                  <input key={i} ref={otpRefs[i]} type="tel" inputMode="numeric" maxLength={1} value={d}
+                    onChange={e => handleOtpChange(i, e.target.value)}
+                    onKeyDown={e => handleOtpKeyDown(i, e)}
+                    onPaste={i === 0 ? handleOtpPaste : undefined}
+                    className="w-11 h-14 text-center text-xl font-bold border-2 border-gray-200 rounded-xl focus:outline-none focus:border-brand-navy" />
+                ))}
+              </div>
+              <button type="submit" disabled={loading}
+                className="w-full bg-brand-navy text-white font-bold py-4 rounded-xl disabled:opacity-50 font-hindi">
+                {loading ? '⏳ Verify हो रहा है...' : 'Verify करें / Verify'}
+              </button>
+              <div className="text-center">
+                {resendTimer > 0
+                  ? <p className="text-gray-400 text-xs font-hindi">{resendTimer}s में Resend</p>
+                  : <button type="button" onClick={handleSendOTP} className="flex items-center gap-1 text-brand-navy text-sm font-semibold mx-auto min-h-0"><RefreshCw size={13} /> Resend OTP</button>}
+              </div>
+            </form>
+          )}
 
-          <p className="text-center text-sm text-text-secondary mt-4">
-            <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>पहले से account है?</span>{" "}
-            <Link href="/auth/login" className="text-primary-blue font-semibold hover:underline">
-              Login करें / Login
-            </Link>
+          {step === 3 && (
+            <form onSubmit={handleSignup} className="space-y-4">
+              {[
+                { label: 'पूरा नाम *', ph: 'Full Name', val: name, set: setName },
+                { label: 'शहर *', ph: 'City', val: city, set: setCity },
+                { label: 'एरिया / Mohalla', ph: 'Area (optional)', val: area, set: setArea },
+              ].map(f => (
+                <div key={f.label}>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5 font-hindi">{f.label}</label>
+                  <input type="text" value={f.val} onChange={e => f.set(e.target.value)} placeholder={f.ph}
+                    className="w-full px-4 py-3.5 border border-gray-200 rounded-xl focus:outline-none focus:border-brand-navy text-base" />
+                </div>
+              ))}
+              <button type="submit" disabled={loading}
+                className="w-full bg-brand-navy text-white font-bold py-4 rounded-xl hover:bg-brand-navy-dark disabled:opacity-50 font-hindi">
+                {loading ? '⏳ बन रहा है...' : 'Account बनाएँ / Create Account'}
+              </button>
+            </form>
+          )}
+
+          <div className="mt-5 bg-yellow-50 border border-yellow-200 rounded-xl px-4 py-2 text-center">
+            <p className="text-yellow-700 text-xs">🔧 Testing: Use OTP <strong>123456</strong></p>
+          </div>
+          <p className="text-center text-sm text-gray-400 mt-4">
+            <Link href="/auth/login" className="text-brand-navy font-semibold hover:underline">पहले से account है? Login</Link>
           </p>
         </div>
       </div>

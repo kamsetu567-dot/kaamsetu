@@ -1,4 +1,4 @@
-import Header from "@/components/Header";
+﻿import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Users, Target, Heart, Wrench } from "lucide-react";
 
@@ -9,46 +9,46 @@ export const metadata = {
 
 export default function AboutPage() {
   return (
-    <div className="min-h-screen flex flex-col bg-neutral-bg">
+    <div className="min-h-screen flex flex-col bg-brand-bg">
       <Header />
       <main className="flex-1 max-w-3xl mx-auto px-4 py-10 space-y-8">
 
         {/* Hero */}
         <div className="text-center space-y-3">
-          <div className="w-16 h-16 bg-primary-navy rounded-2xl flex items-center justify-center mx-auto">
-            <Wrench size={28} className="text-accent-yellow" />
+          <div className="w-16 h-16 bg-brand-navy rounded-2xl flex items-center justify-center mx-auto">
+            <Wrench size={28} className="text-brand-yellow" />
           </div>
           <h1
-            className="text-3xl font-black text-text-primary"
+            className="text-3xl font-black text-brand-navy"
             style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
           >
             KaamSetu के बारे में
           </h1>
-          <p className="text-text-secondary text-lg">About KaamSetu</p>
+          <p className="text-gray-500 text-lg">About KaamSetu</p>
         </div>
 
         {/* Mission */}
-        <div className="bg-white rounded-3xl border-2 border-border-light p-6">
+        <div className="bg-white rounded-3xl border-2 border-gray-200 p-6">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 bg-primary-orange rounded-xl flex items-center justify-center flex-shrink-0">
+            <div className="w-10 h-10 bg-orange-500 rounded-xl flex items-center justify-center flex-shrink-0">
               <Target size={20} className="text-white" />
             </div>
             <h2
-              className="text-xl font-black text-text-primary"
+              className="text-xl font-black text-brand-navy"
               style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
             >
               हमारा उद्देश्य / Our Mission
             </h2>
           </div>
           <p
-            className="text-text-secondary leading-relaxed"
+            className="text-gray-500 leading-relaxed"
             style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
           >
             KaamSetu एक Hindi-first डिजिटल platform है जो skilled workers और clients को connect करता है।
             हमारा लक्ष्य है कि हर कारीगर, मज़दूर, और service provider को digital economy का हिस्सा बनाया जाए
             — बिना किसी भाषा barrier के।
           </p>
-          <p className="text-text-secondary leading-relaxed mt-3 text-sm">
+          <p className="text-gray-500 leading-relaxed mt-3 text-sm">
             KaamSetu is a Hindi-first digital platform connecting skilled service providers with clients across India.
             Our mission is to bring every artisan, laborer, and service professional into the digital economy —
             without any language barrier.
@@ -56,13 +56,13 @@ export default function AboutPage() {
         </div>
 
         {/* What we do */}
-        <div className="bg-white rounded-3xl border-2 border-border-light p-6">
+        <div className="bg-white rounded-3xl border-2 border-gray-200 p-6">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-primary-green rounded-xl flex items-center justify-center flex-shrink-0">
+            <div className="w-10 h-10 bg-green-600 rounded-xl flex items-center justify-center flex-shrink-0">
               <Users size={20} className="text-white" />
             </div>
             <h2
-              className="text-xl font-black text-text-primary"
+              className="text-xl font-black text-brand-navy"
               style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
             >
               हम क्या करते हैं / What We Do
@@ -76,17 +76,17 @@ export default function AboutPage() {
               { hi: "Hindi में आसान interface", en: "Bilingual interface in Hindi and English for everyone." },
             ].map((item, i) => (
               <div key={i} className="flex items-start gap-3">
-                <span className="w-6 h-6 rounded-full bg-accent-yellow text-primary-navy text-xs font-black flex items-center justify-center flex-shrink-0 mt-0.5">
+                <span className="w-6 h-6 rounded-full bg-brand-yellow text-brand-navy text-xs font-black flex items-center justify-center flex-shrink-0 mt-0.5">
                   {i + 1}
                 </span>
                 <div>
                   <p
-                    className="font-semibold text-text-primary"
+                    className="font-semibold text-brand-navy"
                     style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
                   >
                     {item.hi}
                   </p>
-                  <p className="text-text-secondary text-sm">{item.en}</p>
+                  <p className="text-gray-500 text-sm">{item.en}</p>
                 </div>
               </div>
             ))}
@@ -94,9 +94,9 @@ export default function AboutPage() {
         </div>
 
         {/* Values */}
-        <div className="bg-primary-navy rounded-3xl p-6 text-white">
+        <div className="bg-brand-navy rounded-3xl p-6 text-white">
           <div className="flex items-center gap-3 mb-4">
-            <Heart size={20} className="text-accent-yellow" />
+            <Heart size={20} className="text-brand-yellow" />
             <h2
               className="text-xl font-black"
               style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
@@ -112,7 +112,7 @@ export default function AboutPage() {
             ].map(v => (
               <div key={v.en} className="bg-white/10 rounded-2xl p-4">
                 <p
-                  className="font-black text-accent-yellow text-lg"
+                  className="font-black text-brand-yellow text-lg"
                   style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
                 >
                   {v.hi}
@@ -124,9 +124,9 @@ export default function AboutPage() {
           </div>
         </div>
 
-        <p className="text-center text-text-secondary text-sm">
+        <p className="text-center text-gray-500 text-sm">
           Questions? Contact us at{" "}
-          <span className="text-primary-blue font-semibold">support@kaamsetu.in</span>
+          <span className="text-blue-600 font-semibold">support@kaamsetu.in</span>
         </p>
 
       </main>

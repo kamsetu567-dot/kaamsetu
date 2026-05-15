@@ -1,7 +1,8 @@
 import { connectDB } from "@/lib/db/mongoose";
 import JobRequest from "@/lib/models/JobRequest";
+import Worker from "@/lib/models/Worker";
 import { verifyToken, getTokenFromRequest } from "@/lib/utils/jwt";
-import { ok, error, unauthorized, notFound } from "@/lib/utils/apiResponse";
+import { ok, error, unauthorized, forbidden, notFound } from "@/lib/utils/apiResponse";
 
 export async function POST(request, { params }) {
   try {
@@ -16,6 +17,14 @@ export async function POST(request, { params }) {
 
     const job = await JobRequest.findById(id);
     if (!job) return notFound("Job not found");
+
+    const worker = await Worker.findOne({ user: payload.id }).lean();
+    if (!worker) return error("Worker profile not found");
+
+    // Assigned jobs: only the assigned worker can reject
+    if (job.worker && String(job.worker) !== String(worker._id)) {
+      return forbidden("You can only reject jobs assigned to you");
+    }
 
     job.status = "rejected";
     await job.save();

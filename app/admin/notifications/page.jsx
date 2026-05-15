@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -42,27 +42,27 @@ export default function AdminNotificationsPage() {
     <div className="space-y-5 max-w-2xl">
       <div>
         <h1
-          className="text-2xl font-black text-text-primary"
+          className="text-2xl font-black text-brand-navy"
           style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
         >
           सूचनाएँ भेजें / Broadcast Notifications
         </h1>
-        <p className="text-text-secondary text-sm mt-0.5">Send SMS, WhatsApp, or push notifications to platform users</p>
+        <p className="text-gray-500 text-sm mt-0.5">Send SMS, WhatsApp, or push notifications to platform users</p>
       </div>
 
-      <div className="bg-white rounded-3xl border-2 border-border-light p-5">
+      <div className="bg-white rounded-3xl border-2 border-gray-200 p-5">
         {success ? (
           <div className="flex flex-col items-center py-8 gap-3">
             <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center">
-              <CheckCircle size={28} className="text-primary-green" />
+              <CheckCircle size={28} className="text-green-600" />
             </div>
             <p
-              className="font-black text-text-primary text-xl"
+              className="font-black text-brand-navy text-xl"
               style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
             >
               Notification भेजी गई!
             </p>
-            <p className="text-text-secondary text-sm">Notification sent successfully.</p>
+            <p className="text-gray-500 text-sm">Notification sent successfully.</p>
           </div>
         ) : (
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
@@ -70,7 +70,7 @@ export default function AdminNotificationsPage() {
             {/* Audience */}
             <div>
               <label
-                className="block text-sm font-semibold text-text-primary mb-2"
+                className="block text-sm font-semibold text-brand-navy mb-2"
                 style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
               >
                 Audience / किसे भेजें
@@ -82,7 +82,7 @@ export default function AdminNotificationsPage() {
                     <label
                       key={o.value}
                       className={`flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition-colors ${
-                        checked ? "border-primary-navy bg-blue-50" : "border-border-light hover:border-blue-200"
+                        checked ? "border-brand-navy bg-blue-50" : "border-gray-200 hover:border-blue-200"
                       }`}
                     >
                       <input
@@ -91,15 +91,15 @@ export default function AdminNotificationsPage() {
                         {...register("audience")}
                         className="sr-only"
                       />
-                      <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 ${checked ? "border-primary-navy bg-primary-navy" : "border-gray-300"}`} />
+                      <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 ${checked ? "border-brand-navy bg-brand-navy" : "border-gray-300"}`} />
                       <div>
                         <p
-                          className="text-xs font-semibold text-text-primary"
+                          className="text-xs font-semibold text-brand-navy"
                           style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
                         >
                           {o.hi}
                         </p>
-                        <p className="text-xs text-text-secondary">{o.en}</p>
+                        <p className="text-xs text-gray-500">{o.en}</p>
                       </div>
                     </label>
                   );
@@ -109,7 +109,7 @@ export default function AdminNotificationsPage() {
 
             {/* Channels */}
             <div>
-              <label className="block text-sm font-semibold text-text-primary mb-2">
+              <label className="block text-sm font-semibold text-brand-navy mb-2">
                 Channel / माध्यम
               </label>
               <div className="flex flex-wrap gap-3">
@@ -121,7 +121,7 @@ export default function AdminNotificationsPage() {
                       {...register("channels")}
                       className="w-4 h-4 accent-primary-navy"
                     />
-                    <span className="text-sm text-text-primary">{c.label}</span>
+                    <span className="text-sm text-brand-navy">{c.label}</span>
                   </label>
                 ))}
               </div>
@@ -130,11 +130,11 @@ export default function AdminNotificationsPage() {
             {/* Message */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="text-sm font-semibold text-text-primary">
+                <label className="text-sm font-semibold text-brand-navy">
                   <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>संदेश</span>
                   {" / Message"}
                 </label>
-                <span className="text-xs text-text-secondary">{message.length}/160</span>
+                <span className="text-xs text-gray-500">{message.length}/160</span>
               </div>
               <textarea
                 {...register("message", {
@@ -143,7 +143,7 @@ export default function AdminNotificationsPage() {
                 })}
                 rows={4}
                 placeholder="यहाँ अपना message लिखें / Write your message here..."
-                className="w-full border-2 border-border-light rounded-xl px-4 py-3 text-sm outline-none focus:border-primary-blue transition-colors resize-none"
+                className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-blue-600 transition-colors resize-none"
                 style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
               />
               {errors.message && <p className="text-red-500 text-xs mt-1">{errors.message.message}</p>}
@@ -152,7 +152,7 @@ export default function AdminNotificationsPage() {
             <button
               type="submit"
               disabled={submitting}
-              className="flex items-center gap-2 bg-primary-orange text-white font-black px-8 py-3.5 rounded-2xl hover:bg-orange-600 transition-colors disabled:opacity-60 w-full justify-center"
+              className="flex items-center gap-2 bg-orange-500 text-white font-black px-8 py-3.5 rounded-2xl hover:bg-orange-600 transition-colors disabled:opacity-60 w-full justify-center"
             >
               <Send size={18} />
               {submitting ? "Sending..." : "Send Notification / भेजें"}
@@ -163,8 +163,8 @@ export default function AdminNotificationsPage() {
 
       {/* Info box */}
       <div className="flex items-start gap-3 bg-blue-50 border-2 border-blue-200 rounded-2xl px-4 py-3">
-        <Bell size={18} className="text-primary-blue flex-shrink-0 mt-0.5" />
-        <p className="text-primary-blue text-sm">
+        <Bell size={18} className="text-blue-600 flex-shrink-0 mt-0.5" />
+        <p className="text-blue-600 text-sm">
           <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>
             Backend ready होने के बाद actual SMS/WhatsApp gateway से messages जाएंगे।
           </span>

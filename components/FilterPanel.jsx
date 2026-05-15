@@ -44,14 +44,14 @@ export default function FilterPanel({ className = "" }) {
     <div className="space-y-6">
       {/* Sort */}
       <div>
-        <h4 className="font-bold text-text-primary mb-2">
-          <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>क्रम</span>
-          <span className="text-text-secondary font-normal"> / Sort By</span>
+        <h4 className="font-bold text-brand-navy mb-2">
+          <span className="font-hindi">क्रम</span>
+          <span className="text-gray-500 font-normal"> / Sort By</span>
         </h4>
         <select
           value={filters.sortBy}
           onChange={e => updateFilter("sortBy", e.target.value)}
-          className="w-full border-2 border-border-light rounded-xl px-4 py-3 text-base focus:outline-none focus:border-primary-orange"
+          className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-brand-navy"
           aria-label="Sort by"
         >
           {SORT_OPTIONS.map(o => (
@@ -62,9 +62,7 @@ export default function FilterPanel({ className = "" }) {
 
       {/* Category */}
       <div>
-        <h4 className="font-bold text-text-primary mb-2">
-          <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>Category</span>
-        </h4>
+        <h4 className="font-bold text-brand-navy mb-2 font-hindi">Category</h4>
         <CategorySelect
           value={filters.category}
           onChange={v => updateFilter("category", v)}
@@ -74,10 +72,10 @@ export default function FilterPanel({ className = "" }) {
 
       {/* Rating */}
       <div>
-        <h4 className="font-bold text-text-primary mb-2">
-          <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>रेटिंग</span>
-          <span className="text-text-secondary font-normal"> / Rating</span>
-          <span className="ml-2 text-primary-orange">{filters.rating > 0 ? `${filters.rating}+ ⭐` : "All"}</span>
+        <h4 className="font-bold text-brand-navy mb-2">
+          <span className="font-hindi">रेटिंग</span>
+          <span className="text-gray-500 font-normal"> / Rating</span>
+          <span className="ml-2 text-brand-yellow font-bold">{filters.rating > 0 ? `${filters.rating}+ ⭐` : "All"}</span>
         </h4>
         <input
           type="range"
@@ -86,19 +84,19 @@ export default function FilterPanel({ className = "" }) {
           step={0.5}
           value={filters.rating}
           onChange={e => updateFilter("rating", parseFloat(e.target.value))}
-          className="w-full accent-primary-orange"
+          className="w-full accent-brand-navy"
           aria-label="Minimum rating filter"
         />
-        <div className="flex justify-between text-xs text-text-secondary mt-1">
+        <div className="flex justify-between text-xs text-gray-400 mt-1">
           <span>Any</span><span>5 ⭐</span>
         </div>
       </div>
 
       {/* Distance */}
       <div>
-        <h4 className="font-bold text-text-primary mb-2">
-          <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>दूरी</span>
-          <span className="text-text-secondary font-normal"> / Distance</span>
+        <h4 className="font-bold text-brand-navy mb-2">
+          <span className="font-hindi">दूरी</span>
+          <span className="text-gray-500 font-normal"> / Distance</span>
         </h4>
         <div className="flex gap-2 flex-wrap">
           {DISTANCE_OPTIONS.map(opt => (
@@ -107,8 +105,8 @@ export default function FilterPanel({ className = "" }) {
               onClick={() => updateFilter("distance", opt.value)}
               className={`px-4 py-2 rounded-xl border-2 font-semibold transition-colors ${
                 filters.distance === opt.value
-                  ? "bg-primary-blue text-white border-primary-blue"
-                  : "border-border-light text-text-secondary hover:border-primary-blue"
+                  ? "bg-brand-navy text-white border-brand-navy"
+                  : "border-gray-200 text-gray-500 hover:border-brand-navy"
               }`}
               aria-label={`Filter by ${opt.label}`}
             >
@@ -120,9 +118,9 @@ export default function FilterPanel({ className = "" }) {
 
       {/* Gender */}
       <div>
-        <h4 className="font-bold text-text-primary mb-2">
-          <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>लिंग</span>
-          <span className="text-text-secondary font-normal"> / Gender</span>
+        <h4 className="font-bold text-brand-navy mb-2">
+          <span className="font-hindi">लिंग</span>
+          <span className="text-gray-500 font-normal"> / Gender</span>
         </h4>
         <div className="space-y-2">
           {GENDER_OPTIONS.map(opt => (
@@ -131,12 +129,12 @@ export default function FilterPanel({ className = "" }) {
                 type="checkbox"
                 checked={(filters.gender || []).includes(opt.value)}
                 onChange={() => toggleArray("gender", opt.value)}
-                className="w-5 h-5 rounded accent-primary-orange"
+                className="w-5 h-5 rounded accent-brand-navy"
                 aria-label={opt.en}
               />
               <span>
-                <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>{opt.hi}</span>
-                <span className="text-text-secondary"> / {opt.en}</span>
+                <span className="font-hindi">{opt.hi}</span>
+                <span className="text-gray-500"> / {opt.en}</span>
               </span>
             </label>
           ))}
@@ -145,9 +143,9 @@ export default function FilterPanel({ className = "" }) {
 
       {/* Service Type */}
       <div>
-        <h4 className="font-bold text-text-primary mb-2">
-          <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>सेवा का प्रकार</span>
-          <span className="text-text-secondary font-normal"> / Service Type</span>
+        <h4 className="font-bold text-brand-navy mb-2">
+          <span className="font-hindi">सेवा का प्रकार</span>
+          <span className="text-gray-500 font-normal"> / Service Type</span>
         </h4>
         <div className="space-y-2">
           {SERVICE_TYPE_OPTIONS.map(opt => (
@@ -156,12 +154,12 @@ export default function FilterPanel({ className = "" }) {
                 type="checkbox"
                 checked={(filters.serviceType || []).includes(opt.value)}
                 onChange={() => toggleArray("serviceType", opt.value)}
-                className="w-5 h-5 rounded accent-primary-orange"
+                className="w-5 h-5 rounded accent-brand-navy"
                 aria-label={opt.en}
               />
               <span>
-                <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>{opt.hi}</span>
-                <span className="text-text-secondary"> / {opt.en}</span>
+                <span className="font-hindi">{opt.hi}</span>
+                <span className="text-gray-500"> / {opt.en}</span>
               </span>
             </label>
           ))}
@@ -174,7 +172,7 @@ export default function FilterPanel({ className = "" }) {
         className="w-full border-2 border-red-300 text-red-600 font-bold py-3 rounded-xl hover:bg-red-50 transition-colors"
         aria-label="Reset all filters"
       >
-        <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>Filters Reset करें</span>
+        <span className="font-hindi">Filters Reset करें</span>
         <span> / Reset All</span>
       </button>
     </div>
@@ -186,11 +184,11 @@ export default function FilterPanel({ className = "" }) {
       <div className="lg:hidden mb-4">
         <button
           onClick={() => setOpen(!open)}
-          className="flex items-center gap-2 bg-primary-navy text-white font-bold px-5 py-3 rounded-xl"
+          className="flex items-center gap-2 bg-brand-navy text-white font-bold px-5 py-3 rounded-xl"
           aria-label="Toggle filters"
         >
           <SlidersHorizontal size={20} />
-          <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>Filters</span>
+          <span className="font-hindi">Filters</span>
         </button>
         {open && (
           <>
@@ -209,10 +207,10 @@ export default function FilterPanel({ className = "" }) {
         )}
       </div>
       {/* Desktop sidebar */}
-      <div className={`hidden lg:block bg-white rounded-2xl border-2 border-border-light p-5 sticky top-20 ${className}`}>
+      <div className={`hidden lg:block bg-white rounded-2xl border-2 border-gray-200 p-5 sticky top-20 ${className}`}>
         <h3 className="font-bold text-lg mb-5">
-          <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>Filters</span>
-          <span className="text-text-secondary font-normal"> / फ़िल्टर</span>
+          <span className="font-hindi">Filters</span>
+          <span className="text-gray-500 font-normal"> / फ़िल्टर</span>
         </h3>
         {panel}
       </div>

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -30,11 +30,11 @@ function SaveRequestModal({ query, onClose }) {
         {saved ? (
           <div className="text-center">
             <p className="text-4xl mb-3">✅</p>
-            <p className="text-xl font-black text-text-primary" style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>
+            <p className="text-xl font-black text-brand-navy" style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>
               Request Save हो गई!
             </p>
-            <p className="text-text-secondary mt-1">हम जल्द call करेंगे / We will call you soon.</p>
-            <button onClick={onClose} className="mt-4 bg-primary-orange text-white font-bold py-3 px-6 rounded-xl w-full">Close</button>
+            <p className="text-gray-500 mt-1">हम जल्द call करेंगे / We will call you soon.</p>
+            <button onClick={onClose} className="mt-4 bg-orange-500 text-white font-bold py-3 px-6 rounded-xl w-full">Close</button>
           </div>
         ) : (
           <>
@@ -42,18 +42,18 @@ function SaveRequestModal({ query, onClose }) {
               <h3 className="font-black text-lg" style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>Request Save करें</h3>
               <button onClick={onClose} aria-label="Close modal"><X size={20} /></button>
             </div>
-            <p className="text-text-secondary text-sm mb-4">
+            <p className="text-gray-500 text-sm mb-4">
               <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>
                 हम आपको जल्द call करेंगे / We will call you soon!
               </span>
             </p>
             <div className="space-y-3">
-              <input value={name} onChange={e => setName(e.target.value)} placeholder="आपका नाम / Your Name" className="w-full px-4 py-3 border-2 border-border-light rounded-xl focus:outline-none focus:border-primary-orange" />
-              <div className="flex items-center border-2 border-border-light rounded-xl overflow-hidden">
-                <span className="px-3 py-3 bg-gray-50 border-r border-border-light text-text-secondary font-semibold">+91</span>
+              <input value={name} onChange={e => setName(e.target.value)} placeholder="आपका नाम / Your Name" className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-orange-500" />
+              <div className="flex items-center border-2 border-gray-200 rounded-xl overflow-hidden">
+                <span className="px-3 py-3 bg-gray-50 border-r border-gray-200 text-gray-500 font-semibold">+91</span>
                 <input value={mobile} onChange={e => setMobile(e.target.value.replace(/\D/g, "").slice(0, 10))} placeholder="Mobile Number" inputMode="numeric" className="flex-1 px-3 py-3 focus:outline-none" />
               </div>
-              <button onClick={handleSave} disabled={!name || mobile.length !== 10} className="w-full bg-primary-orange text-white font-black py-3 rounded-xl hover:bg-orange-600 transition-colors disabled:opacity-50">
+              <button onClick={handleSave} disabled={!name || mobile.length !== 10} className="w-full bg-orange-500 text-white font-black py-3 rounded-xl hover:bg-orange-600 transition-colors disabled:opacity-50">
                 <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>Save करें / Save Request</span>
               </button>
             </div>
@@ -92,7 +92,7 @@ function SearchResults() {
   return (
     <>
       {/* Search bar */}
-      <div className="bg-primary-navy py-6 px-4">
+      <div className="bg-brand-navy py-6 px-4">
         <div className="max-w-4xl mx-auto">
           <HeroSearch initialQuery={query} onQueryChange={handleQueryChange} />
         </div>
@@ -100,7 +100,7 @@ function SearchResults() {
 
       <div className="max-w-7xl mx-auto px-4 py-8 w-full">
         {/* Tabs */}
-        <div className="flex gap-3 mb-6 border-b border-border-light">
+        <div className="flex gap-3 mb-6 border-b border-gray-200">
           {[
             { key: "workers", hi: "वर्कर", en: "Workers" },
             { key: "categories", hi: "कैटेगरी", en: "Categories" },
@@ -109,7 +109,7 @@ function SearchResults() {
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
               className={`pb-3 px-1 font-bold text-lg border-b-2 transition-colors ${
-                activeTab === tab.key ? "border-primary-orange text-primary-orange" : "border-transparent text-text-secondary"
+                activeTab === tab.key ? "border-orange-500 text-orange-500" : "border-transparent text-gray-500"
               }`}
               aria-label={tab.en}
             >
@@ -123,9 +123,9 @@ function SearchResults() {
           <FilterPanel className="w-64" />
           <div className="flex-1 min-w-0">
             {query && (
-              <p className="text-text-secondary mb-4 break-words">
+              <p className="text-gray-500 mb-4 break-words">
                 <span
-                  className="font-semibold text-text-primary"
+                  className="font-semibold text-brand-navy"
                   style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
                 >
                   &ldquo;{query}&rdquo;

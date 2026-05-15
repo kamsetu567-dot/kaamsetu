@@ -1,66 +1,92 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
 @theme {
+  /* Legacy colors (keep for backward compat) */
   --color-primary-orange: #F97316;
   --color-primary-blue: #2563EB;
   --color-primary-green: #16A34A;
-  --color-primary-navy: #1E3A8A;
-  --color-accent-yellow: #FACC15;
+  --color-primary-navy: #1B2D6B;
+  --color-accent-yellow: #F5A623;
   --color-working-orange: #EA580C;
-  --color-neutral-bg: #F8FAFC;
-  --color-text-primary: #0F172A;
-  --color-text-secondary: #475569;
-  --color-border-light: #E2E8F0;
+  --color-neutral-bg: #F4F6FB;
+  --color-text-primary: #1F2937;
+  --color-text-secondary: #6B7280;
+  --color-border-light: #E5E7EB;
 
+  /* Brand colors */
+  --color-brand-navy: #1B2D6B;
+  --color-brand-navy-dark: #152560;
+  --color-brand-navy-light: #2438A0;
+  --color-brand-yellow: #F5A623;
+  --color-brand-yellow-light: #FCD34D;
+  --color-brand-orange: #F59E0B;
+  --color-brand-bg: #F4F6FB;
+  --color-brand-white: #FFFFFF;
+  --color-brand-text: #1F2937;
+  --color-brand-text-light: #6B7280;
+  --color-brand-border: #E5E7EB;
+  --color-brand-success: #10B981;
+  --color-brand-error: #EF4444;
+
+  --font-hindi: 'Noto Sans Devanagari', sans-serif;
+  --font-sans: 'Inter', system-ui, sans-serif;
   --font-devanagari: var(--font-noto-devanagari);
-  --font-sans: var(--font-inter);
 }
 
 :root {
-  --background: #F8FAFC;
-  --foreground: #0F172A;
+  --background: #F4F6FB;
+  --foreground: #1F2937;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-inter), 'Noto Sans Devanagari', Arial, sans-serif;
+  font-family: 'Inter', system-ui, sans-serif;
+  background-color: #F4F6FB;
+  color: #1F2937;
   font-size: 16px;
 }
 
-/* Hindi text uses Devanagari font */
-.hindi, [lang="hi"] {
-  font-family: var(--font-noto-devanagari), 'Noto Sans Devanagari', sans-serif;
+.font-hindi {
+  font-family: 'Noto Sans Devanagari', sans-serif;
 }
 
-/* Focus ring matches brand yellow */
+.hindi, [lang="hi"] {
+  font-family: 'Noto Sans Devanagari', sans-serif;
+}
+
+.gradient-hero {
+  background: linear-gradient(135deg, #1B2D6B 0%, #2438A0 50%, #7C3AED 100%);
+}
+
+.card-hover {
+  transition: all 0.2s ease;
+}
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
 *:focus-visible {
-  outline: 2px solid #FACC15;
+  outline: 2px solid #F5A623;
   outline-offset: 2px;
 }
 
-/* Minimum tap target */
 button, a, [role="button"] {
   min-height: 44px;
 }
 
-/* Scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-}
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #F1F5F9; }
+::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 3px; }
 
-/* Toast slide-in animation */
 @keyframes slide-in {
   from { transform: translateX(110%); opacity: 0; }
   to   { transform: translateX(0);    opacity: 1; }
 }
-.animate-slide-in {
-  animation: slide-in 0.25s ease-out;
+.animate-slide-in { animation: slide-in 0.25s ease-out; }
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
 }
-::-webkit-scrollbar-track {
-  background: #F1F5F9;
-}
-::-webkit-scrollbar-thumb {
-  background: #CBD5E1;
-  border-radius: 3px;
-}
+.animate-pulse-dot { animation: pulse-dot 1.5s ease-in-out infinite; }

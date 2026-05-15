@@ -51,10 +51,8 @@ export default function CategorySelect({
     <div>
       {label && (
         <label className="block mb-1.5">
-          <span className="font-semibold text-text-primary" style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>
-            {label}
-          </span>
-          {labelEn && <span className="text-text-secondary font-normal ml-1 text-sm">/ {labelEn}</span>}
+          <span className="font-semibold text-brand-navy font-hindi">{label}</span>
+          {labelEn && <span className="text-gray-500 font-normal ml-1 text-sm">/ {labelEn}</span>}
         </label>
       )}
       <div className="relative">
@@ -62,7 +60,7 @@ export default function CategorySelect({
           value={showOtherInput ? "__other__" : value}
           onChange={handleSelect}
           className={`w-full px-4 py-4 text-base border-2 rounded-xl appearance-none bg-white pr-10 focus:outline-none transition-colors ${
-            error ? "border-red-400" : "border-border-light focus:border-primary-orange"
+            error ? "border-red-400" : "border-gray-200 focus:border-brand-navy"
           }`}
           aria-label={labelEn || (level === "main" ? "Select category" : "Select subcategory")}
         >
@@ -74,7 +72,7 @@ export default function CategorySelect({
           ))}
           <option value="__other__">अन्य / Other</option>
         </select>
-        <ChevronDown size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary pointer-events-none" />
+        <ChevronDown size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
       </div>
 
       {showOtherInput && (
@@ -84,7 +82,7 @@ export default function CategorySelect({
             value={otherText}
             onChange={handleOtherInput}
             placeholder="अपनी category यहाँ लिखें / Type your category here"
-            className="w-full px-4 py-4 text-base border-2 border-primary-orange rounded-xl focus:outline-none"
+            className="w-full px-4 py-4 text-base border-2 border-brand-navy rounded-xl focus:outline-none"
             aria-label="Type custom category"
           />
           {/* TODO: When backend is ready, POST custom category to API so it appears in future dropdowns for all users. */}

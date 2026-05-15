@@ -17,7 +17,6 @@ export async function GET(request) {
 
     const client = await Client.findOne({ user: payload.id }).lean();
 
-    // Match by clientId (if we saved it) OR by mobile (for anonymous/older requests)
     const orClauses = [{ clientMobile: payload.mobile }];
     if (client) orClauses.push({ clientId: client._id });
 
@@ -26,18 +25,20 @@ export async function GET(request) {
       .limit(50)
       .lean();
 
-    // Attach worker details for accepted/in-progress jobs
-    const requestsWithWorker = await Promise.all(
-      requests.map(async (req) => {
-        if (req.worker) {
-          const worker = await Worker.findById(req.worker)
-            .select("name mobile rating experience")
-            .lean();
-          return { ...req, workerDetails: worker };
-        }
-        return req;
-      })
-    );
+    // Batch-fetch all referenced workers in one query to avoid N+1
+    const workerIds = [...new Set(requests.map(r => r.worker).filter(Boolean).map(String))];
+    const workersById = {};
+    if (workerIds.length > 0) {
+      const workers = await Worker.find({ _id: { $in: workerIds } })
+        .select("name mobile rating experience")
+        .lean();
+      workers.forEach(w => { workersById[String(w._id)] = w; });
+    }
+
+    const requestsWithWorker = requests.map(req => ({
+      ...req,
+      workerDetails: req.worker ? (workersById[String(req.worker)] || null) : null,
+    }));
 
     return ok({ requests: requestsWithWorker });
   } catch (err) {

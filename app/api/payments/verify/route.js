@@ -2,16 +2,23 @@ import crypto from "crypto";
 import { connectDB } from "@/lib/db/mongoose";
 import Subscription from "@/lib/models/Subscription";
 import Worker from "@/lib/models/Worker";
-import { ok, error } from "@/lib/utils/apiResponse";
+import { getTokenFromRequest, verifyToken } from "@/lib/utils/jwt";
+import { ok, error, unauthorized, forbidden } from "@/lib/utils/apiResponse";
 
 const PLAN_DAYS = { monthly: 30, quarterly: 90, yearly: 365 };
 
 export async function POST(request) {
   try {
+    const token = getTokenFromRequest(request);
+    if (!token) return unauthorized();
+
+    const payload = verifyToken(token);
+    if (!payload || payload.role !== "worker") return unauthorized("Worker access required");
+
     const body = await request.json();
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature, subscriptionId } = body;
 
-    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature || !subscriptionId) {
       return error("Payment data incomplete");
     }
 
@@ -32,6 +39,12 @@ export async function POST(request) {
 
     const sub = await Subscription.findById(subscriptionId);
     if (!sub) return error("Subscription record not found");
+
+    // Ensure the subscription belongs to the authenticated worker
+    const worker = await Worker.findOne({ user: payload.id }).lean();
+    if (!worker || String(sub.worker) !== String(worker._id)) {
+      return forbidden("Subscription does not belong to this worker");
+    }
 
     const startDate = new Date();
     const endDate = new Date();

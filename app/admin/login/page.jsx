@@ -43,10 +43,10 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-brand-navy flex items-center justify-center px-4">
       <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-primary-navy rounded-2xl flex items-center justify-center mx-auto mb-4 text-3xl">
+          <div className="w-16 h-16 bg-brand-navy rounded-2xl flex items-center justify-center mx-auto mb-4 text-3xl">
             🔐
           </div>
           <h1 className="text-2xl font-bold text-gray-900">KaamSetu Admin</h1>
@@ -67,7 +67,7 @@ export default function AdminLoginPage() {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               placeholder="Admin username"
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-navy text-base"
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-brand-navy text-base"
               disabled={isLoading}
             />
           </div>
@@ -80,7 +80,7 @@ export default function AdminLoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Admin password"
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-navy text-base pr-20"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-brand-navy text-base pr-20"
                 disabled={isLoading}
               />
               <button
@@ -96,7 +96,7 @@ export default function AdminLoginPage() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-primary-navy text-white font-bold py-4 rounded-xl text-base hover:bg-blue-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-brand-navy text-white font-bold py-4 rounded-xl text-base hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? "⟳ Logging in..." : "🔓 Login"}
           </button>

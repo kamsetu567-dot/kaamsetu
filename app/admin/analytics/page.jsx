@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import {
@@ -15,14 +15,14 @@ const PLACEHOLDER_DATA = Array.from({ length: 7 }, (_, i) => ({
 
 function ChartCard({ title, titleHi, children }) {
   return (
-    <div className="bg-white rounded-3xl border-2 border-border-light p-5">
+    <div className="bg-white rounded-3xl border-2 border-gray-200 p-5">
       <h3
-        className="font-black text-text-primary mb-1"
+        className="font-black text-brand-navy mb-1"
         style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
       >
         {titleHi}
       </h3>
-      <p className="text-text-secondary text-xs mb-4">{title}</p>
+      <p className="text-gray-500 text-xs mb-4">{title}</p>
       {children}
     </div>
   );
@@ -53,12 +53,12 @@ export default function AdminAnalyticsPage() {
       <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
           <h1
-            className="text-2xl font-black text-text-primary"
+            className="text-2xl font-black text-brand-navy"
             style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
           >
             विश्लेषण / Analytics
           </h1>
-          <p className="text-text-secondary text-sm mt-0.5">Platform performance metrics</p>
+          <p className="text-gray-500 text-sm mt-0.5">Platform performance metrics</p>
         </div>
         <div className="flex gap-2">
           {[["7d", "7 Days"], ["30d", "30 Days"], ["90d", "90 Days"]].map(([val, label]) => (
@@ -67,8 +67,8 @@ export default function AdminAnalyticsPage() {
               onClick={() => setRange(val)}
               className={`px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${
                 range === val
-                  ? "bg-primary-navy text-white"
-                  : "bg-white border-2 border-border-light text-text-secondary hover:border-primary-navy"
+                  ? "bg-brand-navy text-white"
+                  : "bg-white border-2 border-gray-200 text-gray-500 hover:border-brand-navy"
               }`}
             >
               {label}
@@ -80,8 +80,8 @@ export default function AdminAnalyticsPage() {
       {/* Notice when data is empty */}
       {data.every(d => d.visits === 0) && (
         <div className="flex items-center gap-3 bg-blue-50 border-2 border-blue-200 rounded-2xl px-4 py-3">
-          <BarChart3 size={18} className="text-primary-blue flex-shrink-0" />
-          <p className="text-primary-blue text-sm">
+          <BarChart3 size={18} className="text-blue-600 flex-shrink-0" />
+          <p className="text-blue-600 text-sm">
             <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>
               Analytics data backend ready होने के बाद यहाँ दिखेगा।
             </span>

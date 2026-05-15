@@ -1,4 +1,4 @@
-import Header from "@/components/Header";
+﻿import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
 export const metadata = {
@@ -8,45 +8,45 @@ export const metadata = {
 
 function Section({ num, hi, en, children }) {
   return (
-    <div className="bg-white rounded-3xl border-2 border-border-light p-6">
+    <div className="bg-white rounded-3xl border-2 border-gray-200 p-6">
       <div className="flex items-center gap-3 mb-3">
-        <span className="w-8 h-8 rounded-xl bg-primary-orange text-white font-black text-sm flex items-center justify-center flex-shrink-0">
+        <span className="w-8 h-8 rounded-xl bg-orange-500 text-white font-black text-sm flex items-center justify-center flex-shrink-0">
           {num}
         </span>
         <div>
           <h2
-            className="font-black text-text-primary"
+            className="font-black text-brand-navy"
             style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
           >
             {hi}
           </h2>
-          <p className="text-text-secondary text-xs">{en}</p>
+          <p className="text-gray-500 text-xs">{en}</p>
         </div>
       </div>
-      <div className="text-text-secondary text-sm leading-relaxed">{children}</div>
+      <div className="text-gray-500 text-sm leading-relaxed">{children}</div>
     </div>
   );
 }
 
 export default function TermsPage() {
   return (
-    <div className="min-h-screen flex flex-col bg-neutral-bg">
+    <div className="min-h-screen flex flex-col bg-brand-bg">
       <Header />
       <main className="flex-1 max-w-3xl mx-auto px-4 py-10 space-y-5">
 
         <div>
           <h1
-            className="text-3xl font-black text-text-primary"
+            className="text-3xl font-black text-brand-navy"
             style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
           >
             नियम और शर्तें / Terms &amp; Conditions
           </h1>
-          <p className="text-text-secondary text-sm mt-1">Last updated: January 2025</p>
+          <p className="text-gray-500 text-sm mt-1">Last updated: January 2025</p>
         </div>
 
         <div className="bg-orange-50 border-2 border-orange-200 rounded-2xl px-5 py-4">
           <p
-            className="text-primary-orange text-sm"
+            className="text-orange-500 text-sm"
             style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
           >
             KaamSetu use करके आप इन नियमों और शर्तों से सहमत होते हैं। कृपया ध्यान से पढ़ें।
@@ -113,7 +113,7 @@ export default function TermsPage() {
           </p>
         </Section>
 
-        <p className="text-center text-text-secondary text-xs pb-4">
+        <p className="text-center text-gray-500 text-xs pb-4">
           KaamSetu reserves the right to modify these terms at any time. Continued use constitutes acceptance.
         </p>
 

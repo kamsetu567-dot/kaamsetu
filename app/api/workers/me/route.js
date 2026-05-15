@@ -1,7 +1,7 @@
 import { connectDB } from "@/lib/db/mongoose";
 import Worker from "@/lib/models/Worker";
 import { getTokenFromRequest, verifyToken } from "@/lib/utils/jwt";
-import { ok, unauthorized, notFound, error } from "@/lib/utils/apiResponse";
+import { ok, unauthorized, forbidden, notFound, error } from "@/lib/utils/apiResponse";
 
 export async function GET(request) {
   try {
@@ -10,6 +10,8 @@ export async function GET(request) {
 
     const payload = verifyToken(token);
     if (!payload) return unauthorized("Invalid or expired token");
+
+    if (payload.role !== "worker") return forbidden("Worker access required");
 
     await connectDB();
 

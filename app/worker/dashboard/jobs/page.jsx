@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useRef } from "react";
 import { Bell } from "lucide-react";
@@ -47,17 +47,17 @@ export default function WorkerJobsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h2
-            className="text-xl font-black text-text-primary"
+            className="text-xl font-black text-brand-navy"
             style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
           >
             Incoming Jobs / आने वाली जॉब्स
           </h2>
-          <p className="text-text-secondary text-sm mt-0.5">
+          <p className="text-gray-500 text-sm mt-0.5">
             Accept करने पर client का नंबर मिलेगा / Accept to reveal client's number
           </p>
         </div>
         <div className="relative">
-          <Bell size={24} className="text-primary-blue" />
+          <Bell size={24} className="text-blue-600" />
           {jobs.length > 0 && (
             <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold">
               {jobs.length}
@@ -68,9 +68,9 @@ export default function WorkerJobsPage() {
 
       {/* Live indicator */}
       <div className="flex items-center gap-2 bg-green-50 border-2 border-green-200 rounded-2xl px-4 py-3">
-        <span className="w-2.5 h-2.5 bg-primary-green rounded-full animate-pulse flex-shrink-0" />
+        <span className="w-2.5 h-2.5 bg-green-600 rounded-full animate-pulse flex-shrink-0" />
         <p
-          className="text-primary-green font-semibold text-sm"
+          className="text-green-600 font-semibold text-sm"
           style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
         >
           Live — नए jobs यहाँ आएंगे / New jobs will appear here
@@ -101,9 +101,9 @@ export default function WorkerJobsPage() {
       )}
 
       {/* Job history link */}
-      <div className="bg-white rounded-3xl border-2 border-border-light p-5">
+      <div className="bg-white rounded-3xl border-2 border-gray-200 p-5">
         <h3
-          className="font-bold text-text-primary mb-3"
+          className="font-bold text-brand-navy mb-3"
           style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
         >
           जॉब इतिहास / Job History

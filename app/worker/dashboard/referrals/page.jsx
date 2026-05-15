@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { Share2, Copy, Users, Gift, CheckCircle } from "lucide-react";
@@ -37,18 +37,18 @@ export default function WorkerReferralsPage() {
       {/* Header */}
       <div>
         <h2
-          className="text-xl font-black text-text-primary"
+          className="text-xl font-black text-brand-navy"
           style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
         >
           रेफरल प्रोग्राम
         </h2>
-        <p className="text-text-secondary text-sm mt-0.5">Referral Program — Earn ₹20–₹50 per referral</p>
+        <p className="text-gray-500 text-sm mt-0.5">Referral Program — Earn ₹20–₹50 per referral</p>
       </div>
 
       {/* Earnings summary */}
       <div className="grid grid-cols-2 gap-3">
         <div className="bg-green-50 border-2 border-green-200 rounded-2xl p-5 text-center">
-          <p className="text-3xl font-black text-primary-green">₹{earnings}</p>
+          <p className="text-3xl font-black text-green-600">₹{earnings}</p>
           <p
             className="text-green-700 text-sm mt-1 font-semibold"
             style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
@@ -58,9 +58,9 @@ export default function WorkerReferralsPage() {
           <p className="text-green-600 text-xs">Total Earned</p>
         </div>
         <div className="bg-blue-50 border-2 border-blue-200 rounded-2xl p-5 text-center">
-          <p className="text-3xl font-black text-primary-blue">{referrals.length}</p>
+          <p className="text-3xl font-black text-blue-600">{referrals.length}</p>
           <p
-            className="text-primary-blue text-sm mt-1 font-semibold"
+            className="text-blue-600 text-sm mt-1 font-semibold"
             style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
           >
             कुल Referrals
@@ -70,9 +70,9 @@ export default function WorkerReferralsPage() {
       </div>
 
       {/* How it works */}
-      <div className="bg-white rounded-3xl border-2 border-border-light p-5">
+      <div className="bg-white rounded-3xl border-2 border-gray-200 p-5">
         <h3
-          className="font-black text-text-primary mb-3"
+          className="font-black text-brand-navy mb-3"
           style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
         >
           कैसे काम करता है? / How It Works
@@ -84,17 +84,17 @@ export default function WorkerReferralsPage() {
             { step: "3", hi: "₹20–₹50 आपको मिलेंगे", en: "You earn ₹20–₹50 per signup" },
           ].map(s => (
             <div key={s.step} className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-accent-yellow text-primary-navy rounded-full flex items-center justify-center font-black text-sm flex-shrink-0">
+              <div className="w-8 h-8 bg-brand-yellow text-brand-navy rounded-full flex items-center justify-center font-black text-sm flex-shrink-0">
                 {s.step}
               </div>
               <div>
                 <p
-                  className="font-semibold text-text-primary text-sm"
+                  className="font-semibold text-brand-navy text-sm"
                   style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
                 >
                   {s.hi}
                 </p>
-                <p className="text-text-secondary text-xs">{s.en}</p>
+                <p className="text-gray-500 text-xs">{s.en}</p>
               </div>
             </div>
           ))}
@@ -102,18 +102,18 @@ export default function WorkerReferralsPage() {
       </div>
 
       {/* Referral link */}
-      <div className="bg-white rounded-3xl border-2 border-border-light p-5">
+      <div className="bg-white rounded-3xl border-2 border-gray-200 p-5">
         <h3
-          className="font-black text-text-primary mb-3"
+          className="font-black text-brand-navy mb-3"
           style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
         >
           आपका Referral Link
         </h3>
-        <div className="flex items-center gap-2 bg-neutral-bg border-2 border-border-light rounded-xl px-4 py-3 mb-4">
-          <p className="flex-1 text-sm text-text-secondary truncate">{referralLink}</p>
+        <div className="flex items-center gap-2 bg-brand-bg border-2 border-gray-200 rounded-xl px-4 py-3 mb-4">
+          <p className="flex-1 text-sm text-gray-500 truncate">{referralLink}</p>
           <button
             onClick={copyLink}
-            className="flex items-center gap-1.5 bg-primary-blue text-white text-sm font-bold px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors flex-shrink-0"
+            className="flex items-center gap-1.5 bg-blue-600 text-white text-sm font-bold px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors flex-shrink-0"
             aria-label="Copy referral link"
           >
             {copied ? <CheckCircle size={14} /> : <Copy size={14} />}
@@ -122,7 +122,7 @@ export default function WorkerReferralsPage() {
         </div>
         <button
           onClick={shareLink}
-          className="w-full flex items-center justify-center gap-2 bg-primary-green text-white font-black text-lg py-4 rounded-2xl hover:bg-green-700 transition-colors min-h-14"
+          className="w-full flex items-center justify-center gap-2 bg-green-600 text-white font-black text-lg py-4 rounded-2xl hover:bg-green-700 transition-colors min-h-14"
           aria-label="Share referral link"
         >
           <Share2 size={20} />
@@ -132,9 +132,9 @@ export default function WorkerReferralsPage() {
       </div>
 
       {/* Referral list */}
-      <div className="bg-white rounded-3xl border-2 border-border-light p-5">
+      <div className="bg-white rounded-3xl border-2 border-gray-200 p-5">
         <h3
-          className="font-bold text-text-primary mb-3"
+          className="font-bold text-brand-navy mb-3"
           style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
         >
           मेरे Referrals / My Referrals
@@ -150,12 +150,12 @@ export default function WorkerReferralsPage() {
         ) : (
           <div className="space-y-3">
             {referrals.map(r => (
-              <div key={r.id} className="flex items-center justify-between py-2 border-b border-border-light last:border-0">
+              <div key={r.id} className="flex items-center justify-between py-2 border-b border-gray-200 last:border-0">
                 <div>
-                  <p className="font-semibold text-text-primary">{r.name}</p>
-                  <p className="text-text-secondary text-xs">{r.date}</p>
+                  <p className="font-semibold text-brand-navy">{r.name}</p>
+                  <p className="text-gray-500 text-xs">{r.date}</p>
                 </div>
-                <span className="text-primary-green font-bold">+₹{r.reward}</span>
+                <span className="text-green-600 font-bold">+₹{r.reward}</span>
               </div>
             ))}
           </div>

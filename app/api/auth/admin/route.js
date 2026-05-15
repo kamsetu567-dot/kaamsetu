@@ -1,22 +1,9 @@
-import { signToken } from "@/lib/utils/jwt";
-import { ok, error, unauthorized } from "@/lib/utils/apiResponse";
+import { NextResponse } from "next/server";
 
-export async function POST(request) {
-  try {
-    const { mobile, password } = await request.json();
-
-    const adminMobile = process.env.ADMIN_MOBILE;
-    const adminPassword = process.env.ADMIN_PASSWORD;
-
-    if (mobile !== adminMobile || password !== adminPassword) {
-      return unauthorized("Invalid admin credentials");
-    }
-
-    const token = signToken({ id: "admin", mobile, role: "admin" }, "1d");
-
-    return ok({ token, role: "admin" });
-  } catch (err) {
-    console.error("admin login error:", err);
-    return error("Server error", 500);
-  }
+// Deprecated — use /api/admin/auth/login instead
+export async function POST() {
+  return NextResponse.json(
+    { success: false, message: "Use /api/admin/auth/login instead" },
+    { status: 410 }
+  );
 }

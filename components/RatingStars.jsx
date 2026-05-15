@@ -10,11 +10,11 @@ export default function RatingStars({ rating = 0, maxStars = 5, size = 16, showN
         <Star
           key={i}
           size={size}
-          className={i < filled ? "text-accent-yellow fill-accent-yellow" : "text-gray-300"}
+          className={i < filled ? "text-brand-yellow fill-brand-yellow" : "text-gray-300"}
         />
       ))}
       {showNumber && (
-        <span className="text-sm text-text-secondary ml-1">{rating > 0 ? rating.toFixed(1) : "—"}</span>
+        <span className="text-sm text-gray-500 ml-1">{rating > 0 ? rating.toFixed(1) : "—"}</span>
       )}
     </span>
   );

@@ -1,4 +1,4 @@
-import Header from "@/components/Header";
+﻿import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { AlertTriangle, Info, ShieldCheck } from "lucide-react";
 
@@ -9,68 +9,68 @@ export const metadata = {
 
 export default function DisclaimerPage() {
   return (
-    <div className="min-h-screen flex flex-col bg-neutral-bg">
+    <div className="min-h-screen flex flex-col bg-brand-bg">
       <Header />
       <main className="flex-1 max-w-3xl mx-auto px-4 py-10 space-y-5">
 
         <div>
           <h1
-            className="text-3xl font-black text-text-primary"
+            className="text-3xl font-black text-brand-navy"
             style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
           >
             अस्वीकरण / Disclaimer
           </h1>
-          <p className="text-text-secondary text-sm mt-1">Please read this important notice about KaamSetu.</p>
+          <p className="text-gray-500 text-sm mt-1">Please read this important notice about KaamSetu.</p>
         </div>
 
         {/* Connecting platform notice */}
-        <div className="bg-white rounded-3xl border-2 border-border-light p-6">
+        <div className="bg-white rounded-3xl border-2 border-gray-200 p-6">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 bg-accent-yellow rounded-xl flex items-center justify-center flex-shrink-0">
-              <Info size={20} className="text-primary-navy" />
+            <div className="w-10 h-10 bg-brand-yellow rounded-xl flex items-center justify-center flex-shrink-0">
+              <Info size={20} className="text-brand-navy" />
             </div>
             <h2
-              className="font-black text-text-primary"
+              className="font-black text-brand-navy"
               style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
             >
               Connecting Platform Notice / Platform Notice
             </h2>
           </div>
           <p
-            className="text-text-secondary leading-relaxed"
+            className="text-gray-500 leading-relaxed"
             style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
           >
             KaamSetu केवल एक technology platform है जो workers/service providers और clients को connect करता है।
             यह platform किसी भी worker को employ नहीं करता, और किसी भी service की quality या outcome की
             guarantee नहीं देता।
           </p>
-          <p className="text-text-secondary leading-relaxed text-sm mt-3">
+          <p className="text-gray-500 leading-relaxed text-sm mt-3">
             KaamSetu is a technology platform that connects workers/service providers with clients only.
             KaamSetu does not employ any worker, and does not guarantee the quality or outcome of any service provided.
           </p>
         </div>
 
         {/* Independent contractors */}
-        <div className="bg-white rounded-3xl border-2 border-border-light p-6">
+        <div className="bg-white rounded-3xl border-2 border-gray-200 p-6">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 bg-primary-blue rounded-xl flex items-center justify-center flex-shrink-0">
+            <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center flex-shrink-0">
               <ShieldCheck size={20} className="text-white" />
             </div>
             <h2
-              className="font-black text-text-primary"
+              className="font-black text-brand-navy"
               style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
             >
               Independent Service Providers
             </h2>
           </div>
           <p
-            className="text-text-secondary leading-relaxed"
+            className="text-gray-500 leading-relaxed"
             style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
           >
             सभी workers और service providers independent contractors हैं। KaamSetu उनके employees नहीं हैं।
             उनके actions, work quality, या behavior के लिए KaamSetu legally responsible नहीं है।
           </p>
-          <p className="text-text-secondary text-sm mt-3">
+          <p className="text-gray-500 text-sm mt-3">
             All workers and service providers are independent contractors, not employees of KaamSetu.
             KaamSetu is not legally responsible for their actions, work quality, or behavior.
           </p>
@@ -105,9 +105,9 @@ export default function DisclaimerPage() {
           </ul>
         </div>
 
-        <p className="text-center text-text-secondary text-sm pb-4">
+        <p className="text-center text-gray-500 text-sm pb-4">
           For concerns or disputes, contact{" "}
-          <span className="text-primary-blue font-semibold">support@kaamsetu.in</span>
+          <span className="text-blue-600 font-semibold">support@kaamsetu.in</span>
         </p>
 
       </main>

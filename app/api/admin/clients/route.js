@@ -1,6 +1,5 @@
 import { connectDB } from "@/lib/db/mongoose";
 import Client from "@/lib/models/Client";
-import User from "@/lib/models/User";
 import { verifyToken, getTokenFromRequest } from "@/lib/utils/jwt";
 import { ok, error, unauthorized } from "@/lib/utils/apiResponse";
 
@@ -15,6 +14,9 @@ export async function GET(request) {
 
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search");
+    const page = Math.max(1, parseInt(searchParams.get("page")) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit")) || 20));
+    const skip = (page - 1) * limit;
 
     const filter = {};
     if (search) {
@@ -24,10 +26,10 @@ export async function GET(request) {
       ];
     }
 
-    const clients = await Client.find(filter)
-      .sort({ createdAt: -1 })
-      .limit(100)
-      .lean();
+    const [clients, total] = await Promise.all([
+      Client.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+      Client.countDocuments(filter),
+    ]);
 
     const formatted = clients.map(c => ({
       id: c._id,
@@ -39,7 +41,11 @@ export async function GET(request) {
       createdAt: c.createdAt,
     }));
 
-    return ok({ clients: formatted });
+    const pages = Math.ceil(total / limit);
+    return ok({
+      clients: formatted,
+      pagination: { total, page, limit, pages, hasNext: page < pages, hasPrev: page > 1 },
+    });
   } catch (err) {
     console.error("admin clients error:", err);
     return error("Server error", 500);

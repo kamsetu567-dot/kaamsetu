@@ -1,256 +1,163 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
-import {
-  User, Star, Clock, MapPin, Play, Square,
-  ShieldCheck, CreditCard, Briefcase,
-} from "lucide-react";
-import WorkerStatusBadge from "@/components/WorkerStatusBadge";
-import RatingStars from "@/components/RatingStars";
-import { useWorkerStatus } from "@/lib/context/WorkerStatusContext";
+import { User, Star, CreditCard, Briefcase, LogOut, CheckCircle, Clock } from "lucide-react";
 import { useToast } from "@/components/Toast";
 
-// Format relative time from a Date
-function formatTime(date) {
-  if (!date) return "—";
-  const diff = Math.floor((Date.now() - date.getTime()) / 1000);
-  if (diff < 60) return "अभी / Just now";
-  if (diff < 3600) return `${Math.floor(diff / 60)} मिनट पहले / mins ago`;
-  return date.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
-}
-
-function WorkStatusCard() {
-  const { status, lastUpdated, startWork, endWork, isUpdating } = useWorkerStatus();
+export default function WorkerDashboardOverview() {
+  const router = useRouter();
   const toast = useToast();
+  const [user, setUser] = useState(null);
+  const [worker, setWorker] = useState(null);
+  const [status, setStatus] = useState("free");
+  const [statusLoading, setStatusLoading] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const token = localStorage.getItem("kaamsetu_token");
+    const userData = localStorage.getItem("kaamsetu_user");
+    if (!token || !userData) { router.replace("/auth/login"); return; }
+    try { setUser(JSON.parse(userData)); } catch { router.replace("/auth/login"); return; }
+
+    async function loadWorker() {
+      try {
+        const res = await fetch("/api/workers/me", { headers: { Authorization: `Bearer ${token}` } });
+        const data = await res.json();
+        if (data.success && data.worker) {
+          setWorker(data.worker);
+          setStatus(data.worker.workStatus || "free");
+        }
+      } catch (err) { console.error("Failed to load worker profile:", err); }
+    }
+    loadWorker();
+  }, []);
+
+  async function toggleStatus() {
+    if (statusLoading) return;
+    const newStatus = status === "free" ? "working" : "free";
+    setStatusLoading(true);
+    try {
+      const token = localStorage.getItem("kaamsetu_token");
+      const res = await fetch(`/api/workers/${worker?._id || worker?.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ workStatus: newStatus }),
+      });
+      if (res.ok) {
+        setStatus(newStatus);
+        toast.success(newStatus === "working" ? "काम शुरू हो गया!" : "काम खत्म हो गया!");
+      }
+    } catch { toast.error("Status update failed"); }
+    finally { setStatusLoading(false); }
+  }
+
+  function handleLogout() {
+    localStorage.removeItem("kaamsetu_token");
+    localStorage.removeItem("kaamsetu_user");
+    router.push("/");
+  }
+
+  if (!user) return null;
+
   const isFree = status === "free";
 
-  async function handleStartWork() {
-    try {
-      await startWork();
-      toast.success("काम शुरू हो गया! / Work started!");
-    } catch {
-      toast.error("Status update नहीं हुआ। फिर try करें / Status update failed. Please try again");
-    }
-  }
-
-  async function handleEndWork() {
-    try {
-      await endWork();
-      toast.success("काम खत्म हो गया! / Work ended!");
-    } catch {
-      toast.error("Status update नहीं हुआ। फिर try करें / Status update failed. Please try again");
-    }
-  }
-
-  return (
-    <div className={`rounded-3xl border-2 p-6 ${isFree ? "bg-green-50 border-green-200" : "bg-orange-50 border-orange-200"}`}>
-      {/* Title */}
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h2
-            className="font-black text-text-primary text-lg"
-            style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
-          >
-            काम की स्थिति
-          </h2>
-          <p className="text-text-secondary text-sm">Work Status</p>
-        </div>
-        <WorkerStatusBadge status={status} size="lg" />
-      </div>
-
-      {/* Current status display */}
-      <div className={`rounded-2xl p-4 mb-5 text-center ${isFree ? "bg-green-100" : "bg-orange-100"}`}>
-        <p className="text-4xl mb-1">{isFree ? "🟢" : "🔴"}</p>
-        <p
-          className={`text-xl font-black ${isFree ? "text-green-700" : "text-working-orange"}`}
-          style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
-        >
-          {isFree ? "खाली हूँ / Free" : "काम पर हूँ / Working"}
-        </p>
-      </div>
-
-      {/* Action buttons */}
-      <div className="grid grid-cols-2 gap-3 mb-4">
-        <button
-          onClick={handleStartWork}
-          disabled={!isFree || isUpdating}
-          className="flex items-center justify-center gap-2 bg-primary-green text-white font-bold py-4 rounded-2xl hover:bg-green-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed min-h-14"
-          aria-label="Start work"
-        >
-          <Play size={18} fill="currentColor" />
-          <div className="text-left">
-            <span
-              className="block text-sm"
-              style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
-            >
-              काम पर जाएं
-            </span>
-            <span className="text-xs font-normal block opacity-80">Start Work</span>
-          </div>
-        </button>
-        <button
-          onClick={handleEndWork}
-          disabled={isFree || isUpdating}
-          className="flex items-center justify-center gap-2 bg-red-500 text-white font-bold py-4 rounded-2xl hover:bg-red-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed min-h-14"
-          aria-label="End work"
-        >
-          <Square size={18} fill="currentColor" />
-          <div className="text-left">
-            <span
-              className="block text-sm"
-              style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
-            >
-              काम खत्म
-            </span>
-            <span className="text-xs font-normal block opacity-80">End Work</span>
-          </div>
-        </button>
-      </div>
-
-      {/* Timestamp */}
-      <p className="text-xs text-text-secondary text-center">
-        <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>पिछली बार बदला गया</span>
-        {" / Last updated: "}
-        <span className="font-semibold text-text-primary">{formatTime(lastUpdated)}</span>
-      </p>
-    </div>
-  );
-}
-
-// Profile summary card
-function ProfileCard() {
-  // TODO: Persist via API when backend is ready
-  return (
-    <div className="bg-white rounded-3xl border-2 border-border-light p-6">
-      <div className="flex items-start justify-between mb-4">
-        <h2
-          className="font-black text-text-primary text-lg"
-          style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
-        >
-          प्रोफ़ाइल / Profile
-        </h2>
-        <Link
-          href="/worker/dashboard/profile"
-          className="text-primary-blue text-sm font-semibold hover:underline"
-          aria-label="Edit profile"
-        >
-          Edit / संपादित करें
-        </Link>
-      </div>
-      <div className="flex gap-4">
-        <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0 border-2 border-border-light">
-          <User size={32} className="text-gray-400" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="font-black text-text-primary text-base">—</p>
-          <p className="text-text-secondary text-sm">No profile yet</p>
-          <div className="mt-1"><RatingStars rating={0} size={14} /></div>
-        </div>
-      </div>
-
-      <div className="mt-4 grid grid-cols-2 gap-3 pt-4 border-t border-border-light">
-        <MiniStat icon={Clock} hi="अनुभव" en="Experience" value="— साल" />
-        <MiniStat icon={MapPin} hi="लोकेशन" en="Location" value="—" />
-        <MiniStat icon={Star} hi="रेटिंग" en="Rating" value="—" />
-        <MiniStat icon={ShieldCheck} hi="Status" en="Approval" value="Pending" />
-      </div>
-    </div>
-  );
-}
-
-function MiniStat({ icon: Icon, hi, en, value }) {
-  return (
-    <div className="flex items-center gap-2">
-      <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0">
-        <Icon size={15} className="text-primary-blue" />
-      </div>
-      <div className="min-w-0">
-        <p className="text-xs text-text-secondary truncate">
-          <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>{hi}</span>
-          {" / "}{en}
-        </p>
-        <p className="text-sm font-bold text-text-primary truncate">{value}</p>
-      </div>
-    </div>
-  );
-}
-
-// Quick stats row
-function QuickStats() {
-  const stats = [
-    { hi: "आज की Jobs", en: "Today's Jobs", value: "0", color: "bg-blue-50 text-primary-blue", icon: Briefcase },
-    { hi: "कुल Jobs", en: "Total Jobs", value: "0", color: "bg-orange-50 text-primary-orange", icon: Star },
-    { hi: "Subscription", en: "Plan Status", value: "Pending", color: "bg-yellow-50 text-yellow-700", icon: CreditCard },
-  ];
-  return (
-    <div className="grid grid-cols-3 gap-3">
-      {stats.map(s => (
-        <div key={s.hi} className={`${s.color} rounded-2xl p-4 flex flex-col items-center text-center`}>
-          <s.icon size={20} className="mb-2" />
-          <p className="text-xl font-black">{s.value}</p>
-          <p
-            className="text-xs font-semibold mt-0.5 leading-tight"
-            style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
-          >
-            {s.hi}
-          </p>
-          <p className="text-xs opacity-70">{s.en}</p>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-export default function WorkerDashboardOverview() {
   return (
     <div className="space-y-5">
+      {/* Welcome */}
+      <div className="bg-brand-navy rounded-3xl p-6 flex items-start justify-between">
+        <div>
+          <h2 className="text-xl font-black text-white font-hindi mb-0.5">
+            नमस्ते, {worker?.name || user?.name || "Worker"} 👋
+          </h2>
+          <p className="text-white/50 text-sm">+91 {user?.mobile}</p>
+        </div>
+        <button onClick={handleLogout} className="text-white/40 hover:text-white flex items-center gap-1 text-xs min-h-0">
+          <LogOut size={14} /> Logout
+        </button>
+      </div>
 
-      {/* 1 — Work Status card (top, most prominent) */}
-      <WorkStatusCard />
+      {/* Work Status */}
+      <div className={`rounded-3xl border-2 p-6 ${isFree ? "bg-green-50 border-green-200" : "bg-orange-50 border-orange-200"}`}>
+        <h3 className="font-black text-brand-navy text-lg font-hindi mb-4">काम की स्थिति</h3>
+        <div className={`rounded-2xl p-4 mb-5 text-center ${isFree ? "bg-green-100" : "bg-orange-100"}`}>
+          <p className="text-4xl mb-1">{isFree ? "🟢" : "🔴"}</p>
+          <p className={`text-xl font-black font-hindi ${isFree ? "text-green-700" : "text-orange-700"}`}>
+            {isFree ? "खाली हूँ / Free" : "काम पर हूँ / Working"}
+          </p>
+        </div>
+        <button onClick={toggleStatus} disabled={statusLoading || !worker}
+          className={`w-full font-bold py-4 rounded-2xl transition-colors disabled:opacity-50 font-hindi ${
+            isFree ? "bg-green-600 text-white hover:bg-green-700" : "bg-red-500 text-white hover:bg-red-600"
+          }`}>
+          {statusLoading ? "⏳ अपडेट हो रहा है..." : isFree ? "काम पर जाएं / Start Work" : "काम खत्म / End Work"}
+        </button>
+      </div>
 
-      {/* 2 — Quick stats */}
-      <QuickStats />
+      {/* Quick Stats */}
+      <div className="grid grid-cols-3 gap-3">
+        {[
+          { label: "आज की Jobs", value: "0", icon: Briefcase, bg: "bg-blue-50", color: "text-brand-navy" },
+          { label: "Total Jobs", value: "0", icon: Star, bg: "bg-yellow-50", color: "text-amber-600" },
+          { label: "Subscription", value: "Pending", icon: CreditCard, bg: "bg-purple-50", color: "text-purple-600" },
+        ].map(s => (
+          <div key={s.label} className={`${s.bg} rounded-2xl p-4 flex flex-col items-center text-center`}>
+            <s.icon size={20} className={`${s.color} mb-2`} />
+            <p className={`text-lg font-black ${s.color}`}>{s.value}</p>
+            <p className="text-xs text-gray-500 font-hindi leading-tight mt-0.5">{s.label}</p>
+          </div>
+        ))}
+      </div>
 
-      {/* 3 — Profile summary */}
-      <ProfileCard />
+      {/* Profile Summary */}
+      <div className="bg-white rounded-3xl border border-gray-100 p-5 shadow-sm">
+        <div className="flex items-start justify-between mb-4">
+          <h3 className="font-black text-brand-navy font-hindi">Profile</h3>
+          <Link href="/worker/dashboard/profile" className="text-brand-navy text-sm font-semibold hover:underline">Edit →</Link>
+        </div>
+        <div className="flex gap-4">
+          <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0 border-2 border-gray-200">
+            {worker?.photo ? (
+              <img src={worker.photo} alt="Profile" className="w-full h-full rounded-full object-cover" />
+            ) : (
+              <User size={28} className="text-gray-400" />
+            )}
+          </div>
+          <div className="flex-1">
+            <p className="font-black text-brand-navy">{worker?.name || "—"}</p>
+            <p className="text-gray-400 text-sm">{worker?.category || "No category set"}</p>
+            <p className="text-gray-400 text-xs mt-0.5">📍 {worker?.location?.city || "—"}</p>
+          </div>
+        </div>
+        {worker?.isApproved && (
+          <div className="mt-3 flex items-center gap-1 text-green-600 text-xs font-semibold">
+            <CheckCircle size={14} /> Verified Worker
+          </div>
+        )}
+      </div>
 
-      {/* 4 — Quick links to other tabs */}
-      <div className="bg-white rounded-3xl border-2 border-border-light p-5">
-        <h3
-          className="font-black text-text-primary mb-4"
-          style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
-        >
-          Quick Links / शॉर्टकट
-        </h3>
+      {/* Quick Links */}
+      <div className="bg-white rounded-3xl border border-gray-100 p-5 shadow-sm">
+        <h3 className="font-black text-brand-navy font-hindi mb-4">Quick Links</h3>
         <div className="grid grid-cols-2 gap-3">
           {[
-            { href: "/worker/dashboard/jobs", hi: "Incoming Jobs", en: "जॉब notifications", icon: Briefcase, color: "bg-primary-blue" },
-            { href: "/worker/dashboard/subscription", hi: "Subscription", en: "₹199/month plan", icon: CreditCard, color: "bg-primary-green" },
-            { href: "/worker/dashboard/profile", hi: "Edit Profile", en: "प्रोफ़ाइल बदलें", icon: User, color: "bg-primary-orange" },
-            { href: "/worker/dashboard/referrals", hi: "Referrals", en: "₹20–₹50 earn करें", icon: Star, color: "bg-primary-navy" },
+            { href: "/worker/dashboard/jobs", label: "Incoming Jobs", sub: "New notifications", icon: Briefcase, bg: "bg-brand-navy" },
+            { href: "/worker/dashboard/subscription", label: "Subscription", sub: "₹199/month", icon: CreditCard, bg: "bg-green-600" },
+            { href: "/worker/dashboard/profile", label: "Edit Profile", sub: "Update details", icon: User, bg: "bg-amber-500" },
+            { href: "/worker/dashboard/referrals", label: "Referrals", sub: "Earn ₹20–₹50", icon: Star, bg: "bg-purple-600" },
           ].map(link => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={`${link.color} text-white rounded-2xl p-4 flex flex-col gap-2 hover:opacity-90 transition-opacity`}
-              aria-label={link.hi}
-            >
-              <link.icon size={22} />
+            <Link key={link.href} href={link.href}
+              className={`${link.bg} text-white rounded-2xl p-4 flex flex-col gap-2 hover:opacity-90 transition-opacity`}>
+              <link.icon size={20} />
               <div>
-                <p className="font-bold text-sm">{link.hi}</p>
-                <p
-                  className="text-xs opacity-80"
-                  style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
-                >
-                  {link.en}
-                </p>
+                <p className="font-bold text-sm">{link.label}</p>
+                <p className="text-xs opacity-70">{link.sub}</p>
               </div>
             </Link>
           ))}
         </div>
       </div>
-
     </div>
   );
 }

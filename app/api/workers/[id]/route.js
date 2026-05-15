@@ -1,6 +1,7 @@
 import { connectDB } from "@/lib/db/mongoose";
 import Worker from "@/lib/models/Worker";
-import { ok, notFound, error } from "@/lib/utils/apiResponse";
+import { getTokenFromRequest, verifyToken } from "@/lib/utils/jwt";
+import { ok, notFound, error, unauthorized, forbidden } from "@/lib/utils/apiResponse";
 
 export async function GET(request, { params }) {
   try {
@@ -19,16 +20,30 @@ export async function GET(request, { params }) {
 
 export async function PATCH(request, { params }) {
   try {
-    const { id } = await params;
+    const token = getTokenFromRequest(request);
+    if (!token) return unauthorized();
 
+    const payload = verifyToken(token);
+    if (!payload) return unauthorized("Invalid or expired token");
+
+    const { id } = await params;
     if (!id || id === "null" || id === "undefined") {
       return error("Invalid worker ID", 400);
     }
 
-    const body = await request.json();
-
     await connectDB();
 
+    // Workers can only update their own profile; admins can update any
+    if (payload.role === "worker") {
+      const ownWorker = await Worker.findOne({ user: payload.id }).lean();
+      if (!ownWorker || String(ownWorker._id) !== String(id)) {
+        return forbidden("You can only update your own profile");
+      }
+    } else if (payload.role !== "admin") {
+      return forbidden("Worker or admin access required");
+    }
+
+    const body = await request.json();
     const allowed = ["name", "photo", "bio", "experience", "serviceType", "location", "languages"];
     const updates = {};
     for (const key of allowed) {

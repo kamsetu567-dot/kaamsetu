@@ -24,7 +24,7 @@ export default function AdminLayout({ children }) {
   }
 
   return (
-    <div className="min-h-screen flex bg-neutral-bg">
+    <div className="min-h-screen flex bg-brand-bg">
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
@@ -45,7 +45,7 @@ export default function AdminLayout({ children }) {
       {/* Main area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Mobile top bar */}
-        <div className="lg:hidden bg-primary-navy px-4 py-3 flex items-center gap-3 sticky top-0 z-30">
+        <div className="lg:hidden bg-brand-navy px-4 py-3 flex items-center gap-3 sticky top-0 z-30">
           <button
             onClick={() => setSidebarOpen(true)}
             className="text-white p-1"

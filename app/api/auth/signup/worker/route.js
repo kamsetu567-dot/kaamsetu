@@ -3,23 +3,20 @@ import User from "@/lib/models/User";
 import Worker from "@/lib/models/Worker";
 import { signToken, verifyToken } from "@/lib/utils/jwt";
 import { ok, error, created } from "@/lib/utils/apiResponse";
+import { logger } from "@/lib/utils/logger";
 
 export async function POST(request) {
   try {
     const body = await request.json();
-    console.log("Worker signup called with body:", JSON.stringify(body));
 
-    const { mobile, name, category, subcategory, gender, experience, serviceType, city, area, token, aadharPhoto } = body;
+    const { mobile, name, category, subcategory, gender, experience, serviceType, city, area, token } = body;
     const location = { city: city || "", address: area || "" };
 
     if (!mobile || !name) {
       return error("mobile and name are required");
     }
 
-    if (!aadharPhoto) {
-      return error('आधार कार्ड जरूरी है / Aadhar card is required', 400);
-    }
-
+    // aadharPhoto is optional during testing — TODO: make required before going live
     if (!token) return error("OTP verification required before signup");
     const tokenPayload = verifyToken(token);
     if (!tokenPayload) return error("OTP verification required before signup");
@@ -31,7 +28,7 @@ export async function POST(request) {
       if (existingWorker.status === "approved" || existingWorker.status === "blocked") {
         return error("Mobile number already registered", 400);
       }
-      // If pending, allow re-registration by updating existing record
+      // If pending/rejected, allow re-registration by updating existing record
       await Worker.findByIdAndUpdate(existingWorker._id, {
         name,
         category: category || "",
@@ -40,7 +37,6 @@ export async function POST(request) {
         experience: parseInt(experience) || 0,
         serviceType: serviceType || "both",
         location,
-        updatedAt: new Date(),
       });
       const updatedToken = signToken({ id: existingWorker.user, mobile, role: "worker" });
       return ok({
@@ -66,11 +62,10 @@ export async function POST(request) {
         location,
         status: "pending",
       });
-      console.log("Worker created successfully:", worker._id);
     } catch (createError) {
-      console.error("Worker create failed:", createError.message);
+      logger.error("Worker create failed", { msg: createError.message, code: createError.code });
       await User.findByIdAndDelete(user._id);
-      return error(`Worker creation failed: ${createError.message}`, 500);
+      return error("Worker registration failed. Please try again.", 500);
     }
 
     const newToken = signToken({ id: user._id, mobile, role: "worker" });
@@ -81,23 +76,18 @@ export async function POST(request) {
       worker: { id: worker._id, name, status: "pending" },
     });
   } catch (err) {
-    console.error('[WORKER_SIGNUP] Full error:', {
-      message: err.message,
-      code: err.code,
-      name: err.name,
-      stack: err.stack,
-    });
+    logger.error("[WORKER_SIGNUP] error", { msg: err.message, code: err.code });
 
     if (err.code === 11000) {
-      const field = Object.keys(err.keyPattern || {})[0] || 'field';
+      const field = Object.keys(err.keyPattern || {})[0] || "field";
       return error(`${field} already registered / पहले से registered है`, 409);
     }
 
-    if (err.name === 'ValidationError') {
-      const messages = Object.values(err.errors).map(e => e.message).join(', ');
+    if (err.name === "ValidationError") {
+      const messages = Object.values(err.errors).map(e => e.message).join(", ");
       return error(`Validation failed: ${messages}`, 400);
     }
 
-    return error(`Server error: ${err.message}`, 500);
+    return error("Server error", 500);
   }
 }

@@ -27,9 +27,8 @@ export default function WorkerCard({ worker }) {
   const st = serviceTypeLabel[serviceType] || serviceTypeLabel.both;
 
   return (
-    <div className="bg-white rounded-2xl border-2 border-border-light p-4 hover:border-primary-orange hover:shadow-md transition-all">
+    <div className="bg-white rounded-2xl border-2 border-gray-200 p-4 hover:border-brand-yellow hover:shadow-md transition-all">
       <div className="flex gap-3 mb-3">
-        {/* Photo */}
         <div className="relative w-16 h-16 rounded-full overflow-hidden flex-shrink-0 bg-gray-100">
           {photo ? (
             <Image src={photo} alt={`${name} photo`} fill className="object-cover" />
@@ -39,18 +38,16 @@ export default function WorkerCard({ worker }) {
             </div>
           )}
         </div>
-        {/* Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-1">
-            <h3 className="font-bold text-text-primary text-base truncate">{name}</h3>
+            <h3 className="font-bold text-brand-navy text-base truncate">{name}</h3>
             <WorkerStatusBadge status={status} size="sm" />
           </div>
-          <p className="text-text-secondary text-sm truncate">{subcategory || category}</p>
+          <p className="text-gray-500 text-sm truncate">{subcategory || category}</p>
           <RatingStars rating={rating} size={14} />
         </div>
       </div>
 
-      {/* Tags */}
       <div className="flex flex-wrap gap-2 mb-3 text-xs">
         {experience > 0 && (
           <span className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded-lg">
@@ -63,24 +60,22 @@ export default function WorkerCard({ worker }) {
           </span>
         )}
         {gender && (
-          <span className="bg-blue-50 text-primary-blue px-2 py-1 rounded-lg">
+          <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded-lg">
             {gender === "male" ? "पुरुष / Male" : "महिला / Female"}
           </span>
         )}
-        <span className="bg-orange-50 text-primary-orange px-2 py-1 rounded-lg">
-          <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>{st.hi}</span>
-          <span> / {st.en}</span>
+        <span className="bg-brand-yellow/20 text-brand-navy px-2 py-1 rounded-lg font-hindi">
+          {st.hi} / {st.en}
         </span>
       </div>
 
-      {/* CTA */}
       <Link
         href={`/workers/${id}`}
-        className="flex items-center justify-center gap-2 w-full bg-primary-green text-white font-bold text-base py-3 rounded-xl hover:bg-green-700 transition-colors min-h-12"
+        className="flex items-center justify-center gap-2 w-full bg-brand-navy text-white font-bold text-base py-3 rounded-xl hover:opacity-90 transition-opacity min-h-12"
         aria-label={`Call ${name}`}
       >
         <Phone size={18} />
-        <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>📞 अभी कॉल करें</span>
+        <span className="font-hindi">📞 अभी कॉल करें</span>
         <span className="text-sm font-normal">/ Call Now</span>
       </Link>
     </div>

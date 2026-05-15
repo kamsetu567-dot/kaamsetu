@@ -13,6 +13,7 @@ const NAV_ITEMS = [
   { href: "/admin/workers", hi: "वर्कर", en: "Workers", icon: UserCheck },
   { href: "/admin/clients", hi: "क्लाइंट", en: "Clients", icon: Users },
   { href: "/admin/jobs", hi: "जॉब्स", en: "Jobs", icon: Briefcase },
+  { href: "/admin/pending-requests", hi: "Requests", en: "Pending Requests", icon: Briefcase },
   { href: "/admin/payments", hi: "भुगतान", en: "Payments", icon: CreditCard },
   { href: "/admin/offers", hi: "ऑफर", en: "Offers", icon: Tag },
   { href: "/admin/notifications", hi: "सूचनाएँ", en: "Notifications", icon: Bell },
@@ -31,12 +32,12 @@ export default function AdminSidebar() {
   }
 
   return (
-    <aside className="w-64 flex-shrink-0 bg-primary-navy min-h-screen flex flex-col">
+    <aside className="w-64 flex-shrink-0 bg-brand-navy min-h-screen flex flex-col">
       {/* Logo */}
       <div className="p-5 border-b border-white/10">
         <Link href="/admin" className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-accent-yellow rounded-lg flex items-center justify-center">
-            <Wrench size={16} className="text-primary-navy" />
+          <div className="w-8 h-8 bg-brand-yellow rounded-lg flex items-center justify-center">
+            <Wrench size={16} className="text-brand-navy" />
           </div>
           <div>
             <span className="font-black text-white text-lg">KAAMSETU</span>
@@ -55,7 +56,7 @@ export default function AdminSidebar() {
               href={item.href}
               className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${
                 active
-                  ? "bg-accent-yellow text-primary-navy font-bold"
+                  ? "bg-brand-yellow text-brand-navy font-bold"
                   : "text-white/70 hover:bg-white/10 hover:text-white"
               }`}
               aria-label={item.en}
@@ -65,7 +66,7 @@ export default function AdminSidebar() {
               <div>
                 <span
                   className="block text-sm font-semibold"
-                  style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
+                  className="font-hindi"
                 >
                   {item.hi}
                 </span>

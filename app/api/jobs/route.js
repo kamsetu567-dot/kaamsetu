@@ -19,7 +19,6 @@ export async function GET(request) {
     if (workerId) {
       if (status === "pending") {
         // Pending jobs are unassigned — filter by the worker's category + city
-        // workerId here is the User._id from the JWT payload
         const workerProfile = await Worker.findOne({ user: workerId }).lean();
         if (workerProfile) {
           if (workerProfile.category) {
@@ -29,9 +28,8 @@ export async function GET(request) {
             filter["location.city"] = { $regex: workerProfile.location.city, $options: "i" };
           }
         }
-        // If no worker profile found, show all pending jobs (fallback)
       } else {
-        // For non-pending jobs (history), filter by Worker._id
+        // For job history, filter by Worker._id
         const workerProfile = await Worker.findOne({ user: workerId }).lean();
         if (workerProfile) filter.worker = workerProfile._id;
       }
@@ -42,7 +40,20 @@ export async function GET(request) {
       .limit(50)
       .lean();
 
-    return ok({ jobs: jobs.map(j => ({ ...j, id: j._id })) });
+    return ok({
+      jobs: jobs.map(j => ({
+        id: j._id,
+        category: j.category,
+        subcategory: j.subcategory,
+        description: j.description,
+        location: j.location,
+        status: j.status,
+        source: j.source,
+        worker: j.worker,
+        createdAt: j.createdAt,
+        // clientMobile and clientName intentionally omitted — exposed only on job accept
+      })),
+    });
   } catch (err) {
     console.error("GET /api/jobs error:", err);
     return error("Server error", 500);
@@ -52,7 +63,6 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     const body = await request.json();
-    console.log("Job request received:", JSON.stringify(body));
 
     const clientMobile = body.clientMobile || body.mobile;
     const clientName = body.clientName || body.name;
@@ -65,16 +75,14 @@ export async function POST(request) {
 
     await connectDB();
 
-    // Resolve clientId: use body value, or look up from auth token
-    let clientId = body.clientId || null;
-    if (!clientId) {
-      const token = getTokenFromRequest(request);
-      if (token) {
-        const payload = verifyToken(token);
-        if (payload?.id) {
-          const clientDoc = await Client.findOne({ user: payload.id }).lean();
-          if (clientDoc) clientId = clientDoc._id;
-        }
+    // clientId is derived only from the auth token — never accepted from request body
+    let clientId = null;
+    const token = getTokenFromRequest(request);
+    if (token) {
+      const payload = verifyToken(token);
+      if (payload?.id) {
+        const clientDoc = await Client.findOne({ user: payload.id }).lean();
+        if (clientDoc) clientId = clientDoc._id;
       }
     }
 
@@ -92,16 +100,20 @@ export async function POST(request) {
 
     if (body.workerId) {
       const worker = await Worker.findById(body.workerId).lean();
-      if (worker) jobData.worker = body.workerId;
+      const now = new Date();
+      if (worker && worker.status === "approved" && worker.subscriptionExpiry && worker.subscriptionExpiry > now) {
+        jobData.worker = body.workerId;
+      } else if (worker && worker.status !== "approved") {
+        return error("Worker is not available for assignment", 400);
+      }
     }
 
     let job;
     try {
       job = await JobRequest.create(jobData);
-      console.log("Job request created:", job._id);
     } catch (createError) {
       console.error("JobRequest create failed:", createError.message);
-      return error(`Job creation failed: ${createError.message}`, 500);
+      return error("Job submission failed. Please try again.", 500);
     }
 
     return created({

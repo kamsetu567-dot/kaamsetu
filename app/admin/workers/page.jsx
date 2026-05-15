@@ -3,23 +3,17 @@
 import { useState, useEffect } from "react";
 import {
   CheckCircle, XCircle, ShieldOff, ShieldCheck,
-  Ban, Star, CalendarCheck, UserCheck, Search, Filter,
+  Ban, Star, CalendarCheck, Search, RefreshCw,
 } from "lucide-react";
-import EmptyState from "@/components/EmptyState";
-import { TableRowSkeleton } from "@/components/LoadingSkeleton";
 import { getAllWorkers, approveWorker, rejectWorker, activateWorker, deactivateWorker, blockUser, boostWorker, extendWorkerSubscription } from "@/lib/api/admin";
 import { useToast } from "@/components/Toast";
 
 const STATUS_BADGE = {
-  pending:   "bg-yellow-100 text-yellow-700 border-yellow-200",
-  approved:  "bg-green-100 text-green-700 border-green-200",
-  rejected:  "bg-red-100 text-red-600 border-red-200",
-  blocked:   "bg-gray-100 text-gray-600 border-gray-200",
-};
-
-const WORK_BADGE = {
-  free:    "bg-green-50 text-primary-green",
-  working: "bg-orange-50 text-working-orange",
+  pending:     "bg-yellow-100 text-yellow-700",
+  approved:    "bg-green-100 text-green-700",
+  rejected:    "bg-red-100 text-red-600",
+  blocked:     "bg-gray-100 text-gray-600",
+  deactivated: "bg-orange-100 text-orange-600",
 };
 
 function ActionBtn({ label, onClick, color = "blue", icon: Icon, disabled = false }) {
@@ -27,16 +21,12 @@ function ActionBtn({ label, onClick, color = "blue", icon: Icon, disabled = fals
     green:  "bg-green-100 text-green-700 hover:bg-green-200",
     red:    "bg-red-100 text-red-600 hover:bg-red-200",
     yellow: "bg-yellow-100 text-yellow-700 hover:bg-yellow-200",
-    blue:   "bg-blue-100 text-primary-blue hover:bg-blue-200",
+    blue:   "bg-blue-100 text-blue-700 hover:bg-blue-200",
     gray:   "bg-gray-100 text-gray-600 hover:bg-gray-200",
   };
   return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${cls[color]}`}
-      aria-label={label}
-    >
+    <button onClick={onClick} disabled={disabled}
+      className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${cls[color]}`}>
       {Icon && <Icon size={12} />}
       {label}
     </button>
@@ -51,14 +41,12 @@ export default function AdminWorkersPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [actionInProgress, setActionInProgress] = useState(null);
 
-  useEffect(() => {
+  function load() {
+    setLoading(true);
     getAllWorkers().then(data => { setWorkers(data); setLoading(false); });
-  }, []);
-
-  async function refreshWorkers() {
-    const data = await getAllWorkers();
-    setWorkers(data);
   }
+
+  useEffect(() => { load(); }, []);
 
   async function handleAction(action, id) {
     const fns = { approve: approveWorker, reject: rejectWorker, activate: activateWorker, deactivate: deactivateWorker };
@@ -66,11 +54,11 @@ export default function AdminWorkersPage() {
     setActionInProgress(`${action}-${id}`);
     try {
       await fns[action](id);
-      await refreshWorkers();
+      load();
       const labels = { approve: "Approved", reject: "Rejected", activate: "Activated", deactivate: "Deactivated" };
       toast.success(`Worker ${labels[action] || action}!`);
     } catch (err) {
-      toast.error(err?.message || "Action failed. Please try again.");
+      toast.error(err?.message || "Action failed");
     } finally {
       setActionInProgress(null);
     }
@@ -81,13 +69,10 @@ export default function AdminWorkersPage() {
     setActionInProgress(`block-${id}`);
     try {
       await blockUser(id, "worker");
-      await refreshWorkers();
+      load();
       toast.success("Worker blocked.");
-    } catch (err) {
-      toast.error(err?.message || "Block failed. Please try again.");
-    } finally {
-      setActionInProgress(null);
-    }
+    } catch (err) { toast.error(err?.message || "Block failed"); }
+    finally { setActionInProgress(null); }
   }
 
   async function handleBoost(id) {
@@ -95,13 +80,10 @@ export default function AdminWorkersPage() {
     setActionInProgress(`boost-${id}`);
     try {
       await boostWorker(id);
-      await refreshWorkers();
-      toast.success("Worker boosted for 7 days! ⭐");
-    } catch (err) {
-      toast.error(err?.message || "Boost failed. Please try again.");
-    } finally {
-      setActionInProgress(null);
-    }
+      load();
+      toast.success("Worker boosted for 7 days!");
+    } catch (err) { toast.error(err?.message || "Boost failed"); }
+    finally { setActionInProgress(null); }
   }
 
   async function handleExtend(id) {
@@ -109,13 +91,10 @@ export default function AdminWorkersPage() {
     setActionInProgress(`extend-${id}`);
     try {
       await extendWorkerSubscription(id);
-      await refreshWorkers();
+      load();
       toast.success("Subscription extended by 30 days.");
-    } catch (err) {
-      toast.error(err?.message || "Extension failed. Please try again.");
-    } finally {
-      setActionInProgress(null);
-    }
+    } catch (err) { toast.error(err?.message || "Extension failed"); }
+    finally { setActionInProgress(null); }
   }
 
   const filtered = workers.filter(w => {
@@ -124,99 +103,88 @@ export default function AdminWorkersPage() {
     return matchSearch && matchStatus;
   });
 
+  const pendingCount = workers.filter(w => w.status === "pending").length;
+
   return (
     <div className="space-y-5">
-      <div>
-        <h1
-          className="text-2xl font-black text-text-primary"
-          style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
-        >
-          Workers प्रबंधन / Manage Workers
-        </h1>
-        <p className="text-text-secondary text-sm mt-0.5">Approve, activate, block, and manage all workers</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-black text-brand-navy font-hindi">
+            Workers प्रबंधन
+            {pendingCount > 0 && (
+              <span className="ml-2 bg-yellow-400 text-brand-navy text-sm font-bold px-2 py-0.5 rounded-full">{pendingCount} pending</span>
+            )}
+          </h1>
+          <p className="text-gray-400 text-sm mt-0.5">Approve, activate, block, and manage all workers</p>
+        </div>
+        <button onClick={load} disabled={loading} className="flex items-center gap-1 text-brand-navy text-sm font-semibold hover:opacity-70 disabled:opacity-40 min-h-0">
+          <RefreshCw size={14} className={loading ? "animate-spin" : ""} /> Refresh
+        </button>
       </div>
 
-      {/* Filters bar */}
+      {/* Filters */}
       <div className="flex flex-wrap gap-3">
-        <div className="flex items-center gap-2 bg-white border-2 border-border-light rounded-xl px-4 py-2.5 flex-1 min-w-48">
-          <Search size={16} className="text-text-secondary flex-shrink-0" />
-          <input
-            type="text"
-            placeholder="नाम या मोबाइल खोजें / Search name or mobile"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="flex-1 bg-transparent outline-none text-sm text-text-primary placeholder:text-text-secondary"
-          />
+        <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-4 py-2.5 flex-1 min-w-48 shadow-sm">
+          <Search size={16} className="text-gray-400 flex-shrink-0" />
+          <input type="text" placeholder="Search name or mobile..."
+            value={search} onChange={e => setSearch(e.target.value)}
+            className="flex-1 bg-transparent outline-none text-sm text-brand-navy placeholder:text-gray-400" />
         </div>
-        <div className="flex items-center gap-2 bg-white border-2 border-border-light rounded-xl px-4 py-2.5">
-          <Filter size={16} className="text-text-secondary" />
-          <select
-            value={statusFilter}
-            onChange={e => setStatusFilter(e.target.value)}
-            className="bg-transparent outline-none text-sm text-text-primary"
-          >
-            <option value="all">All Status</option>
-            <option value="pending">Pending</option>
-            <option value="approved">Approved</option>
-            <option value="rejected">Rejected</option>
-            <option value="blocked">Blocked</option>
-          </select>
-        </div>
+        <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
+          className="px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-brand-navy text-sm bg-white shadow-sm">
+          <option value="all">All Status</option>
+          <option value="pending">Pending</option>
+          <option value="approved">Approved</option>
+          <option value="rejected">Rejected</option>
+          <option value="deactivated">Deactivated</option>
+          <option value="blocked">Blocked</option>
+        </select>
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-3xl border-2 border-border-light overflow-hidden">
+      <div className="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-sm min-w-[900px]">
             <thead>
-              <tr className="border-b-2 border-border-light bg-neutral-bg">
-                {["नाम / Name", "Mobile", "Category", "Gender", "Service", "Status", "Work", "Rating", "Expires", "Actions"].map(h => (
-                  <th
-                    key={h}
-                    className="text-left px-4 py-3 text-text-secondary font-semibold text-xs whitespace-nowrap"
-                  >
-                    {h}
-                  </th>
+              <tr className="border-b border-gray-100 bg-brand-bg">
+                {["Name", "Mobile", "Category", "Gender", "Service", "Status", "Work", "Rating", "Sub Expiry", "Actions"].map(h => (
+                  <th key={h} className="text-left px-4 py-3 text-gray-400 font-semibold text-xs whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                Array.from({ length: 5 }).map((_, i) => <TableRowSkeleton key={i} cols={10} />)
+                Array.from({ length: 5 }).map((_, i) => (
+                  <tr key={i} className="border-b border-gray-50">
+                    {Array.from({ length: 10 }).map((_, j) => (
+                      <td key={j} className="px-4 py-3"><div className="h-3 bg-gray-100 rounded animate-pulse" /></td>
+                    ))}
+                  </tr>
+                ))
               ) : filtered.length === 0 ? (
-                <tr>
-                  <td colSpan={10} className="py-12">
-                    <EmptyState
-                      icon="workers"
-                      titleHi="कोई Worker नहीं मिला"
-                      titleEn="No workers found"
-                      descHi="फ़िल्टर बदलें या बाद में चेक करें।"
-                      descEn="Try adjusting your filters or check back later."
-                    />
-                  </td>
-                </tr>
+                <tr><td colSpan={10} className="py-12 text-center text-gray-400">No workers found</td></tr>
               ) : (
                 filtered.map(w => (
-                  <tr key={w.id} className="border-b border-border-light hover:bg-neutral-bg transition-colors last:border-0">
+                  <tr key={w.id} className="border-b border-gray-50 hover:bg-brand-bg last:border-0 transition-colors">
+                    <td className="px-4 py-3 font-semibold text-brand-navy">{w.name ?? "—"}</td>
+                    <td className="px-4 py-3 text-gray-500">{w.mobile ?? "—"}</td>
+                    <td className="px-4 py-3 text-gray-500 text-xs">{w.category ?? "—"}</td>
+                    <td className="px-4 py-3 text-gray-500 capitalize">{w.gender ?? "—"}</td>
+                    <td className="px-4 py-3 text-gray-500 text-xs">{w.serviceType ?? "—"}</td>
                     <td className="px-4 py-3">
-                      <p className="font-semibold text-text-primary">{w.name ?? "—"}</p>
-                    </td>
-                    <td className="px-4 py-3 text-text-secondary">{w.mobile ?? "—"}</td>
-                    <td className="px-4 py-3 text-text-secondary">{w.category ?? "—"}</td>
-                    <td className="px-4 py-3 text-text-secondary capitalize">{w.gender ?? "—"}</td>
-                    <td className="px-4 py-3 text-text-secondary">{w.serviceType ?? "—"}</td>
-                    <td className="px-4 py-3">
-                      <span className={`text-xs font-semibold px-2 py-1 rounded-full border ${STATUS_BADGE[w.status] ?? STATUS_BADGE.pending}`}>
+                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${STATUS_BADGE[w.status] ?? STATUS_BADGE.pending}`}>
                         {w.status ?? "pending"}
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`text-xs font-semibold px-2 py-1 rounded-full ${WORK_BADGE[w.workStatus] ?? WORK_BADGE.free}`}>
+                      <span className={`text-xs font-semibold px-2 py-1 rounded-full ${w.workStatus === "working" ? "bg-orange-100 text-orange-600" : "bg-green-100 text-green-700"}`}>
                         {w.workStatus === "working" ? "व्यस्त" : "खाली"}
                       </span>
                     </td>
-                    <td className="px-4 py-3 font-semibold text-text-primary">{w.rating ?? "—"}</td>
-                    <td className="px-4 py-3 text-text-secondary text-xs">{w.subscriptionExpiry ?? "—"}</td>
+                    <td className="px-4 py-3 font-semibold text-brand-navy">{w.rating ?? "—"}</td>
+                    <td className="px-4 py-3 text-gray-400 text-xs">
+                      {w.subscriptionExpiry ? new Date(w.subscriptionExpiry).toLocaleDateString("en-IN") : "—"}
+                    </td>
                     <td className="px-4 py-3">
                       <div className="flex flex-wrap gap-1">
                         {w.status === "pending" && (
@@ -231,8 +199,8 @@ export default function AdminWorkersPage() {
                         {(w.status === "rejected" || w.status === "deactivated") && (
                           <ActionBtn label="Activate" icon={ShieldCheck} color="green" onClick={() => handleAction("activate", w.id)} disabled={!!actionInProgress} />
                         )}
-                        <ActionBtn label="Block"   icon={Ban}         color="gray" onClick={() => handleBlock(w.id)}  disabled={!!actionInProgress} />
-                        <ActionBtn label="Boost ⭐" icon={Star}        color="blue" onClick={() => handleBoost(w.id)}  disabled={!!actionInProgress} />
+                        <ActionBtn label="Block"   icon={Ban}          color="gray" onClick={() => handleBlock(w.id)}  disabled={!!actionInProgress} />
+                        <ActionBtn label="Boost ⭐" icon={Star}         color="blue" onClick={() => handleBoost(w.id)}  disabled={!!actionInProgress} />
                         <ActionBtn label="Extend"  icon={CalendarCheck} color="blue" onClick={() => handleExtend(w.id)} disabled={!!actionInProgress} />
                       </div>
                     </td>
@@ -242,9 +210,8 @@ export default function AdminWorkersPage() {
             </tbody>
           </table>
         </div>
-
         {!loading && filtered.length > 0 && (
-          <div className="px-4 py-3 border-t border-border-light bg-neutral-bg text-xs text-text-secondary">
+          <div className="px-4 py-3 border-t border-gray-50 bg-brand-bg text-xs text-gray-400">
             {filtered.length} worker{filtered.length !== 1 ? "s" : ""} shown
           </div>
         )}
