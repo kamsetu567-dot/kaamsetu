@@ -198,21 +198,21 @@ export default function HomePage() {
             <p className="text-gray-500 text-sm font-hindi">आपको जो भी काम चाहिए, हमारे पास सही वर्कर है</p>
           </div>
 
-          <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-3">
+          <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-4">
             {SERVICE_TILES.map(tile => (
               <Link key={tile.nameHi} href={tile.href}
-                className={`${tile.bg} rounded-2xl p-3 flex flex-col items-center text-center card-hover border border-white hover:border-gray-200`}>
-                <div className="w-12 h-12 relative mb-2">
+                className={`${tile.bg} rounded-2xl p-5 flex flex-col items-center text-center card-hover border border-white hover:border-gray-200`}>
+                <div className="w-16 h-16 relative mb-3">
                   <Image
                     src={tile.icon}
                     alt={tile.nameHi}
                     fill
                     className="object-contain"
-                    sizes="48px"
+                    sizes="64px"
                   />
                 </div>
-                <p className="text-brand-navy font-bold text-xs font-hindi leading-tight mb-0.5">{tile.nameHi}</p>
-                <p className="text-gray-400 text-[10px] font-hindi">{tile.count} वर्कर</p>
+                <p className="text-brand-navy font-bold text-sm font-hindi leading-tight mb-1">{tile.nameHi}</p>
+                <p className="text-gray-400 text-xs font-hindi">{tile.count} वर्कर</p>
               </Link>
             ))}
           </div>
