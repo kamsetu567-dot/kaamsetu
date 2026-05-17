@@ -320,7 +320,7 @@ export default function HomePage() {
 
       {/* ── WORKER CTA ───────────────────────────────────────────── */}
       <section className="py-14 px-4" style={{ background: 'linear-gradient(135deg,#F5A623 0%,#F59E0B 100%)' }}>
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           <div className="grid md:grid-cols-2 gap-10 items-end">
             <div>
               <h2 className="text-3xl font-black text-brand-navy font-hindi mb-1">वर्कर बनें और कमाई शुरू करें</h2>
@@ -343,9 +343,9 @@ export default function HomePage() {
               <Image
                 src="/illustrations/worker-hero-full.png"
                 alt="Become a KaamSetu worker"
-                width={320}
-                height={380}
-                className="object-contain drop-shadow-xl"
+                width={640}
+                height={358}
+                className="object-contain drop-shadow-xl w-full max-w-xl"
                 unoptimized
               />
             </div>
