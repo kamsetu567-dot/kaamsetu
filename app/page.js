@@ -180,6 +180,7 @@ export default function HomePage() {
                 height={520}
                 className="object-contain drop-shadow-2xl"
                 priority
+                unoptimized
               />
             </div>
           </div>
@@ -345,6 +346,7 @@ export default function HomePage() {
                 width={320}
                 height={380}
                 className="object-contain drop-shadow-xl"
+                unoptimized
               />
             </div>
           </div>
