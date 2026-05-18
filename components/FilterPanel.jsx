@@ -4,6 +4,7 @@ import { useState } from "react";
 import { SlidersHorizontal, X } from "lucide-react";
 import { useFilters } from "@/lib/context/FilterContext";
 import CategorySelect from "./CategorySelect";
+import { useT } from "@/lib/i18n/useT";
 
 const DISTANCE_OPTIONS = [
   { value: 5, label: "5 km" },
@@ -11,25 +12,26 @@ const DISTANCE_OPTIONS = [
   { value: 20, label: "20 km" },
 ];
 
-const GENDER_OPTIONS = [
-  { value: "male", hi: "पुरुष", en: "Male" },
-  { value: "female", hi: "महिला", en: "Female" },
-];
-
-const SERVICE_TYPE_OPTIONS = [
-  { value: "home_visit", hi: "घर पर आकर", en: "Home Visit" },
-  { value: "shop_office", hi: "दुकान / ऑफिस पर", en: "Shop or Office" },
-];
-
-const SORT_OPTIONS = [
-  { value: "rating", hi: "रेटिंग", en: "Rating" },
-  { value: "distance", hi: "दूरी", en: "Distance" },
-  { value: "newest", hi: "नयापन", en: "Newest" },
-];
-
 export default function FilterPanel({ className = "" }) {
   const { filters, updateFilter, resetFilters } = useFilters();
   const [open, setOpen] = useState(false);
+  const t = useT();
+
+  const GENDER_OPTIONS = [
+    { value: "male",   label: t({ hi: 'पुरुष',  en: 'Male' }) },
+    { value: "female", label: t({ hi: 'महिला', en: 'Female' }) },
+  ];
+
+  const SERVICE_TYPE_OPTIONS = [
+    { value: "home_visit",  label: t({ hi: 'घर पर आकर',       en: 'Home Visit' }) },
+    { value: "shop_office", label: t({ hi: 'दुकान / ऑफिस पर', en: 'Shop or Office' }) },
+  ];
+
+  const SORT_OPTIONS = [
+    { value: "rating",   label: t({ hi: 'रेटिंग', en: 'Rating' }) },
+    { value: "distance", label: t({ hi: 'दूरी',   en: 'Distance' }) },
+    { value: "newest",   label: t({ hi: 'नयापन',  en: 'Newest' }) },
+  ];
 
   function toggleArray(key, value) {
     const arr = filters[key] || [];
@@ -44,10 +46,7 @@ export default function FilterPanel({ className = "" }) {
     <div className="space-y-6">
       {/* Sort */}
       <div>
-        <h4 className="font-bold text-brand-navy mb-2">
-          <span className="font-hindi">क्रम</span>
-          <span className="text-gray-500 font-normal"> / Sort By</span>
-        </h4>
+        <h4 className="font-bold text-brand-navy mb-2">{t({ hi: 'क्रम', en: 'Sort By' })}</h4>
         <select
           value={filters.sortBy}
           onChange={e => updateFilter("sortBy", e.target.value)}
@@ -55,14 +54,14 @@ export default function FilterPanel({ className = "" }) {
           aria-label="Sort by"
         >
           {SORT_OPTIONS.map(o => (
-            <option key={o.value} value={o.value}>{o.hi} / {o.en}</option>
+            <option key={o.value} value={o.value}>{o.label}</option>
           ))}
         </select>
       </div>
 
       {/* Category */}
       <div>
-        <h4 className="font-bold text-brand-navy mb-2 font-hindi">Category</h4>
+        <h4 className="font-bold text-brand-navy mb-2">{t({ hi: 'कैटेगरी', en: 'Category' })}</h4>
         <CategorySelect
           value={filters.category}
           onChange={v => updateFilter("category", v)}
@@ -73,31 +72,24 @@ export default function FilterPanel({ className = "" }) {
       {/* Rating */}
       <div>
         <h4 className="font-bold text-brand-navy mb-2">
-          <span className="font-hindi">रेटिंग</span>
-          <span className="text-gray-500 font-normal"> / Rating</span>
-          <span className="ml-2 text-brand-yellow font-bold">{filters.rating > 0 ? `${filters.rating}+ ⭐` : "All"}</span>
+          {t({ hi: 'रेटिंग', en: 'Rating' })}
+          <span className="ml-2 text-brand-yellow font-bold">{filters.rating > 0 ? `${filters.rating}+ ⭐` : t({ hi: 'सभी', en: 'All' })}</span>
         </h4>
         <input
-          type="range"
-          min={0}
-          max={5}
-          step={0.5}
+          type="range" min={0} max={5} step={0.5}
           value={filters.rating}
           onChange={e => updateFilter("rating", parseFloat(e.target.value))}
           className="w-full accent-brand-navy"
           aria-label="Minimum rating filter"
         />
         <div className="flex justify-between text-xs text-gray-400 mt-1">
-          <span>Any</span><span>5 ⭐</span>
+          <span>{t({ hi: 'कोई भी', en: 'Any' })}</span><span>5 ⭐</span>
         </div>
       </div>
 
       {/* Distance */}
       <div>
-        <h4 className="font-bold text-brand-navy mb-2">
-          <span className="font-hindi">दूरी</span>
-          <span className="text-gray-500 font-normal"> / Distance</span>
-        </h4>
+        <h4 className="font-bold text-brand-navy mb-2">{t({ hi: 'दूरी', en: 'Distance' })}</h4>
         <div className="flex gap-2 flex-wrap">
           {DISTANCE_OPTIONS.map(opt => (
             <button
@@ -118,10 +110,7 @@ export default function FilterPanel({ className = "" }) {
 
       {/* Gender */}
       <div>
-        <h4 className="font-bold text-brand-navy mb-2">
-          <span className="font-hindi">लिंग</span>
-          <span className="text-gray-500 font-normal"> / Gender</span>
-        </h4>
+        <h4 className="font-bold text-brand-navy mb-2">{t({ hi: 'लिंग', en: 'Gender' })}</h4>
         <div className="space-y-2">
           {GENDER_OPTIONS.map(opt => (
             <label key={opt.value} className="flex items-center gap-3 cursor-pointer">
@@ -130,12 +119,9 @@ export default function FilterPanel({ className = "" }) {
                 checked={(filters.gender || []).includes(opt.value)}
                 onChange={() => toggleArray("gender", opt.value)}
                 className="w-5 h-5 rounded accent-brand-navy"
-                aria-label={opt.en}
+                aria-label={opt.label}
               />
-              <span>
-                <span className="font-hindi">{opt.hi}</span>
-                <span className="text-gray-500"> / {opt.en}</span>
-              </span>
+              <span className="font-hindi">{opt.label}</span>
             </label>
           ))}
         </div>
@@ -143,10 +129,7 @@ export default function FilterPanel({ className = "" }) {
 
       {/* Service Type */}
       <div>
-        <h4 className="font-bold text-brand-navy mb-2">
-          <span className="font-hindi">सेवा का प्रकार</span>
-          <span className="text-gray-500 font-normal"> / Service Type</span>
-        </h4>
+        <h4 className="font-bold text-brand-navy mb-2">{t({ hi: 'सेवा का प्रकार', en: 'Service Type' })}</h4>
         <div className="space-y-2">
           {SERVICE_TYPE_OPTIONS.map(opt => (
             <label key={opt.value} className="flex items-center gap-3 cursor-pointer">
@@ -155,12 +138,9 @@ export default function FilterPanel({ className = "" }) {
                 checked={(filters.serviceType || []).includes(opt.value)}
                 onChange={() => toggleArray("serviceType", opt.value)}
                 className="w-5 h-5 rounded accent-brand-navy"
-                aria-label={opt.en}
+                aria-label={opt.label}
               />
-              <span>
-                <span className="font-hindi">{opt.hi}</span>
-                <span className="text-gray-500"> / {opt.en}</span>
-              </span>
+              <span className="font-hindi">{opt.label}</span>
             </label>
           ))}
         </div>
@@ -169,11 +149,10 @@ export default function FilterPanel({ className = "" }) {
       {/* Reset */}
       <button
         onClick={resetFilters}
-        className="w-full border-2 border-red-300 text-red-600 font-bold py-3 rounded-xl hover:bg-red-50 transition-colors"
+        className="w-full border-2 border-red-300 text-red-600 font-bold py-3 rounded-xl hover:bg-red-50 transition-colors font-hindi"
         aria-label="Reset all filters"
       >
-        <span className="font-hindi">Filters Reset करें</span>
-        <span> / Reset All</span>
+        {t({ hi: 'Filters Reset करें', en: 'Reset All Filters' })}
       </button>
     </div>
   );
@@ -188,17 +167,14 @@ export default function FilterPanel({ className = "" }) {
           aria-label="Toggle filters"
         >
           <SlidersHorizontal size={20} />
-          <span className="font-hindi">Filters</span>
+          <span className="font-hindi">{t({ hi: 'फ़िल्टर', en: 'Filters' })}</span>
         </button>
         {open && (
           <>
-            <div
-              className="fixed inset-0 bg-black/50 z-40"
-              onClick={() => setOpen(false)}
-            />
+            <div className="fixed inset-0 bg-black/50 z-40" onClick={() => setOpen(false)} />
             <div className="fixed bottom-0 left-0 right-0 w-full bg-white rounded-t-2xl z-50 max-h-[85vh] overflow-y-auto p-5">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="font-bold text-lg">Filters</h3>
+                <h3 className="font-bold text-lg font-hindi">{t({ hi: 'फ़िल्टर', en: 'Filters' })}</h3>
                 <button onClick={() => setOpen(false)} aria-label="Close filters"><X size={20} /></button>
               </div>
               {panel}
@@ -208,10 +184,7 @@ export default function FilterPanel({ className = "" }) {
       </div>
       {/* Desktop sidebar */}
       <div className={`hidden lg:block bg-white rounded-2xl border-2 border-gray-200 p-5 sticky top-20 ${className}`}>
-        <h3 className="font-bold text-lg mb-5">
-          <span className="font-hindi">Filters</span>
-          <span className="text-gray-500 font-normal"> / फ़िल्टर</span>
-        </h3>
+        <h3 className="font-bold text-lg mb-5 font-hindi">{t({ hi: 'फ़िल्टर', en: 'Filters' })}</h3>
         {panel}
       </div>
     </>

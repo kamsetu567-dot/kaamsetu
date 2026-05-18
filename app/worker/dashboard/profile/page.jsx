@@ -8,8 +8,10 @@ import WorkerStatusBadge from "@/components/WorkerStatusBadge";
 import { useWorkerStatus } from "@/lib/context/WorkerStatusContext";
 import { updateWorker } from "@/lib/api/workers";
 import { useToast } from "@/components/Toast";
+import { useRoleGuard } from "@/lib/auth/useRoleGuard";
 
 export default function WorkerProfileEditPage() {
+  useRoleGuard("worker");
   const { status, updateStatus } = useWorkerStatus();
   const toast = useToast();
   const [workerId, setWorkerId] = useState(null);

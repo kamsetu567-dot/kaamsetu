@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { CreditCard, CheckCircle, Clock, AlertCircle, Copy } from "lucide-react";
+import { useRoleGuard } from "@/lib/auth/useRoleGuard";
 import EmptyState from "@/components/EmptyState";
 
 // UPI details shown to worker for manual payment (backend will verify later)
@@ -9,6 +10,7 @@ const UPI_ID = "kaamsetu@upi";
 const QR_PLACEHOLDER = "https://picsum.photos/seed/qr/200/200";
 
 export default function WorkerSubscriptionPage() {
+  useRoleGuard("worker");
   const [copied, setCopied] = useState(false);
 
   function copyUPI() {

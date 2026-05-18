@@ -46,7 +46,7 @@ export async function GET(request) {
         category: j.category,
         subcategory: j.subcategory,
         description: j.description,
-        location: j.location,
+        location: j.location?.city || j.location?.address || "",
         status: j.status,
         source: j.source,
         worker: j.worker,

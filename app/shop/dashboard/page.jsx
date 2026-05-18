@@ -9,6 +9,7 @@ import {
 import EmptyState from "@/components/EmptyState";
 import LoadingSkeleton, { StatCardSkeleton } from "@/components/LoadingSkeleton";
 import Footer from "@/components/Footer";
+import { useRoleGuard } from "@/lib/auth/useRoleGuard";
 
 // Stat tile — same visual language as StatCard but self-contained
 function ShopStat({ icon: Icon, hi, en, value, sub, color }) {
@@ -96,6 +97,7 @@ function AdCard({ ad }) {
 }
 
 export default function ShopDashboardPage() {
+  useRoleGuard("shop");
   const [ads, setAds] = useState([]);
   const [loading, setLoading] = useState(true);
 

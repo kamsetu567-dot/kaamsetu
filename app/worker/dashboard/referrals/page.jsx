@@ -3,8 +3,10 @@
 import { useState } from "react";
 import { Share2, Copy, Users, Gift, CheckCircle } from "lucide-react";
 import EmptyState from "@/components/EmptyState";
+import { useRoleGuard } from "@/lib/auth/useRoleGuard";
 
 export default function WorkerReferralsPage() {
+  useRoleGuard("worker");
   const [copied, setCopied] = useState(false);
 
   // TODO: Persist via API when backend is ready — generate real referral link from backend

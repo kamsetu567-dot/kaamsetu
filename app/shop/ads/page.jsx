@@ -11,6 +11,7 @@ import CategorySelect from "@/components/CategorySelect";
 import EmptyState from "@/components/EmptyState";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 import Footer from "@/components/Footer";
+import { useRoleGuard } from "@/lib/auth/useRoleGuard";
 
 // ─── Ad type options ────────────────────────────────────────────────
 const AD_TYPES = [
@@ -385,6 +386,7 @@ function ManagedAdCard({ ad, onDelete }) {
 
 // ─── Main page ───────────────────────────────────────────────────────
 export default function ShopAdsPage() {
+  useRoleGuard("shop");
   const [ads, setAds]             = useState([]);
   const [loading, setLoading]     = useState(true);
   const [showForm, setShowForm]   = useState(false);

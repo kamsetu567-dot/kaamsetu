@@ -4,10 +4,12 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Phone, ArrowRight, ChevronLeft, Wrench, RefreshCw } from 'lucide-react';
 import { useToast } from '@/components/Toast';
+import { useT } from '@/lib/i18n/useT';
 
 export default function LoginPage() {
   const router = useRouter();
   const toast = useToast();
+  const t = useT();
   const [step, setStep] = useState(1);
   const [mobile, setMobile] = useState('');
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
@@ -135,7 +137,7 @@ export default function LoginPage() {
           <Wrench size={40} className="text-brand-navy" />
         </div>
         <h1 className="text-4xl font-black text-white font-hindi mb-3">KAAM<span className="text-brand-yellow">SETU</span></h1>
-        <p className="text-white/80 font-hindi text-lg mb-2">हर काम, हर जगह</p>
+        <p className="text-white/80 font-hindi text-lg mb-2">{t({ hi: 'हर काम, हर जगह', en: 'Every Work, Everywhere' })}</p>
         <p className="text-white/60 text-sm">India's #1 Local Service Platform</p>
         <div className="mt-10 space-y-3 text-left">
           {['1000+ Verified Workers', '50+ Service Categories', '100+ Cities covered'].map(t => (
@@ -160,17 +162,17 @@ export default function LoginPage() {
           <div className="w-full max-w-sm">
             <div className="mb-8">
               <h2 className="text-2xl font-black text-brand-navy font-hindi mb-1">
-                {step === 1 ? 'लॉगिन करें' : 'OTP Verify करें'}
+                {step === 1 ? t({ hi: 'लॉगिन करें', en: 'Login' }) : t({ hi: 'OTP Verify करें', en: 'Verify OTP' })}
               </h2>
               <p className="text-gray-500 text-sm">
-                {step === 1 ? 'Login to KaamSetu' : `OTP sent to +91${mobile}`}
+                {step === 1 ? t({ hi: 'KaamSetu पर लॉगिन करें', en: 'Login to KaamSetu' }) : `OTP sent to +91${mobile}`}
               </p>
             </div>
 
             {step === 1 ? (
               <form onSubmit={handleSendOTP} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5 font-hindi">मोबाइल नंबर</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5 font-hindi">{t({ hi: 'मोबाइल नंबर', en: 'Mobile Number' })}</label>
                   <div className="flex gap-2">
                     <span className="flex items-center justify-center bg-gray-100 border border-gray-200 rounded-xl px-3 text-gray-600 font-medium text-sm flex-shrink-0">
                       +91
@@ -187,13 +189,13 @@ export default function LoginPage() {
                 </div>
                 <button type="submit" disabled={loading}
                   className="w-full bg-brand-navy text-white font-bold py-4 rounded-xl hover:bg-brand-navy-dark transition-colors disabled:opacity-50 flex items-center justify-center gap-2 font-hindi">
-                  {loading ? <><span className="animate-spin">⏳</span> भेज रहे हैं...</> : <><Phone size={18} /> OTP भेजें / Send OTP</>}
+                  {loading ? <><span className="animate-spin">⏳</span> {t({ hi: 'भेज रहे हैं...', en: 'Sending...' })}</> : <><Phone size={18} /> {t({ hi: 'OTP भेजें', en: 'Send OTP' })}</>}
                 </button>
               </form>
             ) : (
               <form onSubmit={handleVerifyOTP} className="space-y-5">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-3 font-hindi">OTP डालें</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-3 font-hindi">{t({ hi: 'OTP डालें', en: 'Enter OTP' })}</label>
                   <div className="flex gap-2 justify-center">
                     {otp.map((digit, i) => (
                       <input
@@ -211,21 +213,21 @@ export default function LoginPage() {
                 </div>
                 <button type="submit" disabled={loading}
                   className="w-full bg-brand-navy text-white font-bold py-4 rounded-xl hover:bg-brand-navy-dark transition-colors disabled:opacity-50 flex items-center justify-center gap-2 font-hindi">
-                  {loading ? <><span className="animate-spin">⏳</span> Verify हो रहा है...</> : <><ArrowRight size={18} /> Verify करें / Verify</>}
+                  {loading ? <><span className="animate-spin">⏳</span> {t({ hi: 'Verify हो रहा है...', en: 'Verifying...' })}</> : <><ArrowRight size={18} /> {t({ hi: 'Verify करें', en: 'Verify' })}</>}
                 </button>
                 <div className="text-center">
                   {resendTimer > 0 ? (
-                    <p className="text-gray-400 text-sm font-hindi">{resendTimer}s में Resend कर सकते हैं</p>
+                    <p className="text-gray-400 text-sm font-hindi">{resendTimer}s {t({ hi: 'में Resend कर सकते हैं', en: 'seconds to resend' })}</p>
                   ) : (
                     <button type="button" onClick={handleSendOTP} disabled={loading}
                       className="flex items-center gap-1 text-brand-navy text-sm font-semibold hover:underline mx-auto min-h-0">
-                      <RefreshCw size={14} /> दोबारा भेजें / Resend OTP
+                      <RefreshCw size={14} /> {t({ hi: 'दोबारा भेजें', en: 'Resend OTP' })}
                     </button>
                   )}
                 </div>
                 <button type="button" onClick={() => { setStep(1); setOtp(['','','','','','']); }}
                   className="flex items-center gap-1 text-gray-400 text-sm hover:text-gray-600 mx-auto min-h-0">
-                  <ChevronLeft size={14} /> नंबर बदलें / Change number
+                  <ChevronLeft size={14} /> {t({ hi: 'नंबर बदलें', en: 'Change number' })}
                 </button>
               </form>
             )}
@@ -238,9 +240,9 @@ export default function LoginPage() {
             </div>
 
             <p className="text-center text-sm text-gray-500 mt-6">
-              <span className="font-hindi">Account नहीं है? </span>
-              <Link href="/auth/select-role" className="text-brand-navy font-bold hover:underline">
-                साइन अप करें
+              <span className="font-hindi">{t({ hi: 'Account नहीं है?', en: "Don't have an account?" })} </span>
+              <Link href="/auth/select-role" className="text-brand-navy font-bold hover:underline font-hindi">
+                {t({ hi: 'साइन अप करें', en: 'Sign Up' })}
               </Link>
             </p>
           </div>

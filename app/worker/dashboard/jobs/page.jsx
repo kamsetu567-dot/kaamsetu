@@ -6,8 +6,10 @@ import JobNotificationCard from "@/components/JobNotificationCard";
 import EmptyState from "@/components/EmptyState";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 import { getIncomingJobs } from "@/lib/api/jobs";
+import { useRoleGuard } from "@/lib/auth/useRoleGuard";
 
 export default function WorkerJobsPage() {
+  useRoleGuard("worker");
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const pollRef = useRef(null);

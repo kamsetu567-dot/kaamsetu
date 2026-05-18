@@ -1,10 +1,13 @@
+'use client';
 import Link from "next/link";
 import Image from "next/image";
 import { Phone, MapPin, Clock, User } from "lucide-react";
 import RatingStars from "./RatingStars";
 import WorkerStatusBadge from "./WorkerStatusBadge";
+import { useT } from "@/lib/i18n/useT";
 
 export default function WorkerCard({ worker }) {
+  const t = useT();
   const {
     id,
     name,
@@ -20,9 +23,9 @@ export default function WorkerCard({ worker }) {
   } = worker;
 
   const serviceTypeLabel = {
-    home_visit: { hi: "घर पर आकर", en: "Home Visit" },
+    home_visit:  { hi: "घर पर आकर",  en: "Home Visit" },
     shop_office: { hi: "दुकान/ऑफिस", en: "Shop/Office" },
-    both: { hi: "दोनों", en: "Both" },
+    both:        { hi: "दोनों",       en: "Both" },
   };
   const st = serviceTypeLabel[serviceType] || serviceTypeLabel.both;
 
@@ -51,7 +54,7 @@ export default function WorkerCard({ worker }) {
       <div className="flex flex-wrap gap-2 mb-3 text-xs">
         {experience > 0 && (
           <span className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded-lg">
-            <Clock size={12} /> {experience} साल
+            <Clock size={12} /> {experience} {t({ hi: 'साल', en: 'yrs' })}
           </span>
         )}
         {distance !== undefined && (
@@ -61,11 +64,11 @@ export default function WorkerCard({ worker }) {
         )}
         {gender && (
           <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded-lg">
-            {gender === "male" ? "पुरुष / Male" : "महिला / Female"}
+            {gender === "male" ? t({ hi: 'पुरुष', en: 'Male' }) : t({ hi: 'महिला', en: 'Female' })}
           </span>
         )}
         <span className="bg-brand-yellow/20 text-brand-navy px-2 py-1 rounded-lg font-hindi">
-          {st.hi} / {st.en}
+          {t(st)}
         </span>
       </div>
 
@@ -75,8 +78,7 @@ export default function WorkerCard({ worker }) {
         aria-label={`Call ${name}`}
       >
         <Phone size={18} />
-        <span className="font-hindi">📞 अभी कॉल करें</span>
-        <span className="text-sm font-normal">/ Call Now</span>
+        <span className="font-hindi">{t({ hi: 'अभी कॉल करें', en: 'Call Now' })}</span>
       </Link>
     </div>
   );

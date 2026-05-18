@@ -37,7 +37,14 @@ export default function ClientDashboardPage() {
     const userData = localStorage.getItem("kaamsetu_user");
     if (!token || !userData) { router.replace("/auth/login"); return; }
     try {
-      setUser(JSON.parse(userData));
+      const parsed = JSON.parse(userData);
+      if (parsed.role !== "client") {
+        if (parsed.role === "worker") router.replace("/worker/dashboard");
+        else if (parsed.role === "shop") router.replace("/shop/dashboard");
+        else router.replace("/auth/login");
+        return;
+      }
+      setUser(parsed);
     } catch { router.replace("/auth/login"); return; }
 
     async function fetchRequests() {

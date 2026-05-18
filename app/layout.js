@@ -5,6 +5,7 @@ import { AuthProvider } from "@/lib/context/AuthContext";
 import { WorkerStatusProvider } from "@/lib/context/WorkerStatusContext";
 import { FilterProvider } from "@/lib/context/FilterContext";
 import { ToastProvider } from "@/components/Toast";
+import { LanguageProvider } from "@/lib/context/LanguageContext";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -35,15 +36,17 @@ export default function RootLayout({ children }) {
   return (
     <html lang="hi" className={`${inter.variable} ${notoDevanagari.variable}`}>
       <body className="min-h-screen flex flex-col bg-brand-bg text-brand-navy antialiased">
-        <AuthProvider>
-          <WorkerStatusProvider>
-            <FilterProvider>
-              <ToastProvider>
-                {children}
-              </ToastProvider>
-            </FilterProvider>
-          </WorkerStatusProvider>
-        </AuthProvider>
+        <LanguageProvider>
+          <AuthProvider>
+            <WorkerStatusProvider>
+              <FilterProvider>
+                <ToastProvider>
+                  {children}
+                </ToastProvider>
+              </FilterProvider>
+            </WorkerStatusProvider>
+          </AuthProvider>
+        </LanguageProvider>
       </body>
     </html>
   );

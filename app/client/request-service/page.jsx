@@ -8,8 +8,10 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useToast } from "@/components/Toast";
 import { CATEGORIES } from "@/lib/data/categories";
+import { useRoleGuard } from "@/lib/auth/useRoleGuard";
 
 function RequestForm() {
+  useRoleGuard("client");
   const searchParams = useSearchParams();
   const router = useRouter();
   const toast = useToast();

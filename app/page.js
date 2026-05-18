@@ -161,11 +161,11 @@ export default function HomePage() {
 
               <div className="flex flex-wrap gap-3 mt-8">
                 <Link href="/auth/select-role"
-                  className="bg-brand-yellow text-brand-navy font-bold px-6 py-3 rounded-xl hover:bg-amber-400 transition-colors font-hindi">
+                  className="bg-brand-yellow text-brand-navy font-bold px-6 py-3 rounded-xl hover:bg-amber-400 transition-colors font-hindi leading-none flex items-center justify-center">
                   काम करवाएँ / Hire Worker
                 </Link>
                 <Link href="/auth/select-role"
-                  className="border-2 border-white text-white font-bold px-6 py-3 rounded-xl hover:bg-white/10 transition-colors font-hindi">
+                  className="border-2 border-white text-white font-bold px-6 py-3 rounded-xl hover:bg-white/10 transition-colors font-hindi leading-none flex items-center justify-center">
                   काम ढूंढें / Find Work
                 </Link>
               </div>
@@ -246,7 +246,7 @@ export default function HomePage() {
                 <h3 className="font-black text-brand-navy font-hindi text-base mb-1">{card.titleHi}</h3>
                 <p className="text-gray-500 text-xs font-hindi mb-4 leading-snug">{card.descHi}</p>
                 <Link href={card.href}
-                  className={`${card.btnColor} font-bold text-xs px-4 py-2 rounded-xl hover:opacity-90 transition-opacity font-hindi`}>
+                  className={`${card.btnColor} mt-auto w-full font-bold text-sm py-3 rounded-xl hover:opacity-90 transition-opacity font-hindi leading-none flex items-center justify-center`}>
                   {card.btnHi}
                 </Link>
               </div>

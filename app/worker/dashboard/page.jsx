@@ -19,7 +19,16 @@ export default function WorkerDashboardOverview() {
     const token = localStorage.getItem("kaamsetu_token");
     const userData = localStorage.getItem("kaamsetu_user");
     if (!token || !userData) { router.replace("/auth/login"); return; }
-    try { setUser(JSON.parse(userData)); } catch { router.replace("/auth/login"); return; }
+    try {
+      const parsed = JSON.parse(userData);
+      if (parsed.role !== "worker") {
+        if (parsed.role === "client") router.replace("/client/dashboard");
+        else if (parsed.role === "shop") router.replace("/shop/dashboard");
+        else router.replace("/auth/login");
+        return;
+      }
+      setUser(parsed);
+    } catch { router.replace("/auth/login"); return; }
 
     async function loadWorker() {
       try {

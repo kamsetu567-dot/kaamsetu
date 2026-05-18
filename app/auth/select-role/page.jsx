@@ -1,8 +1,10 @@
 'use client';
 import Link from 'next/link';
 import { ChevronLeft, Wrench, UserCheck, Store } from 'lucide-react';
+import { useT } from '@/lib/i18n/useT';
 
 export default function SelectRolePage() {
+  const t = useT();
   return (
     <div className="min-h-screen bg-brand-bg flex flex-col">
       {/* Top bar */}
@@ -17,9 +19,9 @@ export default function SelectRolePage() {
         <div className="w-full max-w-3xl">
           <div className="text-center mb-10">
             <h1 className="text-2xl md:text-3xl font-black text-brand-navy font-hindi mb-2">
-              आप क्या करना चाहते हैं?
+              {t({ hi: 'आप क्या करना चाहते हैं?', en: 'What would you like to do?' })}
             </h1>
-            <p className="text-gray-500">What would you like to do?</p>
+            <p className="text-gray-500">{t({ hi: 'एक विकल्प चुनें', en: 'Choose an option to continue' })}</p>
           </div>
 
           <div className="grid sm:grid-cols-3 gap-5">
@@ -29,9 +31,9 @@ export default function SelectRolePage() {
               <div className="w-16 h-16 bg-brand-yellow rounded-2xl flex items-center justify-center mb-4">
                 <Wrench size={32} className="text-brand-navy" />
               </div>
-              <h2 className="text-xl font-black font-hindi mb-1">काम ढूंढें</h2>
-              <p className="text-sm text-white/60 mb-2">Find Work</p>
-              <p className="text-white/80 text-sm font-hindi">अपने हुनर का काम पाएँ</p>
+              <h2 className="text-xl font-black font-hindi mb-1">{t({ hi: 'काम ढूंढें', en: 'Find Work' })}</h2>
+              <p className="text-sm text-white/60 mb-2">{t({ hi: 'वर्कर के रूप में जुड़ें', en: 'Join as a Worker' })}</p>
+              <p className="text-white/80 text-sm font-hindi">{t({ hi: 'अपने हुनर का काम पाएँ', en: 'Get work matching your skills' })}</p>
             </Link>
 
             {/* Client */}
@@ -40,9 +42,9 @@ export default function SelectRolePage() {
               <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mb-4">
                 <UserCheck size={32} className="text-brand-navy" />
               </div>
-              <h2 className="text-xl font-black font-hindi mb-1">सेवा लें</h2>
-              <p className="text-sm text-gray-400 mb-2">Hire Worker</p>
-              <p className="text-gray-600 text-sm font-hindi">भरोसेमंद वर्कर से काम करवाएँ</p>
+              <h2 className="text-xl font-black font-hindi mb-1">{t({ hi: 'सेवा लें', en: 'Hire Worker' })}</h2>
+              <p className="text-sm text-gray-400 mb-2">{t({ hi: 'क्लाइंट के रूप में जुड़ें', en: 'Join as a Client' })}</p>
+              <p className="text-gray-600 text-sm font-hindi">{t({ hi: 'भरोसेमंद वर्कर से काम करवाएँ', en: 'Get work done by trusted workers' })}</p>
             </Link>
 
             {/* Shop */}
@@ -51,16 +53,16 @@ export default function SelectRolePage() {
               <div className="w-16 h-16 bg-brand-navy/10 rounded-2xl flex items-center justify-center mb-4">
                 <Store size={32} className="text-brand-navy" />
               </div>
-              <h2 className="text-xl font-black font-hindi mb-1">दुकान/Shop</h2>
-              <p className="text-sm text-brand-navy/60 mb-2">Business Owner</p>
-              <p className="text-brand-navy/80 text-sm font-hindi">अपनी दुकान का बढ़ावा दें</p>
+              <h2 className="text-xl font-black font-hindi mb-1">{t({ hi: 'दुकान / Shop', en: 'Shop / Business' })}</h2>
+              <p className="text-sm text-brand-navy/60 mb-2">{t({ hi: 'बिजनेस ओनर', en: 'Business Owner' })}</p>
+              <p className="text-brand-navy/80 text-sm font-hindi">{t({ hi: 'अपनी दुकान का बढ़ावा दें', en: 'Promote your shop or business' })}</p>
             </Link>
           </div>
 
           <p className="text-center text-gray-500 text-sm mt-8">
-            <span className="font-hindi">पहले से account है? </span>
-            <Link href="/auth/login" className="text-brand-navy font-bold hover:underline">
-              Login करें
+            <span className="font-hindi">{t({ hi: 'पहले से account है?', en: 'Already have an account?' })} </span>
+            <Link href="/auth/login" className="text-brand-navy font-bold hover:underline font-hindi">
+              {t({ hi: 'Login करें', en: 'Login' })}
             </Link>
           </p>
         </div>

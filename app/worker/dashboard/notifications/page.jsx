@@ -2,8 +2,10 @@
 
 import { Bell, Info } from "lucide-react";
 import EmptyState from "@/components/EmptyState";
+import { useRoleGuard } from "@/lib/auth/useRoleGuard";
 
 export default function WorkerNotificationsPage() {
+  useRoleGuard("worker");
   // TODO: Persist via API when backend is ready — fetch from notification service
   const notifications = [];
 
