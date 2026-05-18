@@ -98,11 +98,11 @@ export default function HomePage() {
 
       {/* ── HERO ─────────────────────────────────────────────────── */}
       <section className="gradient-hero overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-14 md:py-20">
-          <div className="grid md:grid-cols-2 gap-10 items-end">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-14 md:pt-20 pb-0">
+          <div className="grid md:grid-cols-2 gap-6 md:min-h-[520px]">
 
             {/* left */}
-            <div>
+            <div className="flex flex-col justify-center pb-14 md:pb-20">
               <div className="inline-flex items-center gap-2 bg-white/10 rounded-full px-4 py-1.5 mb-5">
                 <span className="text-brand-yellow text-xs">⭐</span>
                 <span className="text-white/90 text-xs font-medium font-hindi">{t({ hi: 'भारत का #1 लोकल सर्विस प्लेटफ़ॉर्म', en: "India's #1 Local Service Platform" })}</span>
@@ -188,8 +188,8 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* right — hero illustration */}
-            <div className="hidden md:flex items-end justify-center">
+            {/* right — hero illustration anchored to bottom */}
+            <div className="hidden md:flex justify-center self-end">
               <Image
                 src="/illustrations/worker-hero.png"
                 alt="KaamSetu verified worker"
