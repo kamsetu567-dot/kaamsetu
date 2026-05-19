@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { Wrench } from 'lucide-react';
+import Image from 'next/image';
 import { useT } from '@/lib/i18n/useT';
 
 export default function Footer() {
@@ -11,11 +11,8 @@ export default function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           {/* Brand */}
           <div className="col-span-2 md:col-span-1">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-8 h-8 bg-brand-yellow rounded-lg flex items-center justify-center">
-                <Wrench size={16} className="text-brand-navy" />
-              </div>
-              <span className="font-black text-lg">KAAM<span className="text-brand-yellow">SETU</span></span>
+            <div className="mb-3">
+              <Image src="/logo.png" alt="KaamSetu" width={120} height={48} className="h-12 w-auto object-contain" unoptimized />
             </div>
             <p className="text-white/60 text-sm font-hindi leading-relaxed">{t({ hi: 'हर काम, हर जगह', en: 'Every Work, Everywhere' })}</p>
             <p className="text-white/50 text-xs mt-1">{t({ hi: 'भारत का लोकल सर्विस मार्केटप्लेस', en: "India's local service marketplace" })}</p>

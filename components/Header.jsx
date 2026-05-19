@@ -1,10 +1,11 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import {
-  Wrench, Menu, X, ChevronDown, LogOut, User, LayoutDashboard,
-  Briefcase, Settings, PlusCircle, Store, Globe, Bell,
+  Menu, X, ChevronDown, LogOut, User, LayoutDashboard,
+  Briefcase, Settings, Store, Globe, Bell,
 } from 'lucide-react';
 import { useLang } from '@/lib/context/LanguageContext';
 
@@ -112,13 +113,16 @@ export default function Header() {
         <div className="relative flex items-center justify-between h-16">
 
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 min-h-0 flex-shrink-0">
-            <div className="w-8 h-8 bg-brand-yellow rounded-lg flex items-center justify-center flex-shrink-0">
-              <Wrench size={18} className="text-brand-navy" />
-            </div>
-            <span className="font-black text-xl text-white tracking-tight">
-              KAAM<span className="text-brand-yellow">SETU</span>
-            </span>
+          <Link href="/" className="flex items-center min-h-0 flex-shrink-0">
+            <Image
+              src="/logo.png"
+              alt="KaamSetu"
+              width={120}
+              height={48}
+              className="h-12 w-auto object-contain"
+              priority
+              unoptimized
+            />
           </Link>
 
           {/* Desktop nav — absolutely centered */}
@@ -211,7 +215,7 @@ export default function Header() {
       {menuOpen && (
         <div className="fixed inset-0 z-50 bg-brand-navy flex flex-col">
           <div className="flex items-center justify-between px-4 h-16 border-b border-white/10">
-            <span className="font-black text-xl text-white">KAAM<span className="text-brand-yellow">SETU</span></span>
+            <Image src="/logo.png" alt="KaamSetu" width={100} height={40} className="h-10 w-auto object-contain" unoptimized />
             <button onClick={() => setMenuOpen(false)} className="text-white p-2 min-h-0" aria-label="Close menu">
               <X size={24} />
             </button>
