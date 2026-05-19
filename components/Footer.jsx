@@ -12,7 +12,7 @@ export default function Footer() {
           {/* Brand */}
           <div className="col-span-2 md:col-span-1">
             <div className="mb-3">
-              <Image src="/logo.png" alt="KaamSetu" width={120} height={48} className="h-12 w-auto object-contain" unoptimized />
+              <Image src="/logo.png" alt="KaamSetu" width={200} height={80} className="h-20 w-auto object-contain" unoptimized />
             </div>
             <p className="text-white/60 text-sm font-hindi leading-relaxed">{t({ hi: 'हर काम, हर जगह', en: 'Every Work, Everywhere' })}</p>
             <p className="text-white/50 text-xs mt-1">{t({ hi: 'भारत का लोकल सर्विस मार्केटप्लेस', en: "India's local service marketplace" })}</p>

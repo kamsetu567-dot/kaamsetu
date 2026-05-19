@@ -110,16 +110,16 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 bg-brand-navy shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        <div className="relative flex items-center justify-between h-16">
+        <div className="relative flex items-center justify-between h-20 sm:h-24 lg:h-24">
 
           {/* Logo */}
           <Link href="/" className="flex items-center min-h-0 flex-shrink-0">
             <Image
               src="/logo.png"
               alt="KaamSetu"
-              width={120}
-              height={48}
-              className="h-12 w-auto object-contain"
+              width={260}
+              height={96}
+              className="h-20 sm:h-24 lg:h-24 w-auto object-contain"
               priority
               unoptimized
             />
@@ -214,8 +214,8 @@ export default function Header() {
       {/* Mobile overlay */}
       {menuOpen && (
         <div className="fixed inset-0 z-50 bg-brand-navy flex flex-col">
-          <div className="flex items-center justify-between px-4 h-16 border-b border-white/10">
-            <Image src="/logo.png" alt="KaamSetu" width={100} height={40} className="h-10 w-auto object-contain" unoptimized />
+          <div className="flex items-center justify-between px-4 h-20 border-b border-white/10">
+            <Image src="/logo.png" alt="KaamSetu" width={180} height={72} className="h-20 w-auto object-contain" unoptimized />
             <button onClick={() => setMenuOpen(false)} className="text-white p-2 min-h-0" aria-label="Close menu">
               <X size={24} />
             </button>
