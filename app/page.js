@@ -36,7 +36,7 @@ const ACTION_CARDS = [
     btn:   { hi: 'अभी खोजें',     en: 'Search Now' },
     btnColor: 'bg-brand-navy text-white',
     href: '/workers',
-    imgW: 140, imgH: 160,
+    imgW: 180, imgH: 200,
   },
   {
     illustration: '/illustrations/team-illustration.png',
@@ -45,7 +45,7 @@ const ACTION_CARDS = [
     btn:   { hi: 'टीम बनाएं',   en: 'Build Team' },
     btnColor: 'bg-green-600 text-white',
     href: '/auth/select-role',
-    imgW: 140, imgH: 160,
+    imgW: 180, imgH: 200,
   },
   {
     illustration: '/illustrations/shop-illustration.png',
@@ -54,7 +54,7 @@ const ACTION_CARDS = [
     btn:   { hi: 'दुकान जोड़ें',  en: 'Add Shop' },
     btnColor: 'bg-orange-500 text-white',
     href: '/auth/signup/shop',
-    imgW: 140, imgH: 160,
+    imgW: 180, imgH: 200,
   },
   {
     illustration: '/illustrations/ads-illustration.png',
@@ -63,7 +63,7 @@ const ACTION_CARDS = [
     btn:   { hi: 'ऐड चलाएं',   en: 'Run Ads' },
     btnColor: 'bg-purple-600 text-white',
     href: '/auth/select-role',
-    imgW: 140, imgH: 160,
+    imgW: 180, imgH: 200,
   },
 ];
 

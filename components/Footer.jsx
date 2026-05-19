@@ -41,23 +41,26 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Clients */}
+          {/* Company */}
           <div>
-            <h4 className="font-bold mb-4 text-brand-yellow text-sm font-hindi">{t({ hi: 'क्लाइंट के लिए', en: 'For Clients' })}</h4>
+            <h4 className="font-bold mb-4 text-brand-yellow text-sm font-hindi">{t({ hi: 'कंपनी', en: 'Company' })}</h4>
             <ul className="space-y-2 text-white/70 text-sm">
-              <li><Link href="/workers"                   className="hover:text-brand-yellow transition-colors">{t({ hi: 'वर्कर ढूंढें',  en: 'Find Worker' })}</Link></li>
-              <li><Link href="/client/request-service"    className="hover:text-brand-yellow transition-colors">{t({ hi: 'Request भेजें', en: 'Post Request' })}</Link></li>
-              <li><Link href="/#how-it-works"             className="hover:text-brand-yellow transition-colors">{t({ hi: 'कैसे काम करता है', en: 'How it Works' })}</Link></li>
+              <li><Link href="/about"         className="hover:text-brand-yellow transition-colors">{t({ hi: 'हमारे बारे में',    en: 'About Us' })}</Link></li>
+              <li><Link href="/contact"       className="hover:text-brand-yellow transition-colors">{t({ hi: 'संपर्क करें',       en: 'Contact' })}</Link></li>
+              <li><Link href="/faq"           className="hover:text-brand-yellow transition-colors">FAQ</Link></li>
+              <li><Link href="/#how-it-works" className="hover:text-brand-yellow transition-colors">{t({ hi: 'कैसे काम करता है', en: 'How it Works' })}</Link></li>
+              <li><Link href="/workers"       className="hover:text-brand-yellow transition-colors">{t({ hi: 'वर्कर ढूंढें',      en: 'Find Worker' })}</Link></li>
             </ul>
           </div>
         </div>
 
         <div className="border-t border-white/10 mt-10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-white/50 text-xs">
           <p>© 2025 KaamSetu. All rights reserved.</p>
-          <div className="flex gap-4">
-            <Link href="/privacy"    className="hover:text-brand-yellow transition-colors">Privacy Policy</Link>
-            <Link href="/terms"      className="hover:text-brand-yellow transition-colors">Terms</Link>
-            <Link href="/disclaimer" className="hover:text-brand-yellow transition-colors">Disclaimer</Link>
+          <div className="flex gap-4 flex-wrap justify-center">
+            <Link href="/privacy"    className="hover:text-brand-yellow transition-colors">{t({ hi: 'प्राइवेसी', en: 'Privacy' })}</Link>
+            <Link href="/disclaimer" className="hover:text-brand-yellow transition-colors">{t({ hi: 'अस्वीकरण', en: 'Disclaimer' })}</Link>
+            <Link href="/contact"    className="hover:text-brand-yellow transition-colors">{t({ hi: 'संपर्क',    en: 'Contact' })}</Link>
+            <Link href="/faq"        className="hover:text-brand-yellow transition-colors">FAQ</Link>
           </div>
         </div>
       </div>
