@@ -21,6 +21,50 @@ export async function GET(request) {
         // Pending jobs are unassigned — filter by the worker's category + city
         const workerProfile = await Worker.findOne({ user: workerId }).lean();
         if (workerProfile) {
+          const workerCoords = workerProfile.location?.coordinates?.coordinates;
+          const radiusKm = parseInt(searchParams.get("radius") || "50");
+
+          if (workerCoords?.length === 2) {
+            // Use MongoDB geospatial query
+            const pipeline = [
+              {
+                $geoNear: {
+                  near: { type: "Point", coordinates: workerCoords },
+                  distanceField: "distanceMeters",
+                  maxDistance: radiusKm * 1000,
+                  spherical: true,
+                  query: {
+                    status: "pending",
+                    ...(workerProfile.category && {
+                      category: { $regex: workerProfile.category, $options: "i" },
+                    }),
+                  },
+                },
+              },
+              { $sort: { distanceMeters: 1 } },
+              { $limit: 50 },
+            ];
+
+            const geoJobs = await JobRequest.aggregate(pipeline);
+
+            return ok({
+              jobs: geoJobs.map((j) => ({
+                id: j._id,
+                category: j.category,
+                subcategory: j.subcategory,
+                description: j.description,
+                location: j.location?.city || j.location?.address || "",
+                locationAddress: j.location?.address || "",
+                distanceKm: j.distanceMeters ? parseFloat((j.distanceMeters / 1000).toFixed(1)) : null,
+                status: j.status,
+                source: j.source,
+                worker: j.worker,
+                createdAt: j.createdAt,
+              })),
+            });
+          }
+
+          // Fallback: no coordinates saved — use city match as before
           if (workerProfile.category) {
             filter.category = { $regex: workerProfile.category, $options: "i" };
           }
@@ -92,7 +136,16 @@ export async function POST(request) {
       category,
       subcategory: body.subcategory || "",
       description: body.description || body.notes || "",
-      location: { address: body.location || "", city },
+      location: {
+        address: body.location || "",
+        city,
+        ...(body.lat && body.lng && {
+          coordinates: {
+            type: "Point",
+            coordinates: [parseFloat(body.lng), parseFloat(body.lat)],
+          },
+        }),
+      },
       status: "pending",
       source: body.source || "search",
       clientId: clientId || null,

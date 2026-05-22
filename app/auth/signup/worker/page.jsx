@@ -21,6 +21,10 @@ export default function WorkerSignupPage() {
   const [resendTimer, setResendTimer] = useState(0);
   const otpRefs = [useRef(), useRef(), useRef(), useRef(), useRef(), useRef()];
 
+  // Geolocation coordinates (auto-detected, optional)
+  const [lat, setLat] = useState(null);
+  const [lng, setLng] = useState(null);
+
   // Step 2 — Basic Info
   const [name, setName] = useState('');
   const [city, setCity] = useState('');
@@ -43,6 +47,14 @@ export default function WorkerSignupPage() {
 
   const [loading, setLoading] = useState(false);
   const submitRef = useRef(false);
+
+  function detectLocation() {
+    if (typeof navigator === 'undefined' || !navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => { setLat(pos.coords.latitude); setLng(pos.coords.longitude); },
+      () => {} // silent fail — city text match is the fallback
+    );
+  }
 
   function startResendTimer() {
     setResendTimer(30);
@@ -88,7 +100,7 @@ export default function WorkerSignupPage() {
       const res = await fetch('/api/auth/verify-otp', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mobile, otp: otpValue, mode: 'signup' }) });
       const data = await res.json();
       if (!res.ok) { toast.error(data.message || 'OTP गलत है'); setOtp(['','','','','','']); otpRefs[0].current?.focus(); return; }
-      setTempToken(data.token); setStep(2);
+      setTempToken(data.token); setStep(2); detectLocation();
     } catch { toast.error('कुछ गड़बड़ हुई'); } finally { setLoading(false); submitRef.current = false; }
   }
 
@@ -106,13 +118,21 @@ export default function WorkerSignupPage() {
   }
 
   async function handleSignup() {
+    if (!aadharNumber || aadharNumber.length !== 12) {
+      toast.error('12 अंकों का आधार नंबर डालें');
+      return;
+    }
+    if (!aadharFront) {
+      toast.error('आधार कार्ड की फोटो (Front) अपलोड करें');
+      return;
+    }
     if (submitRef.current) return;
     submitRef.current = true; setLoading(true);
     try {
       const res = await fetch('/api/auth/signup/worker', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mobile, name, city, area, experience: Number(experience) || 0, gender, category, subcategory, serviceType, aadharNumber, token: tempToken }),
+        body: JSON.stringify({ mobile, name, city, area, experience: Number(experience) || 0, gender, category, subcategory, serviceType, aadharNumber, token: tempToken, ...(lat && lng ? { lat, lng } : {}) }),
       });
       const data = await res.json();
       if (!res.ok) { toast.error(data.message || 'Signup failed'); return; }
@@ -340,11 +360,57 @@ export default function WorkerSignupPage() {
 
               {/* Aadhar Number */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5 font-hindi">आधार नंबर (optional)</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5 font-hindi">आधार नंबर *</label>
                 <input type="tel" inputMode="numeric" maxLength={12} value={aadharNumber}
                   onChange={e => setAadharNumber(e.target.value.replace(/\D/g, '').slice(0, 12))}
                   placeholder="12-digit Aadhar number"
                   className="w-full px-4 py-3.5 border border-gray-200 rounded-xl focus:outline-none focus:border-brand-navy text-base" />
+              </div>
+
+              {/* Aadhar Card Front */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2 font-hindi">आधार कार्ड - Front * <span className="text-red-500">(अनिवार्य)</span></label>
+                <label className="block cursor-pointer">
+                  {aadharFront ? (
+                    <div className="relative">
+                      <img src={aadharFront} alt="Aadhar Front" className="w-full h-32 object-cover rounded-xl border-2 border-brand-navy" />
+                      <button type="button" onClick={() => setAadharFront(null)}
+                        className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 min-h-0">
+                        <X size={12} />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="border-2 border-dashed border-red-300 rounded-xl p-4 text-center hover:border-brand-navy transition-colors">
+                      <Upload size={24} className="text-gray-400 mx-auto mb-1" />
+                      <p className="text-gray-400 text-xs font-hindi">आधार कार्ड Front Upload करें</p>
+                    </div>
+                  )}
+                  <input type="file" accept="image/*" className="hidden"
+                    onChange={e => { const f = e.target.files?.[0]; if (f) setAadharFront(URL.createObjectURL(f)); }} />
+                </label>
+              </div>
+
+              {/* Aadhar Card Back */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2 font-hindi">आधार कार्ड - Back (optional)</label>
+                <label className="block cursor-pointer">
+                  {aadharBack ? (
+                    <div className="relative">
+                      <img src={aadharBack} alt="Aadhar Back" className="w-full h-32 object-cover rounded-xl border-2 border-gray-200" />
+                      <button type="button" onClick={() => setAadharBack(null)}
+                        className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 min-h-0">
+                        <X size={12} />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="border-2 border-dashed border-gray-200 rounded-xl p-4 text-center hover:border-brand-navy transition-colors">
+                      <Upload size={24} className="text-gray-400 mx-auto mb-1" />
+                      <p className="text-gray-400 text-xs font-hindi">आधार कार्ड Back Upload करें</p>
+                    </div>
+                  )}
+                  <input type="file" accept="image/*" className="hidden"
+                    onChange={e => { const f = e.target.files?.[0]; if (f) setAadharBack(URL.createObjectURL(f)); }} />
+                </label>
               </div>
 
               {/* Subscription notice */}

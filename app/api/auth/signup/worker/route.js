@@ -9,11 +9,24 @@ export async function POST(request) {
   try {
     const body = await request.json();
 
-    const { mobile, name, category, subcategory, gender, experience, serviceType, city, area, token } = body;
-    const location = { city: city || "", address: area || "" };
+    const { mobile, name, category, subcategory, gender, experience, serviceType, city, area, token, aadharNumber } = body;
+    const location = {
+      city: city || "",
+      address: area || "",
+      ...(body.lat && body.lng ? {
+        coordinates: {
+          type: "Point",
+          coordinates: [parseFloat(body.lng), parseFloat(body.lat)],
+        },
+      } : {}),
+    };
 
     if (!mobile || !name) {
       return error("mobile and name are required");
+    }
+
+    if (!aadharNumber || aadharNumber.length !== 12) {
+      return error("Valid 12-digit Aadhar number is required");
     }
 
     // aadharPhoto is optional during testing — TODO: make required before going live
@@ -37,6 +50,7 @@ export async function POST(request) {
         experience: parseInt(experience) || 0,
         serviceType: serviceType || "both",
         location,
+        aadharNumber: aadharNumber || "",
       });
       const updatedToken = signToken({ id: existingWorker.user, mobile, role: "worker" });
       return ok({
@@ -60,6 +74,7 @@ export async function POST(request) {
         experience: parseInt(experience) || 0,
         serviceType: serviceType || "both",
         location,
+        aadharNumber: aadharNumber || "",
         status: "pending",
       });
     } catch (createError) {

@@ -27,8 +27,18 @@ function RequestForm() {
   const [stage, setStage] = useState("form"); // "form" | "searching" | "success"
   const [searchProgress, setSearchProgress] = useState(0);
   const [submitting, setSubmitting] = useState(false);
+  const [lat, setLat] = useState(null);
+  const [lng, setLng] = useState(null);
 
   const selectedCategoryData = CATEGORIES.find(c => c.id === category);
+
+  useEffect(() => {
+    if (typeof navigator === 'undefined' || !navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => { setLat(pos.coords.latitude); setLng(pos.coords.longitude); },
+      () => {} // silent fail — city text match is the fallback
+    );
+  }, []);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -76,6 +86,7 @@ function RequestForm() {
           city,
           description,
           source: "search",
+          ...(lat && lng ? { lat, lng } : {}),
         }),
       });
       const data = await res.json();
