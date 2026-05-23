@@ -28,15 +28,27 @@ export async function POST(request) {
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 min
     await OTP.create({ mobile, otp, expiresAt });
 
+    // Dev mode: skip SMS if API key not configured
+    if (!process.env.FAST2SMS_API_KEY) {
+      logger.warn("FAST2SMS_API_KEY not set — OTP logged to console (dev only)", { mobile, otp });
+      return ok({ message: "OTP sent successfully" });
+    }
+
     // Send OTP via Fast2SMS
     const smsUrl = `https://www.fast2sms.com/dev/bulkV2?authorization=${process.env.FAST2SMS_API_KEY}&route=otp&variables_values=${otp}&flash=0&numbers=${mobile}`;
 
-    const smsResponse = await fetch(smsUrl, {
-      method: "GET",
-      headers: { "cache-control": "no-cache" },
-    });
-
-    const smsData = await smsResponse.json();
+    let smsData;
+    try {
+      const smsResponse = await fetch(smsUrl, {
+        method: "GET",
+        headers: { "cache-control": "no-cache" },
+      });
+      smsData = await smsResponse.json();
+    } catch (smsErr) {
+      logger.error("Fast2SMS request failed", { mobile, err: smsErr.message });
+      await OTP.deleteMany({ mobile });
+      return error("OTP भेजने में समस्या हुई। कृपया दोबारा try करें।", 500);
+    }
 
     if (!smsData.return) {
       logger.error("Fast2SMS OTP send failed", { mobile, smsData });
