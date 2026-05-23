@@ -6,7 +6,6 @@ import { logger } from "@/lib/utils/logger";
 
 const limiter = createRateLimit(3, 60 * 60 * 1000); // 3 per hour per mobile
 
-// TODO: Before going live, integrate real MSG91 SendOTP API here
 export async function POST(request) {
   try {
     const { mobile } = await request.json();
@@ -24,12 +23,28 @@ export async function POST(request) {
 
     await OTP.deleteMany({ mobile });
 
-    const otp = "123456"; // TODO: replace with real OTP + MSG91 before going live
+    // Generate random 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 min
     await OTP.create({ mobile, otp, expiresAt });
 
-    console.log(`TEST OTP: ${otp} for mobile ${mobile}`);
+    // Send OTP via Fast2SMS
+    const smsUrl = `https://www.fast2sms.com/dev/bulkV2?authorization=${process.env.FAST2SMS_API_KEY}&route=otp&variables_values=${otp}&flash=0&numbers=${mobile}`;
 
+    const smsResponse = await fetch(smsUrl, {
+      method: "GET",
+      headers: { "cache-control": "no-cache" },
+    });
+
+    const smsData = await smsResponse.json();
+
+    if (!smsData.return) {
+      logger.error("Fast2SMS OTP send failed", { mobile, smsData });
+      await OTP.deleteMany({ mobile });
+      return error("OTP भेजने में समस्या हुई। कृपया दोबारा try करें।", 500);
+    }
+
+    logger.info("OTP sent successfully via Fast2SMS", { mobile });
     return ok({ message: "OTP sent successfully" });
   } catch (err) {
     logger.error("send-otp error", { err: err.message });
