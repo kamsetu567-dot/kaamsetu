@@ -130,6 +130,7 @@ export default function HomePage() {
                   <option value="vehicle-travel">{t({ hi: 'ड्राइवर / वाहन', en: 'Driver / Vehicle' })}</option>
                   <option value="beauty-personal-care">{t({ hi: 'ब्यूटी सर्विस', en: 'Beauty Service' })}</option>
                   <option value="repair-technical">{t({ hi: 'रिपेयर सेवाएँ', en: 'Repair Services' })}</option>
+                  <option value="jobs-staff-office">{t({ hi: 'जॉब्स / स्टाफ', en: 'Jobs / Staff' })}</option>
                 </select>
 
                 <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
@@ -263,14 +264,14 @@ export default function HomePage() {
               }
               return (
                 <div key={card.title.en}
-                  className="bg-white rounded-3xl p-5 flex flex-col items-center text-center shadow-sm card-hover border border-gray-100">
-                  <div className="relative mb-4" style={{ width: card.imgW, height: card.imgH }}>
+                  className="bg-white rounded-3xl p-4 sm:p-5 flex flex-col items-center text-center shadow-sm card-hover border border-gray-100">
+                  <div className="relative mb-4 w-28 h-32 sm:w-36 sm:h-40 md:w-44 md:h-48 mx-auto">
                     <Image
                       src={card.illustration}
                       alt={t(card.title)}
                       fill
                       className="object-contain"
-                      sizes="(max-width:768px) 140px, 160px"
+                      sizes="(max-width:640px) 112px, (max-width:768px) 144px, 176px"
                     />
                   </div>
                   <h3 className="font-black text-brand-navy font-hindi text-base mb-1">{t(card.title)}</h3>

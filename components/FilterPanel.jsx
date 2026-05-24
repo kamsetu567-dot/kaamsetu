@@ -146,6 +146,48 @@ export default function FilterPanel({ className = "" }) {
         </div>
       </div>
 
+      {/* Employment Type */}
+      <div>
+        <h4 className="font-bold text-brand-navy mb-2">{t({ hi: 'काम का प्रकार', en: 'Employment Type' })}</h4>
+        <div className="flex gap-2 flex-wrap">
+          {[
+            { value: "",          label: t({ hi: 'सभी',      en: 'All' }) },
+            { value: "full_time", label: t({ hi: 'फुल टाइम', en: 'Full Time' }) },
+            { value: "part_time", label: t({ hi: 'पार्ट टाइम', en: 'Part Time' }) },
+          ].map(opt => (
+            <button key={opt.value} onClick={() => updateFilter("employmentType", opt.value)}
+              className={`px-4 py-2 rounded-xl border-2 font-semibold text-sm transition-colors ${
+                filters.employmentType === opt.value
+                  ? "bg-brand-navy text-white border-brand-navy"
+                  : "border-gray-200 text-gray-500 hover:border-brand-navy"
+              }`}>
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Experience Level */}
+      <div>
+        <h4 className="font-bold text-brand-navy mb-2">{t({ hi: 'अनुभव', en: 'Experience Level' })}</h4>
+        <div className="flex gap-2 flex-wrap">
+          {[
+            { value: "",           label: t({ hi: 'सभी',         en: 'All' }) },
+            { value: "experienced", label: t({ hi: 'अनुभवी',      en: 'Experienced' }) },
+            { value: "fresher",    label: t({ hi: 'फ्रेशर',       en: 'Fresher' }) },
+          ].map(opt => (
+            <button key={opt.value} onClick={() => updateFilter("experienceLevel", opt.value)}
+              className={`px-4 py-2 rounded-xl border-2 font-semibold text-sm transition-colors ${
+                filters.experienceLevel === opt.value
+                  ? "bg-green-600 text-white border-green-600"
+                  : "border-gray-200 text-gray-500 hover:border-green-600"
+              }`}>
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Reset */}
       <button
         onClick={resetFilters}

@@ -19,6 +19,8 @@ export default function WorkerProfileEditPage() {
   const [subcategory, setSubcategory] = useState("");
   const [gender, setGender] = useState("");
   const [serviceType, setServiceType] = useState("");
+  const [employmentType, setEmploymentType] = useState("any");
+  const [skills, setSkills] = useState("");
   const [profilePhoto, setProfilePhoto] = useState(null);
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -45,6 +47,8 @@ export default function WorkerProfileEditPage() {
           if (w.subcategory) setSubcategory(w.subcategory);
           if (w.gender) setGender(w.gender);
           if (w.serviceType) setServiceType(w.serviceType);
+          if (w.employmentType) setEmploymentType(w.employmentType);
+          if (w.skills?.length) setSkills(w.skills.join(", "));
           if (w.workStatus) updateStatus(w.workStatus);
           if (w.photo) setProfilePhoto(w.photo);
         }
@@ -66,7 +70,8 @@ export default function WorkerProfileEditPage() {
       return;
     }
     setLoading(true);
-    await updateWorker(workerId, { ...data, category, subcategory, gender, serviceType });
+    const skillsArray = skills.split(",").map(s => s.trim()).filter(Boolean);
+    await updateWorker(workerId, { ...data, category, subcategory, gender, serviceType, employmentType, skills: skillsArray });
     setLoading(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
@@ -263,6 +268,44 @@ export default function WorkerProfileEditPage() {
               </button>
             ))}
           </div>
+        </div>
+
+        {/* Employment Type */}
+        <div className="bg-white rounded-3xl border-2 border-gray-200 p-5 space-y-3">
+          <h3 className="font-bold text-brand-navy" style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>
+            काम का प्रकार / Employment Type
+          </h3>
+          <div className="flex gap-3">
+            {[
+              { value: "full_time", hi: "फुल टाइम", en: "Full Time" },
+              { value: "part_time", hi: "पार्ट टाइम", en: "Part Time" },
+              { value: "any",       hi: "दोनों",     en: "Any" },
+            ].map(et => (
+              <button key={et.value} type="button" onClick={() => setEmploymentType(et.value)}
+                className={`flex-1 py-3 rounded-xl border-2 font-semibold transition-colors ${
+                  employmentType === et.value
+                    ? "bg-brand-navy text-white border-brand-navy"
+                    : "border-gray-200 text-gray-500 hover:border-brand-navy"
+                }`}>
+                <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>{et.hi}</span>
+                <span className="font-normal text-sm"> / {et.en}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Skills */}
+        <div className="bg-white rounded-3xl border-2 border-gray-200 p-5">
+          <h3 className="font-bold text-brand-navy mb-3" style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>
+            Skills / हुनर
+          </h3>
+          <input
+            value={skills}
+            onChange={e => setSkills(e.target.value)}
+            placeholder="e.g. MS Excel, Tally, Typing — comma separated"
+            className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-brand-navy text-sm"
+          />
+          <p className="text-gray-400 text-xs mt-1.5">Comma से अलग करें / Separate with commas</p>
         </div>
 
         {/* Work Status toggle */}

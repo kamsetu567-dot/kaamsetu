@@ -12,6 +12,8 @@ export async function GET(request) {
     const subcategory = searchParams.get("subcategory") || "";
     const gender = searchParams.get("gender") || "";
     const serviceType = searchParams.get("serviceType") || "";
+    const employmentType = searchParams.get("employmentType") || "";
+    const experienceLevel = searchParams.get("experienceLevel") || "";
     const sortBy = searchParams.get("sortBy") || "rating";
     const rating = parseFloat(searchParams.get("rating")) || 0;
     const city = searchParams.get("city") || "";
@@ -22,6 +24,9 @@ export async function GET(request) {
     if (subcategory) filter.subcategory = { $regex: subcategory, $options: "i" };
     if (gender) filter.gender = gender;
     if (serviceType) filter.serviceType = { $in: [serviceType, "both"] };
+    if (employmentType) filter.employmentType = { $in: [employmentType, "any"] };
+    if (experienceLevel === "fresher") filter.experience = 0;
+    if (experienceLevel === "experienced") filter.experience = { $gt: 0 };
     if (rating > 0) filter.rating = { $gte: rating };
     if (city) filter["location.city"] = { $regex: city, $options: "i" };
 
@@ -61,6 +66,8 @@ export async function GET(request) {
       location: w.location,
       boosted: w.boosted && w.boostedUntil > now,
       subscriptionActive: w.subscriptionExpiry ? w.subscriptionExpiry > now : false,
+      employmentType: w.employmentType || "any",
+      skills: w.skills || [],
     }));
 
     return ok({ workers: formatted });

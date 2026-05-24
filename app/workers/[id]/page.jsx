@@ -6,7 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import {
   ArrowLeft, Phone, Send, User, MapPin, Clock,
-  Star, ShieldCheck, ChevronLeft, ChevronRight,
+  Star, ShieldCheck, ChevronLeft, ChevronRight, MessageSquare, FileText, Briefcase,
 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -258,6 +258,13 @@ export default function WorkerProfilePage() {
                       })()}
                     />
                   )}
+                  {worker.employmentType && worker.employmentType !== "any" && (
+                    <InfoRow
+                      icon={Briefcase}
+                      label="काम का प्रकार / Employment Type"
+                      value={worker.employmentType === "full_time" ? "फुल टाइम / Full Time" : "पार्ट टाइम / Part Time"}
+                    />
+                  )}
                 </div>
               </div>
 
@@ -271,6 +278,27 @@ export default function WorkerProfilePage() {
                     काम की फ़ोटो / Work Photos
                   </h3>
                   <PhotoGallery photos={worker.workPhotos} name={worker.name} />
+                </div>
+              )}
+
+              {/* Biodata */}
+              {worker.biodata && (
+                <div className="bg-white rounded-3xl border-2 border-border-light p-5">
+                  <h3 className="font-black text-text-primary mb-3" style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>
+                    Biodata / बायोडेटा
+                  </h3>
+                  <a
+                    href={worker.biodata}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 bg-blue-50 border-2 border-blue-200 rounded-2xl px-4 py-3 hover:border-blue-500 transition-colors"
+                  >
+                    <FileText size={20} className="text-primary-blue flex-shrink-0" />
+                    <div>
+                      <p className="font-bold text-primary-blue text-sm">Download Biodata</p>
+                      <p className="text-xs text-gray-500" style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>बायोडेटा डाउनलोड करें</p>
+                    </div>
+                  </a>
                 </div>
               )}
 
@@ -315,38 +343,49 @@ export default function WorkerProfilePage() {
 
         {/* Sticky bottom action buttons */}
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-border-light px-4 py-3 z-40">
-          <div className="max-w-2xl mx-auto flex gap-3">
+          <div className="max-w-2xl mx-auto space-y-2">
             {requestSent ? (
-              <div className="flex-1 text-center bg-green-50 border-2 border-primary-green text-primary-green font-bold py-3 rounded-2xl">
-                <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>✅ Request भेज दी!</span>
-                <span className="text-sm font-normal block">Request sent!</span>
+              <div className="text-center bg-green-50 border-2 border-primary-green text-primary-green font-bold py-3 rounded-2xl">
+                <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>✅ Request भेज दी! / Request sent!</span>
               </div>
             ) : (
-              <>
-                <button
-                  onClick={() => setRequestSent(true)}
-                  className="flex-1 flex items-center justify-center gap-2 border-2 border-primary-blue text-primary-blue font-bold py-3 rounded-2xl hover:bg-blue-50 transition-colors"
-                  aria-label="Send service request"
-                >
-                  <Send size={18} />
-                  <div>
-                    <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>Request भेजें</span>
-                    <span className="text-xs font-normal block">/ Send Request</span>
-                  </div>
-                </button>
-                <a
-                  href={worker?.mobile ? `tel:+91${worker.mobile}` : "#"}
-                  className="flex-1 flex items-center justify-center gap-2 bg-primary-green text-white font-bold py-3 rounded-2xl hover:bg-green-700 transition-colors"
-                  aria-label="Call worker now"
-                >
-                  <Phone size={18} />
-                  <div>
-                    <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>अभी कॉल करें</span>
-                    <span className="text-xs font-normal block">/ Call Now</span>
-                  </div>
-                </a>
-              </>
+              <button
+                onClick={() => setRequestSent(true)}
+                className="w-full flex items-center justify-center gap-2 border-2 border-primary-blue text-primary-blue font-bold py-2.5 rounded-2xl hover:bg-blue-50 transition-colors"
+                aria-label="Send service request"
+              >
+                <Send size={16} />
+                <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>Request भेजें / Send Request</span>
+              </button>
             )}
+            <div className="flex gap-2">
+              <a
+                href={worker?.mobile ? `tel:+91${worker.mobile}` : "#"}
+                className="flex-1 flex items-center justify-center gap-1.5 bg-primary-green text-white font-bold py-2.5 rounded-2xl hover:bg-green-700 transition-colors text-sm"
+                aria-label="Call worker"
+              >
+                <Phone size={16} />
+                <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>कॉल</span>
+              </a>
+              <a
+                href={worker?.mobile ? `https://wa.me/91${worker.mobile}` : "#"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 flex items-center justify-center gap-1.5 bg-[#25D366] text-white font-bold py-2.5 rounded-2xl hover:opacity-90 transition-opacity text-sm"
+                aria-label="WhatsApp worker"
+              >
+                <MessageSquare size={16} />
+                <span>WhatsApp</span>
+              </a>
+              <a
+                href={worker?.mobile ? `sms:+91${worker.mobile}` : "#"}
+                className="flex-1 flex items-center justify-center gap-1.5 bg-gray-700 text-white font-bold py-2.5 rounded-2xl hover:bg-gray-800 transition-colors text-sm"
+                aria-label="SMS worker"
+              >
+                <Send size={16} />
+                <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>Message</span>
+              </a>
+            </div>
           </div>
         </div>
       </main>
