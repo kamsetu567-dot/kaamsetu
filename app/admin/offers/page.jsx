@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { PlusCircle, Tag, Trash2, CheckCircle } from "lucide-react";
 import EmptyState from "@/components/EmptyState";
-import { getOffers, createOffer } from "@/lib/api/admin";
+import { getOffers, createOffer, deleteOffer } from "@/lib/api/admin";
 
 export default function AdminOffersPage() {
   const [offers, setOffers] = useState([]);
@@ -20,12 +20,23 @@ export default function AdminOffersPage() {
 
   async function onSubmit(data) {
     setSubmitting(true);
-    await createOffer(data);
-    // TODO: Refresh offers list from API when backend is ready
+    try {
+      await createOffer(data);
+      const fresh = await getOffers();
+      setOffers(fresh);
+    } catch {}
     setSubmitting(false);
     setSuccess(true);
     reset();
     setTimeout(() => { setSuccess(false); setShowForm(false); }, 2000);
+  }
+
+  async function handleDelete(id) {
+    if (!confirm("Delete this offer?")) return;
+    try {
+      await deleteOffer(id);
+      setOffers(prev => prev.filter(o => String(o.id) !== String(id)));
+    } catch {}
   }
 
   return (
@@ -172,6 +183,7 @@ export default function AdminOffersPage() {
                   <p className="text-gray-500 text-sm mt-0.5">{o.discount} off · Expires {o.expiresAt}</p>
                 </div>
                 <button
+                  onClick={() => handleDelete(o.id)}
                   className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors"
                   aria-label="Delete offer"
                 >

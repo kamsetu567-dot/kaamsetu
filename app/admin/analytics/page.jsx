@@ -33,17 +33,15 @@ export default function AdminAnalyticsPage() {
   const [range, setRange] = useState("7d");
 
   useEffect(() => {
-    getAnalytics(range).then(res => {
-      // TODO: Replace PLACEHOLDER_DATA with real analytics from API when backend is ready
-      if (res?.visits?.length) {
-        const merged = res.visits.map((_, i) => ({
-          day: res.labels?.[i] ?? `Day ${i + 1}`,
-          visits: res.visits[i] ?? 0,
-          users: res.users[i] ?? 0,
-          jobs: res.jobs[i] ?? 0,
-          calls: res.calls[i] ?? 0,
-        }));
-        setData(merged);
+    getAnalytics(range).then(chartData => {
+      if (Array.isArray(chartData) && chartData.length) {
+        setData(chartData.map(d => ({
+          day: d.date?.slice(5) ?? "",
+          visits: (d.workers ?? 0) + (d.clients ?? 0),
+          users: (d.workers ?? 0) + (d.clients ?? 0),
+          jobs: d.jobs ?? 0,
+          calls: 0,
+        })));
       }
     });
   }, [range]);
@@ -78,7 +76,7 @@ export default function AdminAnalyticsPage() {
       </div>
 
       {/* Notice when data is empty */}
-      {data.every(d => d.visits === 0) && (
+      {data.every(d => d.visits === 0 && d.jobs === 0) && (
         <div className="flex items-center gap-3 bg-blue-50 border-2 border-blue-200 rounded-2xl px-4 py-3">
           <BarChart3 size={18} className="text-blue-600 flex-shrink-0" />
           <p className="text-blue-600 text-sm">
