@@ -8,7 +8,9 @@ export async function GET(request, { params }) {
     const { id } = await params;
     await connectDB();
 
-    const worker = await Worker.findById(id).select("-__v").lean();
+    const worker = await Worker.findById(id)
+      .select("-__v -aadharNumber -aadharFrontUrl -aadharBackUrl")
+      .lean();
     if (!worker) return notFound("Worker not found");
 
     return ok({ worker: { ...worker, id: worker._id } });

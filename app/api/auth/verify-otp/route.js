@@ -47,18 +47,26 @@ export async function POST(request) {
 
     if (!user) {
       if (mode === "signup") {
-        // OTP proved mobile is real; return signed token for signup flow to use
         const token = signToken({ mobile });
         return ok({ token, mobile, isNewUser: true });
       }
-      return error(
-        "Account not found. Please sign up first / Account नहीं मिला। पहले sign up करें",
-        404
-      );
+      return error("Account not found. Please sign up first.", 404);
     }
 
     if (user.status === "blocked") {
-      return error("आपका account block है / Your account has been blocked", 403);
+      return error("Your account has been blocked. Contact support.", 403);
+    }
+
+    // Workers must be approved before they can log in
+    if (user.role === "worker") {
+      const Worker = (await import("@/lib/models/Worker")).default;
+      const worker = await Worker.findOne({ user: user._id }).lean();
+      if (worker && worker.status === "pending") {
+        return error("Your registration is pending admin approval. You will be notified via email once approved.", 403);
+      }
+      if (worker && worker.status === "rejected") {
+        return error("Your registration was rejected. Please contact support.", 403);
+      }
     }
 
     const token = signToken({ id: user._id, mobile: user.mobile, role: user.role });

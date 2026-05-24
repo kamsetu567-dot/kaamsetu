@@ -21,6 +21,10 @@ export async function POST(request, { params }) {
 
     const worker = await Worker.findOne({ user: payload.id });
     if (!worker) return error("Worker profile not found");
+    if (worker.status !== "approved") return error("Your account is not approved yet.", 403);
+    if (!worker.subscriptionExpiry || worker.subscriptionExpiry < new Date()) {
+      return error("Your subscription has expired. Please renew to accept jobs.", 403);
+    }
 
     job.worker = worker._id;
     job.status = "accepted";

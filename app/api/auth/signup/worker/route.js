@@ -29,7 +29,7 @@ export async function POST(request) {
       return error("Valid 12-digit Aadhar number is required");
     }
 
-    // aadharPhoto is optional during testing — TODO: make required before going live
+    if (!aadharFrontUrl) return error("Aadhar card front photo is required");
     if (!token) return error("OTP verification required before signup");
     const tokenPayload = verifyToken(token);
     if (!tokenPayload) return error("OTP verification required before signup");

@@ -1,9 +1,7 @@
 import { connectDB } from "@/lib/db/mongoose";
-import User from "@/lib/models/User";
 import Worker from "@/lib/models/Worker";
 import Client from "@/lib/models/Client";
 import JobRequest from "@/lib/models/JobRequest";
-import Subscription from "@/lib/models/Subscription";
 import { verifyToken, getTokenFromRequest } from "@/lib/utils/jwt";
 import { ok, error, unauthorized } from "@/lib/utils/apiResponse";
 
@@ -20,26 +18,18 @@ export async function GET(request) {
     today.setHours(0, 0, 0, 0);
 
     const [
-      totalWorkers,
-      activeWorkers,
-      pendingWorkers,
-      totalClients,
-      todayJobs,
-      workingWorkers,
-      freeWorkers,
-      totalEarnings,
+      totalWorkers, activeWorkers, pendingWorkers,
+      totalClients, totalJobs, todayJobs,
+      workingWorkers, freeWorkers,
     ] = await Promise.all([
       Worker.countDocuments(),
       Worker.countDocuments({ status: "approved" }),
       Worker.countDocuments({ status: "pending" }),
       Client.countDocuments(),
+      JobRequest.countDocuments(),
       JobRequest.countDocuments({ createdAt: { $gte: today } }),
-      Worker.countDocuments({ status: "approved", workStatus: "working" }),
-      Worker.countDocuments({ status: "approved", workStatus: "free" }),
-      Subscription.aggregate([
-        { $match: { status: "active" } },
-        { $group: { _id: null, total: { $sum: "$amount" } } },
-      ]),
+      Worker.countDocuments({ workStatus: "working", status: "approved" }),
+      Worker.countDocuments({ workStatus: "free", status: "approved" }),
     ]);
 
     return ok({
@@ -48,11 +38,12 @@ export async function GET(request) {
         activeWorkers,
         pendingWorkers,
         totalClients,
+        totalJobs,
         todayJobs,
-        totalCalls: todayJobs,
         workingWorkers,
         freeWorkers,
-        totalEarnings: totalEarnings[0]?.total || 0,
+        totalEarnings: 0,
+        totalCalls: 0,
       },
     });
   } catch (err) {

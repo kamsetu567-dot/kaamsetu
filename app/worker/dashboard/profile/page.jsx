@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import CategorySelect from "@/components/CategorySelect";
 import WorkerStatusBadge from "@/components/WorkerStatusBadge";
 import { useWorkerStatus } from "@/lib/context/WorkerStatusContext";
-import { updateWorker } from "@/lib/api/workers";
+import { updateWorker, updateWorkerStatus } from "@/lib/api/workers";
 import { useToast } from "@/components/Toast";
 import { useRoleGuard } from "@/lib/auth/useRoleGuard";
 
@@ -281,26 +281,20 @@ export default function WorkerProfileEditPage() {
             </div>
           </div>
           <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={() => updateStatus("free")}
-              className={`flex-1 py-3 rounded-xl border-2 font-semibold transition-colors ${
-                status === "free" ? "bg-green-600 text-white border-green-600" : "border-gray-200 text-gray-500"
-              }`}
-            >
-              🟢 <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>खाली हूँ / Free</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => updateStatus("working")}
-              className={`flex-1 py-3 rounded-xl border-2 font-semibold transition-colors ${
-                status === "working" ? "bg-orange-500 text-white border-orange-500" : "border-gray-200 text-gray-500"
-              }`}
-            >
-              🔴 <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>व्यस्त / Working</span>
-            </button>
+            {[{ val: "free", label: "🟢 खाली हूँ / Free", cls: "bg-green-600 border-green-600" },
+              { val: "working", label: "🔴 व्यस्त / Working", cls: "bg-orange-500 border-orange-500" }].map(s => (
+              <button key={s.val} type="button"
+                onClick={async () => {
+                  updateStatus(s.val);
+                  try { await updateWorkerStatus(null, s.val); } catch {}
+                }}
+                className={`flex-1 py-3 rounded-xl border-2 font-semibold transition-colors ${
+                  status === s.val ? `${s.cls} text-white` : "border-gray-200 text-gray-500"
+                }`}>
+                <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>{s.label}</span>
+              </button>
+            ))}
           </div>
-          {/* TODO: Sync status to backend via API when ready */}
         </div>
 
         {/* Save button */}
