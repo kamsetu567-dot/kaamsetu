@@ -232,13 +232,6 @@ export default function LoginPage() {
               </form>
             )}
 
-            {/* Testing notice */}
-            <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-xl px-4 py-2.5 text-center">
-              <p className="text-yellow-700 text-xs font-medium">
-                🔧 Testing: Use OTP <strong>123456</strong>
-              </p>
-            </div>
-
             <p className="text-center text-sm text-gray-500 mt-6">
               <span className="font-hindi">{t({ hi: 'Account नहीं है?', en: "Don't have an account?" })} </span>
               <Link href="/auth/select-role" className="text-brand-navy font-bold hover:underline font-hindi">
