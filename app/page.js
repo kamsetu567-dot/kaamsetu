@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -8,6 +8,28 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { useLang } from '@/lib/context/LanguageContext';
 import { useT } from '@/lib/i18n/useT';
+import { CATEGORIES } from '@/lib/data/categories';
+
+// Flat list of all searchable terms — category names + every subcategory
+const SEARCH_SUGGESTIONS = [
+  ...CATEGORIES.flatMap(c => [
+    { label: `${c.nameHi} / ${c.nameEn}`, query: c.nameEn },
+    ...c.subcategories.map(sub => ({ label: sub, query: sub })),
+  ]),
+  // Extra popular standalone terms
+  { label: 'Mistri / मिस्त्री',          query: 'Mistri' },
+  { label: 'Plumber / प्लंबर',          query: 'Plumber' },
+  { label: 'Electrician / इलेक्ट्रीशियन', query: 'Electrician' },
+  { label: 'Painter / पेंटर',           query: 'Painter' },
+  { label: 'Driver / ड्राइवर',           query: 'Driver' },
+  { label: 'Cook / रसोइया',             query: 'Cook' },
+  { label: 'Maid / कामवाली',            query: 'Maid' },
+  { label: 'Tutor / ट्यूटर',             query: 'Tutor' },
+  { label: 'Security Guard',            query: 'Security Guard' },
+  { label: 'Delivery Boy',              query: 'Delivery Boy' },
+  { label: 'Data Entry',               query: 'Data Entry' },
+  { label: 'Accountant / अकाउंटेंट',     query: 'Accountant' },
+].filter((item, i, arr) => arr.findIndex(x => x.query === item.query) === i); // deduplicate by query
 
 const SERVICE_TILES = [
   { icon: '/icons/mistri.png',       hi: 'मिस्त्री',         en: 'Mistri',          count: '200+', bg: 'bg-orange-50',  href: '/workers?q=mistri' },
@@ -75,6 +97,10 @@ export default function HomePage() {
   const [searchCity, setSearchCity] = useState('');
   const [searchCategory, setSearchCategory] = useState('');
   const [role, setRole] = useState(null);
+  const [suggestions, setSuggestions] = useState([]);
+  const [activeIdx, setActiveIdx] = useState(-1);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const suggestionsRef = useRef(null);
 
   useEffect(() => {
     try {
@@ -83,8 +109,65 @@ export default function HomePage() {
     } catch {}
   }, []);
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function onClickOutside(e) {
+      if (suggestionsRef.current && !suggestionsRef.current.contains(e.target)) {
+        setShowSuggestions(false);
+      }
+    }
+    document.addEventListener('mousedown', onClickOutside);
+    return () => document.removeEventListener('mousedown', onClickOutside);
+  }, []);
+
+  function handleQueryChange(e) {
+    const val = e.target.value;
+    setSearchQuery(val);
+    setActiveIdx(-1);
+    if (val.trim().length === 0) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+    const q = val.toLowerCase();
+    const matches = SEARCH_SUGGESTIONS.filter(s =>
+      s.label.toLowerCase().includes(q) || s.query.toLowerCase().includes(q)
+    ).slice(0, 8);
+    setSuggestions(matches);
+    setShowSuggestions(matches.length > 0);
+  }
+
+  function selectSuggestion(item) {
+    setSearchQuery(item.query);
+    setShowSuggestions(false);
+    setSuggestions([]);
+    // Auto-submit
+    const params = new URLSearchParams();
+    params.set('q', item.query);
+    if (searchCity) params.set('city', searchCity);
+    if (searchCategory) params.set('category', searchCategory);
+    router.push(`/workers?${params.toString()}`);
+  }
+
+  function handleKeyDown(e) {
+    if (!showSuggestions || suggestions.length === 0) return;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setActiveIdx(i => Math.min(i + 1, suggestions.length - 1));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setActiveIdx(i => Math.max(i - 1, -1));
+    } else if (e.key === 'Enter' && activeIdx >= 0) {
+      e.preventDefault();
+      selectSuggestion(suggestions[activeIdx]);
+    } else if (e.key === 'Escape') {
+      setShowSuggestions(false);
+    }
+  }
+
   function handleSearch(e) {
     e.preventDefault();
+    setShowSuggestions(false);
     const params = new URLSearchParams();
     if (searchQuery) params.set('q', searchQuery);
     if (searchCity) params.set('city', searchCity);
@@ -97,7 +180,7 @@ export default function HomePage() {
       <Header />
 
       {/* ── HERO ─────────────────────────────────────────────────── */}
-      <section className="gradient-hero overflow-hidden">
+      <section className="gradient-hero overflow-x-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-14 md:pt-20 pb-0">
           <div className="grid md:grid-cols-2 gap-6 md:min-h-[520px]">
 
@@ -133,9 +216,34 @@ export default function HomePage() {
                   <option value="jobs-staff-office">{t({ hi: 'जॉब्स / स्टाफ', en: 'Jobs / Staff' })}</option>
                 </select>
 
-                <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
-                  placeholder={t({ hi: 'आपको क्या चाहिए? (जैसे — Plumber, Painter)', en: 'What do you need? (e.g. Plumber, Painter)' })}
-                  className="flex-1 px-4 py-2.5 rounded-xl border border-gray-100 bg-gray-50 text-sm focus:outline-none focus:border-brand-navy font-hindi" />
+                <div className="relative flex-1" ref={suggestionsRef}>
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={handleQueryChange}
+                    onKeyDown={handleKeyDown}
+                    onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+                    placeholder={t({ hi: 'आपको क्या चाहिए? (जैसे — Plumber, Painter)', en: 'What do you need? (e.g. Plumber, Painter)' })}
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-100 bg-gray-50 text-sm focus:outline-none focus:border-brand-navy font-hindi"
+                    autoComplete="off"
+                  />
+                  {showSuggestions && suggestions.length > 0 && (
+                    <ul className="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl shadow-xl border border-gray-100 z-50 overflow-hidden">
+                      {suggestions.map((item, i) => (
+                        <li
+                          key={item.query}
+                          onMouseDown={() => selectSuggestion(item)}
+                          className={`flex items-center gap-2.5 px-4 py-2.5 cursor-pointer text-sm transition-colors ${
+                            i === activeIdx ? 'bg-brand-navy text-white' : 'text-gray-700 hover:bg-gray-50'
+                          }`}
+                        >
+                          <Search size={13} className={i === activeIdx ? 'text-white/70' : 'text-gray-400'} />
+                          <span className="font-hindi">{item.label}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
 
                 <div className="flex gap-2">
                   <div className="relative">
