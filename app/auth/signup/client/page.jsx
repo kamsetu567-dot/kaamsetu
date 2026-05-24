@@ -74,6 +74,7 @@ export default function ClientSignupPage() {
     e.preventDefault();
     if (!name.trim()) { toast.error('नाम डालें / Enter name'); return; }
     if (!city.trim()) { toast.error('शहर डालें / Enter city'); return; }
+    if (!area.trim()) { toast.error('एरिया डालें / Enter area'); return; }
     if (submitRef.current) return;
     submitRef.current = true; setLoading(true);
     try {
@@ -168,7 +169,7 @@ export default function ClientSignupPage() {
               {[
                 { label: 'पूरा नाम *', ph: 'Full Name', val: name, set: setName },
                 { label: 'शहर *', ph: 'City', val: city, set: setCity },
-                { label: 'एरिया / Mohalla', ph: 'Area (optional)', val: area, set: setArea },
+                { label: 'एरिया / Mohalla *', ph: 'Area / Mohalla', val: area, set: setArea },
               ].map(f => (
                 <div key={f.label}>
                   <label className="block text-sm font-semibold text-gray-700 mb-1.5 font-hindi">{f.label}</label>
