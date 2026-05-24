@@ -8,7 +8,7 @@ import { logger } from "@/lib/utils/logger";
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { mobile, name, city, area, location, otpToken, token: otpProofToken } = body;
+    const { mobile, name, email, city, area, location, otpToken, token: otpProofToken } = body;
     const verifyTokenStr = otpToken || otpProofToken;
 
     if (!mobile || !name) return error("mobile and name are required");
@@ -23,7 +23,7 @@ export async function POST(request) {
     if (user && user.role !== "client") return error("Mobile already registered with a different role");
 
     if (!user) {
-      user = await User.create({ mobile, name, role: "client" });
+      user = await User.create({ mobile, name, email: email || "", role: "client" });
     } else {
       user.name = name;
       await user.save();

@@ -12,6 +12,7 @@ export default function LoginPage() {
   const t = useT();
   const [step, setStep] = useState(1);
   const [mobile, setMobile] = useState('');
+  const [email, setEmail] = useState('');
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [loading, setLoading] = useState(false);
   const [resendTimer, setResendTimer] = useState(0);
@@ -34,12 +35,16 @@ export default function LoginPage() {
       toast.error('10 अंकों का सही नंबर डालें / Enter valid 10-digit number');
       return;
     }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      toast.error('Valid email address required');
+      return;
+    }
     setLoading(true);
     try {
       const res = await fetch('/api/auth/send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mobile }),
+        body: JSON.stringify({ mobile, email }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -165,7 +170,7 @@ export default function LoginPage() {
                 {step === 1 ? t({ hi: 'लॉगिन करें', en: 'Login' }) : t({ hi: 'OTP Verify करें', en: 'Verify OTP' })}
               </h2>
               <p className="text-gray-500 text-sm">
-                {step === 1 ? t({ hi: 'KaamSetu पर लॉगिन करें', en: 'Login to KaamSetu' }) : `OTP sent to +91${mobile}`}
+                {step === 1 ? t({ hi: 'KaamSetu पर लॉगिन करें', en: 'Login to KaamSetu' }) : `OTP sent to ${email}`}
               </p>
             </div>
 
@@ -186,6 +191,17 @@ export default function LoginPage() {
                       autoFocus
                     />
                   </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t({ hi: 'Email Address', en: 'Email Address' })}</label>
+                  <input
+                    type="email" inputMode="email"
+                    value={email}
+                    onChange={e => setEmail(e.target.value.trim())}
+                    placeholder="your@email.com"
+                    className="w-full px-4 py-3.5 border border-gray-200 rounded-xl focus:outline-none focus:border-brand-navy text-base"
+                  />
+                  <p className="text-xs text-gray-400 mt-1">OTP will be sent to this email</p>
                 </div>
                 <button type="submit" disabled={loading}
                   className="w-full bg-brand-navy text-white font-bold py-4 rounded-xl hover:bg-brand-navy-dark transition-colors disabled:opacity-50 flex items-center justify-center gap-2 font-hindi">

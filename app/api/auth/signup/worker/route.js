@@ -9,7 +9,7 @@ export async function POST(request) {
   try {
     const body = await request.json();
 
-    const { mobile, name, category, subcategory, gender, experience, serviceType, city, area, token, aadharNumber } = body;
+    const { mobile, name, category, subcategory, gender, experience, serviceType, city, area, token, aadharNumber, email } = body;
     const location = {
       city: city || "",
       address: area || "",
@@ -60,7 +60,7 @@ export async function POST(request) {
       });
     }
 
-    const user = await User.create({ mobile, name, role: "worker" });
+    const user = await User.create({ mobile, name, email: email || "", role: "worker" });
 
     let worker;
     try {
