@@ -6,7 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import {
   ArrowLeft, Phone, Send, User, MapPin, Clock,
-  Star, ShieldCheck, ChevronLeft, ChevronRight, MessageSquare, FileText, Briefcase,
+  Star, ShieldCheck, ChevronLeft, ChevronRight, MessageSquare, FileText, Briefcase, Flag,
 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -92,6 +92,24 @@ export default function WorkerProfilePage() {
   const [worker, setWorker] = useState(null);
   const [loading, setLoading] = useState(true);
   const [requestSent, setRequestSent] = useState(false);
+  const [showReport, setShowReport] = useState(false);
+  const [reportReason, setReportReason] = useState("");
+  const [reportDesc, setReportDesc] = useState("");
+  const [reportSubmitted, setReportSubmitted] = useState(false);
+
+  async function submitReport() {
+    if (!reportReason) return;
+    try {
+      const token = typeof window !== "undefined" ? localStorage.getItem("kaamsetu_token") : null;
+      if (!token) { alert("Please login to report"); return; }
+      await fetch("/api/reports", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ workerId: id, reason: reportReason, description: reportDesc }),
+      });
+      setReportSubmitted(true);
+    } catch {}
+  }
 
   useEffect(() => {
     getWorkerById(id)
@@ -317,6 +335,62 @@ export default function WorkerProfilePage() {
                         {skill}
                       </span>
                     ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Report button */}
+              <div className="flex justify-end">
+                <button onClick={() => setShowReport(true)}
+                  className="flex items-center gap-1.5 text-xs text-red-400 hover:text-red-600 transition-colors py-1">
+                  <Flag size={13} /> Report this worker
+                </button>
+              </div>
+
+              {/* Report modal */}
+              {showReport && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                  <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl">
+                    {reportSubmitted ? (
+                      <div className="text-center py-4">
+                        <p className="text-2xl mb-2">✅</p>
+                        <p className="font-black text-brand-navy">Report Submit हो गई!</p>
+                        <p className="text-gray-500 text-sm mt-1">We'll review it shortly.</p>
+                        <button onClick={() => { setShowReport(false); setReportSubmitted(false); setReportReason(""); setReportDesc(""); }}
+                          className="mt-4 w-full bg-brand-navy text-white font-bold py-3 rounded-xl">Close</button>
+                      </div>
+                    ) : (
+                      <>
+                        <h3 className="font-black text-brand-navy mb-1 flex items-center gap-2"><Flag size={16} className="text-red-500" /> Report Worker</h3>
+                        <p className="text-gray-500 text-xs mb-4">Help us keep KaamSetu safe</p>
+                        <div className="space-y-2 mb-4">
+                          {[
+                            { value: "fake_profile", label: "Fake Profile" },
+                            { value: "fraud", label: "Fraud / Cheating" },
+                            { value: "bad_behaviour", label: "Bad Behaviour" },
+                            { value: "spam", label: "Spam" },
+                            { value: "wrong_work", label: "Wrong / Poor Work" },
+                          ].map(r => (
+                            <label key={r.value} className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-colors ${reportReason === r.value ? "border-red-500 bg-red-50" : "border-gray-200"}`}>
+                              <input type="radio" value={r.value} checked={reportReason === r.value}
+                                onChange={e => setReportReason(e.target.value)} className="sr-only" />
+                              <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 ${reportReason === r.value ? "border-red-500 bg-red-500" : "border-gray-300"}`} />
+                              <span className="text-sm font-semibold text-brand-navy">{r.label}</span>
+                            </label>
+                          ))}
+                        </div>
+                        <textarea value={reportDesc} onChange={e => setReportDesc(e.target.value)}
+                          placeholder="Additional details (optional)..."
+                          rows={2}
+                          className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-red-400 resize-none mb-4" />
+                        <div className="flex gap-3">
+                          <button onClick={() => setShowReport(false)}
+                            className="flex-1 border-2 border-gray-200 text-gray-500 font-bold py-3 rounded-xl">Cancel</button>
+                          <button onClick={submitReport} disabled={!reportReason}
+                            className="flex-1 bg-red-500 text-white font-bold py-3 rounded-xl disabled:opacity-50">Submit</button>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
               )}

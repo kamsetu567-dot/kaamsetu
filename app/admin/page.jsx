@@ -48,7 +48,11 @@ export default function AdminDashboardPage() {
     getDashboardStats().then(data => { setStats(data); setLoading(false); });
   }
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+    const interval = setInterval(load, 30_000);
+    return () => clearInterval(interval);
+  }, []);
 
   const statCards = stats ? [
     { titleHi: "कुल Workers",    titleEn: "Total Workers",      value: stats.totalWorkers,   icon: UserCheck,    color: "blue"   },
@@ -59,6 +63,7 @@ export default function AdminDashboardPage() {
     { titleHi: "कुल कमाई",       titleEn: "Total Earnings",     value: `₹${stats.totalEarnings}`, icon: IndianRupee, color: "green" },
     { titleHi: "काम पर Workers", titleEn: "Working Now",        value: stats.workingWorkers, icon: Wifi,         color: "orange" },
     { titleHi: "खाली Workers",   titleEn: "Free / Available",   value: stats.freeWorkers,    icon: WifiOff,      color: "yellow" },
+    { titleHi: "Expired Plans",  titleEn: "Subscription Expired", value: stats.expiredWorkers ?? "—", icon: WifiOff, color: "orange" },
   ] : [];
 
   return (

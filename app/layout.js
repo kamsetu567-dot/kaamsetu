@@ -6,6 +6,7 @@ import { WorkerStatusProvider } from "@/lib/context/WorkerStatusContext";
 import { FilterProvider } from "@/lib/context/FilterContext";
 import { ToastProvider } from "@/components/Toast";
 import { LanguageProvider } from "@/lib/context/LanguageContext";
+import FloatingWhatsApp from "@/components/FloatingWhatsApp";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -42,6 +43,7 @@ export default function RootLayout({ children }) {
               <FilterProvider>
                 <ToastProvider>
                   {children}
+                  <FloatingWhatsApp />
                 </ToastProvider>
               </FilterProvider>
             </WorkerStatusProvider>

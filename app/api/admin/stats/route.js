@@ -17,10 +17,11 @@ export async function GET(request) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
+    const now = new Date();
     const [
       totalWorkers, activeWorkers, pendingWorkers,
       totalClients, totalJobs, todayJobs,
-      workingWorkers, freeWorkers,
+      workingWorkers, freeWorkers, expiredWorkers,
     ] = await Promise.all([
       Worker.countDocuments(),
       Worker.countDocuments({ status: "approved" }),
@@ -30,6 +31,7 @@ export async function GET(request) {
       JobRequest.countDocuments({ createdAt: { $gte: today } }),
       Worker.countDocuments({ workStatus: "working", status: "approved" }),
       Worker.countDocuments({ workStatus: "free", status: "approved" }),
+      Worker.countDocuments({ status: "approved", subscriptionExpiry: { $lt: now } }),
     ]);
 
     return ok({
@@ -42,6 +44,7 @@ export async function GET(request) {
         todayJobs,
         workingWorkers,
         freeWorkers,
+        expiredWorkers,
         totalEarnings: 0,
         totalCalls: 0,
       },
