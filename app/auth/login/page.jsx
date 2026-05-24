@@ -44,9 +44,14 @@ export default function LoginPage() {
       const res = await fetch('/api/auth/send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mobile, email }),
+        body: JSON.stringify({ mobile, email, mode: 'login' }),
       });
       const data = await res.json();
+      if (res.status === 404) {
+        toast.error('Account नहीं मिला — पहले Sign Up करें');
+        setTimeout(() => router.push('/auth/select-role'), 1500);
+        return;
+      }
       if (!res.ok) {
         toast.error(data.message || 'OTP भेजने में error हुई');
         return;

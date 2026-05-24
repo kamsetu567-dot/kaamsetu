@@ -1,5 +1,6 @@
 import { connectDB } from "@/lib/db/mongoose";
 import OTP from "@/lib/models/OTP";
+import User from "@/lib/models/User";
 import { ok, error } from "@/lib/utils/apiResponse";
 import { createRateLimit } from "@/lib/middleware/rateLimit";
 import { logger } from "@/lib/utils/logger";
@@ -9,7 +10,7 @@ const limiter = createRateLimit(3, 60 * 60 * 1000); // 3 per hour per mobile
 
 export async function POST(request) {
   try {
-    const { mobile, email } = await request.json();
+    const { mobile, email, mode } = await request.json();
 
     if (!mobile || !/^\d{10}$/.test(mobile)) {
       return error("Valid 10-digit mobile number is required");
@@ -25,6 +26,14 @@ export async function POST(request) {
     }
 
     await connectDB();
+
+    // For login: verify the user is already registered before wasting an OTP
+    if (mode === "login") {
+      const existing = await User.findOne({ mobile }).lean();
+      if (!existing) {
+        return error("No account found with this number. Please sign up first.", 404);
+      }
+    }
 
     await OTP.deleteMany({ mobile });
 
