@@ -42,9 +42,13 @@ export default function WorkerSignupPage() {
   const [profilePhoto, setProfilePhoto] = useState(null);
   const [profilePhotoFile, setProfilePhotoFile] = useState(null);
   const [workPhotos, setWorkPhotos] = useState([]);
+  const [workPhotoFiles, setWorkPhotoFiles] = useState([]);
   const [aadharFront, setAadharFront] = useState(null);
+  const [aadharFrontFile, setAadharFrontFile] = useState(null);
   const [aadharBack, setAadharBack] = useState(null);
+  const [aadharBackFile, setAadharBackFile] = useState(null);
   const [aadharNumber, setAadharNumber] = useState('');
+  const [uploadProgress, setUploadProgress] = useState('');
 
   const [loading, setLoading] = useState(false);
   const submitRef = useRef(false);
@@ -119,22 +123,69 @@ export default function WorkerSignupPage() {
     setStep(4);
   }
 
+  async function uploadFile(file, folder) {
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('folder', folder);
+    const res = await fetch('/api/upload', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${tempToken}` },
+      body: fd,
+    });
+    if (!res.ok) throw new Error('Upload failed');
+    const data = await res.json();
+    return data.url || data.data?.url;
+  }
+
   async function handleSignup() {
     if (!aadharNumber || aadharNumber.length !== 12) {
       toast.error('12 अंकों का आधार नंबर डालें');
       return;
     }
-    if (!aadharFront) {
+    if (!aadharFrontFile) {
       toast.error('आधार कार्ड की फोटो (Front) अपलोड करें');
       return;
     }
     if (submitRef.current) return;
     submitRef.current = true; setLoading(true);
     try {
+      // Upload images to Cloudinary
+      setUploadProgress('Aadhar front upload हो रही है...');
+      const aadharFrontUrl = await uploadFile(aadharFrontFile, 'kaamsetu/aadhar');
+
+      let aadharBackUrl = '';
+      if (aadharBackFile) {
+        setUploadProgress('Aadhar back upload हो रही है...');
+        aadharBackUrl = await uploadFile(aadharBackFile, 'kaamsetu/aadhar');
+      }
+
+      let profilePhotoUrl = '';
+      if (profilePhotoFile) {
+        setUploadProgress('Profile photo upload हो रही है...');
+        profilePhotoUrl = await uploadFile(profilePhotoFile, 'kaamsetu/profiles');
+      }
+
+      let uploadedWorkPhotos = [];
+      if (workPhotoFiles.length > 0) {
+        setUploadProgress('Work photos upload हो रही हैं...');
+        uploadedWorkPhotos = await Promise.all(
+          workPhotoFiles.map(f => uploadFile(f, 'kaamsetu/work'))
+        );
+      }
+
+      setUploadProgress('Registration हो रही है...');
       const res = await fetch('/api/auth/signup/worker', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mobile, email, name, city, area, experience: Number(experience) || 0, gender, category, subcategory, serviceType, aadharNumber, token: tempToken, ...(lat && lng ? { lat, lng } : {}) }),
+        body: JSON.stringify({
+          mobile, email, name, city, area,
+          experience: Number(experience) || 0,
+          gender, category, subcategory, serviceType,
+          aadharNumber, token: tempToken,
+          aadharFrontUrl, aadharBackUrl, profilePhotoUrl,
+          workPhotos: uploadedWorkPhotos,
+          ...(lat && lng ? { lat, lng } : {}),
+        }),
       });
       const data = await res.json();
       if (!res.ok) { toast.error(data.message || 'Signup failed'); return; }
@@ -144,7 +195,9 @@ export default function WorkerSignupPage() {
       localStorage.setItem('kaamsetu_user', JSON.stringify(user));
       toast.success('Registration हो गई! / Registration successful!');
       setTimeout(() => router.push('/worker/dashboard'), 800);
-    } catch { toast.error('कुछ गड़बड़ हुई'); } finally { setLoading(false); submitRef.current = false; }
+    } catch (err) {
+      toast.error(err.message === 'Upload failed' ? 'Image upload failed. Check internet and try again.' : 'कुछ गड़बड़ हुई');
+    } finally { setLoading(false); submitRef.current = false; setUploadProgress(''); }
   }
 
   const selectedCategoryData = CATEGORIES.find(c => c.id === category);
@@ -362,7 +415,12 @@ export default function WorkerSignupPage() {
                     <label className="cursor-pointer border-2 border-dashed border-gray-200 rounded-xl aspect-square flex items-center justify-center hover:border-brand-navy transition-colors">
                       <Upload size={20} className="text-gray-400" />
                       <input type="file" accept="image/*" multiple className="hidden"
-                        onChange={e => { const urls = Array.from(e.target.files || []).slice(0, 5 - workPhotos.length).map(f => URL.createObjectURL(f)); setWorkPhotos(p => [...p, ...urls].slice(0, 5)); }} />
+                        onChange={e => {
+                          const files = Array.from(e.target.files || []).slice(0, 5 - workPhotos.length);
+                          const urls = files.map(f => URL.createObjectURL(f));
+                          setWorkPhotos(p => [...p, ...urls].slice(0, 5));
+                          setWorkPhotoFiles(p => [...p, ...files].slice(0, 5));
+                        }} />
                     </label>
                   )}
                 </div>
@@ -396,7 +454,7 @@ export default function WorkerSignupPage() {
                     </div>
                   )}
                   <input type="file" accept="image/*" className="hidden"
-                    onChange={e => { const f = e.target.files?.[0]; if (f) setAadharFront(URL.createObjectURL(f)); }} />
+                    onChange={e => { const f = e.target.files?.[0]; if (f) { setAadharFront(URL.createObjectURL(f)); setAadharFrontFile(f); } }} />
                 </label>
               </div>
 
@@ -419,7 +477,7 @@ export default function WorkerSignupPage() {
                     </div>
                   )}
                   <input type="file" accept="image/*" className="hidden"
-                    onChange={e => { const f = e.target.files?.[0]; if (f) setAadharBack(URL.createObjectURL(f)); }} />
+                    onChange={e => { const f = e.target.files?.[0]; if (f) { setAadharBack(URL.createObjectURL(f)); setAadharBackFile(f); } }} />
                 </label>
               </div>
 
@@ -429,6 +487,11 @@ export default function WorkerSignupPage() {
                 <p className="text-yellow-700 text-xs font-hindi">Admin approval के बाद subscription start होगी।</p>
               </div>
 
+              {uploadProgress && (
+                <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-2 text-center">
+                  <p className="text-blue-700 text-xs font-hindi">⏳ {uploadProgress}</p>
+                </div>
+              )}
               <button type="button" onClick={handleSignup} disabled={loading}
                 className="w-full bg-brand-yellow text-brand-navy font-bold py-4 rounded-xl disabled:opacity-50 font-hindi">
                 {loading ? '⏳ बन रहा है...' : 'Register करें / Submit'}

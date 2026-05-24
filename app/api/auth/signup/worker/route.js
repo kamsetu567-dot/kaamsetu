@@ -9,7 +9,7 @@ export async function POST(request) {
   try {
     const body = await request.json();
 
-    const { mobile, name, category, subcategory, gender, experience, serviceType, city, area, token, aadharNumber, email } = body;
+    const { mobile, name, category, subcategory, gender, experience, serviceType, city, area, token, aadharNumber, email, aadharFrontUrl, aadharBackUrl, profilePhotoUrl, workPhotos } = body;
     const location = {
       city: city || "",
       address: area || "",
@@ -51,6 +51,10 @@ export async function POST(request) {
         serviceType: serviceType || "both",
         location,
         aadharNumber: aadharNumber || "",
+        ...(aadharFrontUrl && { aadharFrontUrl }),
+        ...(aadharBackUrl && { aadharBackUrl }),
+        ...(profilePhotoUrl && { photo: profilePhotoUrl }),
+        ...(workPhotos?.length && { workPhotos }),
       });
       const updatedToken = signToken({ id: existingWorker.user, mobile, role: "worker" });
       return ok({
@@ -75,6 +79,10 @@ export async function POST(request) {
         serviceType: serviceType || "both",
         location,
         aadharNumber: aadharNumber || "",
+        aadharFrontUrl: aadharFrontUrl || "",
+        aadharBackUrl: aadharBackUrl || "",
+        photo: profilePhotoUrl || "",
+        workPhotos: workPhotos || [],
         status: "pending",
       });
     } catch (createError) {
