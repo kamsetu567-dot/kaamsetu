@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Ban, Search, RefreshCw } from "lucide-react";
-import { getAllClients, blockUser } from "@/lib/api/admin";
+import { Ban, Search, RefreshCw, ShieldCheck, Trash2 } from "lucide-react";
+import { getAllClients, blockUser, unblockClient, deleteClient } from "@/lib/api/admin";
 import { useToast } from "@/components/Toast";
 
 export default function AdminClientsPage() {
@@ -19,15 +19,16 @@ export default function AdminClientsPage() {
 
   useEffect(() => { load(); }, []);
 
-  async function handleBlock(id) {
+  async function handleAction(id, action) {
     if (actionInProgress) return;
-    setActionInProgress(id);
+    setActionInProgress(`${id}-${action}`);
     try {
-      await blockUser(id, "client");
-      toast.success("Client blocked.");
+      if (action === "block") { await blockUser(id, "client"); toast.success("Client blocked."); }
+      else if (action === "unblock") { await unblockClient(id); toast.success("Client unblocked."); }
+      else if (action === "delete") { await deleteClient(id); toast.success("Client deleted."); }
       load();
     } catch (err) {
-      toast.error(err?.message || "Block failed");
+      toast.error(err?.message || "Action failed");
     } finally {
       setActionInProgress(null);
     }
@@ -63,7 +64,7 @@ export default function AdminClientsPage() {
           <table className="w-full text-sm min-w-[640px]">
             <thead>
               <tr className="border-b border-gray-100 bg-brand-bg">
-                {["नाम / Name", "Mobile", "City", "Requests", "Joined", "Action"].map(h => (
+                {["नाम / Name", "Mobile", "City", "Status", "Requests", "Joined", "Actions"].map(h => (
                   <th key={h} className="text-left px-4 py-3 text-gray-400 font-semibold text-xs whitespace-nowrap">{h}</th>
                 ))}
               </tr>
@@ -72,28 +73,46 @@ export default function AdminClientsPage() {
               {loading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i} className="border-b border-gray-50">
-                    {Array.from({ length: 6 }).map((_, j) => (
+                    {Array.from({ length: 7 }).map((_, j) => (
                       <td key={j} className="px-4 py-3"><div className="h-3 bg-gray-100 rounded animate-pulse" /></td>
                     ))}
                   </tr>
                 ))
               ) : filtered.length === 0 ? (
-                <tr><td colSpan={6} className="py-12 text-center text-gray-400">No clients found</td></tr>
+                <tr><td colSpan={7} className="py-12 text-center text-gray-400">No clients found</td></tr>
               ) : (
                 filtered.map(c => (
                   <tr key={c.id} className="border-b border-gray-50 hover:bg-brand-bg last:border-0 transition-colors">
                     <td className="px-4 py-3 font-semibold text-brand-navy">{c.name ?? "—"}</td>
                     <td className="px-4 py-3 text-gray-500">{c.mobile ?? "—"}</td>
                     <td className="px-4 py-3 text-gray-500">{c.location?.city ?? "—"}</td>
+                    <td className="px-4 py-3">
+                      <span className={`text-xs font-semibold px-2 py-1 rounded-full ${c.status === "blocked" ? "bg-red-100 text-red-600" : "bg-green-100 text-green-700"}`}>
+                        {c.status ?? "active"}
+                      </span>
+                    </td>
                     <td className="px-4 py-3 text-gray-500">{c.totalRequests ?? 0}</td>
                     <td className="px-4 py-3 text-gray-400 text-xs">
                       {c.createdAt ? new Date(c.createdAt).toLocaleDateString("en-IN") : "—"}
                     </td>
                     <td className="px-4 py-3">
-                      <button onClick={() => handleBlock(c.id)} disabled={actionInProgress === c.id}
-                        className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-gray-100 text-gray-600 hover:bg-red-100 hover:text-red-600 transition-colors disabled:opacity-40">
-                        <Ban size={12} /> Block
-                      </button>
+                      <div className="flex items-center gap-1.5">
+                        {c.status === "blocked" ? (
+                          <button onClick={() => handleAction(c.id, "unblock")} disabled={!!actionInProgress}
+                            className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-green-100 text-green-700 hover:bg-green-200 transition-colors disabled:opacity-40">
+                            <ShieldCheck size={12} /> Unblock
+                          </button>
+                        ) : (
+                          <button onClick={() => handleAction(c.id, "block")} disabled={!!actionInProgress}
+                            className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-gray-100 text-gray-600 hover:bg-red-100 hover:text-red-600 transition-colors disabled:opacity-40">
+                            <Ban size={12} /> Block
+                          </button>
+                        )}
+                        <button onClick={() => { if (confirm(`Delete ${c.name}? This cannot be undone.`)) handleAction(c.id, "delete"); }} disabled={!!actionInProgress}
+                          className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-gray-100 text-gray-400 hover:bg-red-100 hover:text-red-600 transition-colors disabled:opacity-40">
+                          <Trash2 size={12} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -103,7 +122,7 @@ export default function AdminClientsPage() {
         </div>
         {!loading && filtered.length > 0 && (
           <div className="px-4 py-3 border-t border-gray-50 bg-brand-bg text-xs text-gray-400">
-            {filtered.length} client{filtered.length !== 1 ? "s" : ""} shown
+            {filtered.length} client{filtered.length !== 1 ? "s" : ""} shown · {filtered.filter(c => c.status === "blocked").length} blocked
           </div>
         )}
       </div>

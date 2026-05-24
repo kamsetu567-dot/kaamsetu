@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, Users, UserCheck, Briefcase, CreditCard,
-  Tag, Bell, BarChart3, Settings, Shield, Megaphone, Search, Wrench, LogOut,
+  Tag, Bell, BarChart3, Settings, Shield, Megaphone, Search, Wrench, LogOut, Store,
 } from "lucide-react";
 import { adminLogout } from "@/lib/utils/adminAuth";
 
@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { href: "/admin", hi: "डैशबोर्ड", en: "Dashboard", icon: LayoutDashboard, exact: true },
   { href: "/admin/workers", hi: "वर्कर", en: "Workers", icon: UserCheck },
   { href: "/admin/clients", hi: "क्लाइंट", en: "Clients", icon: Users },
+  { href: "/admin/shops", hi: "शॉप्स", en: "Shops / Ads", icon: Store },
   { href: "/admin/jobs", hi: "जॉब्स", en: "Jobs", icon: Briefcase },
   { href: "/admin/pending-requests", hi: "Requests", en: "Pending Requests", icon: Briefcase },
   { href: "/admin/payments", hi: "भुगतान", en: "Payments", icon: CreditCard },

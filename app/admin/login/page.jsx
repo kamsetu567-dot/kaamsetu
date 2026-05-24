@@ -27,7 +27,7 @@ export default function AdminLoginPage() {
         body: JSON.stringify({ username: username.trim(), password }),
       });
       const data = await res.json();
-      if (data.success) {
+      if (res.ok && data.token) {
         localStorage.setItem("kaamsetu_admin_token", data.token);
         router.push("/admin");
       } else if (res.status === 401) {

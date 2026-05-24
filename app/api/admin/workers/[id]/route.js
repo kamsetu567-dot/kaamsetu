@@ -33,6 +33,19 @@ export async function PATCH(request, { params }) {
       return ok({ message: "Worker blocked", status: "blocked" });
     }
 
+    if (action === "unblock") {
+      worker.status = "approved";
+      await worker.save();
+      await User.findByIdAndUpdate(worker.user, { status: "active" });
+      return ok({ message: "Worker unblocked", status: "approved" });
+    }
+
+    if (action === "delete") {
+      await Worker.findByIdAndDelete(id);
+      await User.findByIdAndDelete(worker.user);
+      return ok({ message: "Worker deleted" });
+    }
+
     if (action === "boost") {
       const boostedUntil = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
       worker.boosted = true;
