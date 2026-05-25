@@ -123,18 +123,20 @@ export default function WorkerSignupPage() {
     setStep(4);
   }
 
-  async function uploadFile(file, folder) {
-    const fd = new FormData();
-    fd.append('file', file);
-    fd.append('folder', folder);
-    const res = await fetch('/api/upload', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${tempToken}` },
-      body: fd,
+  // Compress image to JPEG base64 using canvas — no external service needed
+  function compressImage(file, maxPx = 1000, quality = 0.7) {
+    return new Promise((resolve) => {
+      const img = new window.Image();
+      img.onload = () => {
+        const scale = Math.min(1, maxPx / Math.max(img.width, img.height));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.src = URL.createObjectURL(file);
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Upload failed');
-    return data.url || data.data?.url;
   }
 
   async function handleSignup() {
@@ -149,27 +151,26 @@ export default function WorkerSignupPage() {
     if (submitRef.current) return;
     submitRef.current = true; setLoading(true);
     try {
-      // Upload images to Cloudinary
-      setUploadProgress('Aadhar front upload हो रही है...');
-      const aadharFrontUrl = await uploadFile(aadharFrontFile, 'kaamsetu/aadhar');
+      setUploadProgress('Aadhar front compress हो रही है...');
+      const aadharFrontUrl = await compressImage(aadharFrontFile, 1200, 0.7);
 
       let aadharBackUrl = '';
       if (aadharBackFile) {
-        setUploadProgress('Aadhar back upload हो रही है...');
-        aadharBackUrl = await uploadFile(aadharBackFile, 'kaamsetu/aadhar');
+        setUploadProgress('Aadhar back compress हो रही है...');
+        aadharBackUrl = await compressImage(aadharBackFile, 1200, 0.7);
       }
 
       let profilePhotoUrl = '';
       if (profilePhotoFile) {
-        setUploadProgress('Profile photo upload हो रही है...');
-        profilePhotoUrl = await uploadFile(profilePhotoFile, 'kaamsetu/profiles');
+        setUploadProgress('Profile photo compress हो रही है...');
+        profilePhotoUrl = await compressImage(profilePhotoFile, 500, 0.75);
       }
 
       let uploadedWorkPhotos = [];
       if (workPhotoFiles.length > 0) {
-        setUploadProgress('Work photos upload हो रही हैं...');
+        setUploadProgress('Work photos compress हो रही हैं...');
         uploadedWorkPhotos = await Promise.all(
-          workPhotoFiles.map(f => uploadFile(f, 'kaamsetu/work'))
+          workPhotoFiles.map(f => compressImage(f, 800, 0.65))
         );
       }
 

@@ -5,6 +5,9 @@ import { signToken, verifyToken } from "@/lib/utils/jwt";
 import { ok, error, created } from "@/lib/utils/apiResponse";
 import { logger } from "@/lib/utils/logger";
 
+// Allow up to 10 MB body — needed for base64-encoded images sent inline
+export const maxDuration = 30;
+
 export async function POST(request) {
   try {
     const body = await request.json();
