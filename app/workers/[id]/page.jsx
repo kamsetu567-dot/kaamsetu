@@ -223,7 +223,7 @@ export default function WorkerProfilePage() {
                 <div className="flex gap-4 mb-5">
                   <div className="relative w-24 h-24 rounded-full overflow-hidden bg-gray-100 flex-shrink-0 border-4 border-primary-blue">
                     {worker.photo ? (
-                      <Image src={worker.photo} alt={`${worker.name} photo`} fill className="object-cover" />
+                      <img src={worker.photo} alt={`${worker.name} photo`} className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
                         <User size={40} className="text-gray-400" />

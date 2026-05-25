@@ -34,7 +34,7 @@ export default function WorkerCard({ worker }) {
       <div className="flex gap-3 mb-3">
         <div className="relative w-16 h-16 rounded-full overflow-hidden flex-shrink-0 bg-gray-100">
           {photo ? (
-            <Image src={photo} alt={`${name} photo`} fill className="object-cover" />
+            <img src={photo} alt={`${name} photo`} className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
               <User size={32} className="text-gray-400" />
