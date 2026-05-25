@@ -407,7 +407,7 @@ export default function WorkerSignupPage() {
                   {workPhotos.map((url, i) => (
                     <div key={i} className="relative">
                       <img src={url} alt="" className="w-full aspect-square object-cover rounded-xl border border-gray-200" />
-                      <button type="button" onClick={() => setWorkPhotos(p => p.filter((_, j) => j !== i))}
+                      <button type="button" onClick={() => { setWorkPhotos(p => p.filter((_, j) => j !== i)); setWorkPhotoFiles(p => p.filter((_, j) => j !== i)); }}
                         className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 min-h-0"><X size={11} /></button>
                     </div>
                   ))}

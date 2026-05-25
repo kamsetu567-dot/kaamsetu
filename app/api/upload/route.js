@@ -1,6 +1,7 @@
 import { v2 as cloudinary } from "cloudinary";
 import { verifyToken, getTokenFromRequest } from "@/lib/utils/jwt";
 import { ok, error, unauthorized } from "@/lib/utils/apiResponse";
+import { logger } from "@/lib/utils/logger";
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -35,7 +36,7 @@ export async function POST(request) {
 
     return ok({ url: result.secure_url, publicId: result.public_id });
   } catch (err) {
-    console.error("upload error:", err);
+    logger.error("upload error", { err: err.message });
     return error("Upload failed. Please try again.", 500);
   }
 }

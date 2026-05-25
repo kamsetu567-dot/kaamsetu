@@ -8,6 +8,10 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'picsum.photos',
       },
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+      },
     ],
   },
   // TODO: BEFORE GOING LIVE - Restore strict CSP headers
