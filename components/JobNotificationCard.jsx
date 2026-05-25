@@ -1,15 +1,33 @@
 "use client";
 
 import { useState } from "react";
-import { MapPin, Clock, Briefcase, Phone, CheckCircle, XCircle, Play, Trophy, X } from "lucide-react";
+import { MapPin, Clock, Briefcase, CheckCircle, XCircle, Play, Trophy } from "lucide-react";
 import { acceptJob, rejectJob } from "@/lib/api/jobs";
+
+async function startJob(jobId) {
+  const token = typeof window !== "undefined" ? localStorage.getItem("kaamsetu_token") : null;
+  const res = await fetch(`/api/jobs/${jobId}/start`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.json();
+}
+
+async function completeJob(jobId) {
+  const token = typeof window !== "undefined" ? localStorage.getItem("kaamsetu_token") : null;
+  const res = await fetch(`/api/jobs/${jobId}/complete`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.json();
+}
 
 export default function JobNotificationCard({ job, onAccepted, onRejected }) {
   const [loading, setLoading] = useState(null);
   const [accepted, setAccepted] = useState(false);
   const [rejected, setRejected] = useState(false);
-  const [clientMobile, setClientMobile] = useState(null);
-  const [workStage, setWorkStage] = useState("accepted"); // accepted → started → completed
+  const [showPopup, setShowPopup] = useState(false);
+  const [workStage, setWorkStage] = useState("accepted");
 
   async function handleAccept() {
     setLoading("accept");
@@ -17,7 +35,7 @@ export default function JobNotificationCard({ job, onAccepted, onRejected }) {
     setLoading(null);
     if (res.success) {
       setAccepted(true);
-      setClientMobile(res.clientMobile);
+      setShowPopup(true);
       onAccepted?.(job.id);
     }
   }
@@ -28,6 +46,20 @@ export default function JobNotificationCard({ job, onAccepted, onRejected }) {
     setLoading(null);
     setRejected(true);
     onRejected?.(job.id);
+  }
+
+  async function handleStart() {
+    setLoading("start");
+    await startJob(job.id);
+    setLoading(null);
+    setWorkStage("started");
+  }
+
+  async function handleComplete() {
+    setLoading("complete");
+    await completeJob(job.id);
+    setLoading(null);
+    setWorkStage("completed");
   }
 
   if (rejected) {
@@ -46,54 +78,65 @@ export default function JobNotificationCard({ job, onAccepted, onRejected }) {
         <div className="bg-blue-50 rounded-2xl border-2 border-blue-500 p-4 text-center">
           <Trophy size={28} className="text-blue-600 mx-auto mb-2" />
           <p className="font-black text-blue-700 font-hindi">काम पूरा! / Job Completed!</p>
-          <p className="text-blue-600 text-sm mt-1">Great work! Rating आने पर यहाँ दिखेगी।</p>
+          <p className="text-blue-600 text-sm mt-1 font-hindi">बहुत अच्छा! Rating आने पर यहाँ दिखेगी।</p>
         </div>
       );
     }
+
     return (
-      <div className="bg-green-50 rounded-2xl border-2 border-green-500 p-4 space-y-3">
-        <div className="flex items-center gap-2">
-          <CheckCircle size={20} className="text-green-600" />
-          <span className="font-bold text-green-700 font-hindi">जॉब Accept हो गई! / Job Accepted!</span>
+      <>
+        {/* Popup shown once on accept */}
+        {showPopup && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+            <div className="bg-white rounded-3xl p-6 w-full max-w-sm text-center shadow-xl">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <CheckCircle size={32} className="text-green-600" />
+              </div>
+              <h3 className="font-black text-brand-navy text-xl mb-2 font-hindi">Job Accept हो गई!</h3>
+              <p className="text-gray-600 font-hindi mb-1">Client थोड़ी देर में आपको call करेगा।</p>
+              <p className="text-gray-400 text-sm mb-5">The client will call you shortly. Keep your phone nearby.</p>
+              <button onClick={() => setShowPopup(false)}
+                className="w-full bg-brand-navy text-white font-bold py-3 rounded-2xl font-hindi">
+                ठीक है / OK
+              </button>
+            </div>
+          </div>
+        )}
+
+        <div className="bg-green-50 rounded-2xl border-2 border-green-500 p-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <CheckCircle size={20} className="text-green-600" />
+            <span className="font-bold text-green-700 font-hindi">जॉब Accept हो गई! / Job Accepted!</span>
+          </div>
+
+          <div className="bg-green-100 rounded-xl px-3 py-2 text-center">
+            <p className="text-green-700 text-sm font-hindi">📞 Client जल्द ही call करेगा — फ़ोन पास रखें</p>
+            <p className="text-green-600 text-xs mt-0.5">Client will call you soon. Keep your phone nearby.</p>
+          </div>
+
+          {workStage === "accepted" && (
+            <button onClick={handleStart} disabled={!!loading}
+              className="w-full flex items-center justify-center gap-2 bg-orange-500 text-white font-bold py-2.5 rounded-xl hover:bg-orange-600 transition-colors text-sm disabled:opacity-50">
+              <Play size={16} />
+              <span className="font-hindi">काम शुरू हुआ / Work Started</span>
+            </button>
+          )}
+
+          {workStage === "started" && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 bg-orange-100 rounded-xl px-3 py-2">
+                <span className="w-2 h-2 bg-orange-500 rounded-full animate-pulse" />
+                <span className="text-orange-700 font-bold text-sm font-hindi">काम चल रहा है / Work in Progress</span>
+              </div>
+              <button onClick={handleComplete} disabled={!!loading}
+                className="w-full flex items-center justify-center gap-1.5 bg-blue-600 text-white font-bold py-2.5 rounded-xl text-sm disabled:opacity-50">
+                <Trophy size={14} />
+                <span className="font-hindi">काम पूरा / Complete</span>
+              </button>
+            </div>
+          )}
         </div>
-        {clientMobile && (
-          <div className="flex gap-2">
-            <a href={`tel:+91${clientMobile}`}
-              className="flex-1 flex items-center justify-center gap-2 bg-green-600 text-white font-bold px-3 py-2.5 rounded-xl hover:bg-green-700 transition-colors text-sm">
-              <Phone size={16} /> Call Client
-            </a>
-            <a href={`https://wa.me/91${clientMobile}`} target="_blank" rel="noopener noreferrer"
-              className="flex-1 flex items-center justify-center gap-2 bg-[#25D366] text-white font-bold px-3 py-2.5 rounded-xl text-sm">
-              WhatsApp
-            </a>
-          </div>
-        )}
-        {workStage === "accepted" && (
-          <button onClick={() => setWorkStage("started")}
-            className="w-full flex items-center justify-center gap-2 bg-orange-500 text-white font-bold py-2.5 rounded-xl hover:bg-orange-600 transition-colors text-sm">
-            <Play size={16} />
-            <span className="font-hindi">काम शुरू हुआ / Work Started</span>
-          </button>
-        )}
-        {workStage === "started" && (
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 bg-orange-100 rounded-xl px-3 py-2">
-              <span className="w-2 h-2 bg-orange-500 rounded-full animate-pulse" />
-              <span className="text-orange-700 font-bold text-sm font-hindi">काम चल रहा है / Work in Progress</span>
-            </div>
-            <div className="flex gap-2">
-              <button onClick={() => { setWorkStage("accepted"); setRejected(true); }}
-                className="flex-1 flex items-center justify-center gap-1.5 border-2 border-red-300 text-red-600 font-bold py-2.5 rounded-xl text-sm">
-                <X size={14} /> Cancel
-              </button>
-              <button onClick={() => setWorkStage("completed")}
-                className="flex-1 flex items-center justify-center gap-1.5 bg-blue-600 text-white font-bold py-2.5 rounded-xl text-sm">
-                <Trophy size={14} /> Complete
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
+      </>
     );
   }
 
@@ -118,37 +161,25 @@ export default function JobNotificationCard({ job, onAccepted, onRejected }) {
         <span className="flex items-center gap-1">
           <MapPin size={14} /> {job.location || "—"}
         </span>
-        {job.distance && (
-          <span className="text-brand-navy font-semibold">{job.distance} km दूर</span>
+        {job.distanceKm && (
+          <span className="text-brand-navy font-semibold">{job.distanceKm} km दूर</span>
         )}
       </div>
 
-      {job.notes && (
-        <p className="text-sm text-gray-500 bg-gray-50 rounded-lg px-3 py-2 mb-3">
-          {job.notes}
-        </p>
+      {job.description && (
+        <p className="text-sm text-gray-500 bg-gray-50 rounded-lg px-3 py-2 mb-3">{job.description}</p>
       )}
 
       <div className="flex gap-3">
-        <button
-          onClick={handleReject}
-          disabled={!!loading}
-          className="flex-1 flex items-center justify-center gap-2 border-2 border-red-300 text-red-600 font-bold py-3 rounded-xl hover:bg-red-50 transition-colors disabled:opacity-50"
-          aria-label="Reject job"
-        >
+        <button onClick={handleReject} disabled={!!loading}
+          className="flex-1 flex items-center justify-center gap-2 border-2 border-red-300 text-red-600 font-bold py-3 rounded-xl hover:bg-red-50 transition-colors disabled:opacity-50">
           <XCircle size={18} />
-          <span className="font-hindi">रद्द करें</span>
-          <span className="text-sm font-normal">/ Reject</span>
+          <span className="font-hindi">रद्द करें / Reject</span>
         </button>
-        <button
-          onClick={handleAccept}
-          disabled={!!loading}
-          className="flex-1 flex items-center justify-center gap-2 bg-brand-navy text-white font-bold py-3 rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50"
-          aria-label="Accept job"
-        >
+        <button onClick={handleAccept} disabled={!!loading}
+          className="flex-1 flex items-center justify-center gap-2 bg-brand-navy text-white font-bold py-3 rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50">
           <CheckCircle size={18} />
-          <span className="font-hindi">Accept करें</span>
-          <span className="text-sm font-normal">/ Accept</span>
+          <span className="font-hindi">Accept करें / Accept</span>
         </button>
       </div>
     </div>

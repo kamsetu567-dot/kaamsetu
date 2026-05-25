@@ -8,7 +8,6 @@ export async function POST(request, { params }) {
   try {
     const token = getTokenFromRequest(request);
     if (!token) return unauthorized();
-
     const payload = verifyToken(token);
     if (!payload || payload.role !== "worker") return unauthorized();
 
@@ -17,31 +16,18 @@ export async function POST(request, { params }) {
 
     const job = await JobRequest.findById(id);
     if (!job) return notFound("Job not found");
+    if (job.status !== "accepted") return error("Job must be accepted before starting");
 
     const worker = await Worker.findOne({ user: payload.id }).lean();
     if (!worker) return error("Worker profile not found");
+    if (String(job.worker) !== String(worker._id)) return forbidden("Not your job");
 
-    if (job.worker) {
-      // Assigned job — only the assigned worker can reject it
-      if (String(job.worker) !== String(worker._id)) {
-        return forbidden("You can only reject jobs assigned to you");
-      }
-      job.status = "rejected";
-      job.worker = undefined;
-      await job.save();
-      await Worker.findByIdAndUpdate(worker._id, { workStatus: "free" });
-      return ok({ message: "Job rejected" });
-    }
+    job.status = "in_progress";
+    await job.save();
 
-    // Unassigned pending job — just dismiss from this worker's feed
-    // without changing the job status so other workers can still see it
-    if (!job.dismissedBy.includes(worker._id)) {
-      job.dismissedBy.push(worker._id);
-      await job.save();
-    }
-    return ok({ message: "Job dismissed" });
+    return ok({ message: "Work started" });
   } catch (err) {
-    console.error("POST /api/jobs/[id]/reject error:", err);
+    console.error("POST /api/jobs/[id]/start error:", err);
     return error("Server error", 500);
   }
 }

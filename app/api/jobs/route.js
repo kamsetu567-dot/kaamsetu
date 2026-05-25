@@ -35,6 +35,7 @@ export async function GET(request) {
                   spherical: true,
                   query: {
                     status: "pending",
+                    dismissedBy: { $ne: workerProfile._id },
                     ...(workerProfile.category && {
                       category: { $regex: workerProfile.category, $options: "i" },
                     }),
@@ -65,6 +66,7 @@ export async function GET(request) {
           }
 
           // Fallback: no coordinates saved — use city match as before
+          filter.dismissedBy = { $ne: workerProfile._id };
           if (workerProfile.category) {
             filter.category = { $regex: workerProfile.category, $options: "i" };
           }

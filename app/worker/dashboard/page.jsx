@@ -49,7 +49,7 @@ export default function WorkerDashboardOverview() {
     setStatusLoading(true);
     try {
       const token = localStorage.getItem("kaamsetu_token");
-      const res = await fetch(`/api/workers/${worker?._id || worker?.id}`, {
+      const res = await fetch("/api/workers/status", {
         method: "PATCH",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ workStatus: newStatus }),
@@ -107,9 +107,17 @@ export default function WorkerDashboardOverview() {
       {/* Quick Stats */}
       <div className="grid grid-cols-3 gap-3">
         {[
-          { label: "आज की Jobs", value: "0", icon: Briefcase, bg: "bg-blue-50", color: "text-brand-navy" },
-          { label: "Total Jobs", value: "0", icon: Star, bg: "bg-yellow-50", color: "text-amber-600" },
-          { label: "Subscription", value: "Pending", icon: CreditCard, bg: "bg-purple-50", color: "text-purple-600" },
+          { label: "Total Jobs", value: worker?.totalJobs ?? "—", icon: Briefcase, bg: "bg-blue-50", color: "text-brand-navy" },
+          { label: "Rating", value: worker?.rating ? worker.rating.toFixed(1) : "New", icon: Star, bg: "bg-yellow-50", color: "text-amber-600" },
+          {
+            label: "Subscription",
+            value: worker?.subscriptionExpiry && new Date(worker.subscriptionExpiry) > new Date()
+              ? `${Math.ceil((new Date(worker.subscriptionExpiry) - new Date()) / 86400000)}d left`
+              : "Expired",
+            icon: CreditCard,
+            bg: "bg-purple-50",
+            color: worker?.subscriptionExpiry && new Date(worker.subscriptionExpiry) > new Date() ? "text-green-600" : "text-red-500",
+          },
         ].map(s => (
           <div key={s.label} className={`${s.bg} rounded-2xl p-4 flex flex-col items-center text-center`}>
             <s.icon size={20} className={`${s.color} mb-2`} />
