@@ -132,8 +132,8 @@ export default function WorkerSignupPage() {
       headers: { Authorization: `Bearer ${tempToken}` },
       body: fd,
     });
-    if (!res.ok) throw new Error('Upload failed');
     const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Upload failed');
     return data.url || data.data?.url;
   }
 
@@ -196,7 +196,7 @@ export default function WorkerSignupPage() {
       toast.success('Registration हो गई! / Registration successful!');
       setTimeout(() => router.push('/worker/dashboard'), 800);
     } catch (err) {
-      toast.error(err.message === 'Upload failed' ? 'Image upload failed. Check internet and try again.' : 'कुछ गड़बड़ हुई');
+      toast.error(err.message || 'Image upload failed. Check internet and try again.');
     } finally { setLoading(false); submitRef.current = false; setUploadProgress(''); }
   }
 

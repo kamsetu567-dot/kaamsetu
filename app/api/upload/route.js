@@ -41,7 +41,8 @@ export async function POST(request) {
 
     return ok({ url: result.secure_url, publicId: result.public_id });
   } catch (err) {
-    logger.error("upload error", { err: err.message });
-    return error("Upload failed. Please try again.", 500);
+    const msg = err?.message || "unknown";
+    logger.error("upload error", { err: msg });
+    return error(`Upload failed: ${msg}`, 500);
   }
 }
