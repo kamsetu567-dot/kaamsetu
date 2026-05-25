@@ -11,6 +11,11 @@ cloudinary.config({
 
 export async function POST(request) {
   try {
+    if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+      logger.error("Cloudinary env vars not set");
+      return error("Upload service not configured. Contact support.", 503);
+    }
+
     const token = getTokenFromRequest(request);
     if (!token) return unauthorized();
     const payload = verifyToken(token);
