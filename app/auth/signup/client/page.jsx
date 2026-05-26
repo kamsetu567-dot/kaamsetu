@@ -18,6 +18,8 @@ export default function ClientSignupPage() {
   const [area, setArea] = useState('');
   const [loading, setLoading] = useState(false);
   const [resendTimer, setResendTimer] = useState(0);
+  const [lat, setLat] = useState(null);
+  const [lng, setLng] = useState(null);
   const otpRefs = [useRef(), useRef(), useRef(), useRef(), useRef(), useRef()];
   const submitRef = useRef(false);
 
@@ -67,6 +69,12 @@ export default function ClientSignupPage() {
       const data = await res.json();
       if (!res.ok) { toast.error(data.message || 'OTP गलत है'); setOtp(['','','','','','']); otpRefs[0].current?.focus(); return; }
       setTempToken(data.token); setStep(3);
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => { setLat(pos.coords.latitude); setLng(pos.coords.longitude); },
+          () => {}
+        );
+      }
     } catch { toast.error('कुछ गड़बड़ हुई'); } finally { setLoading(false); submitRef.current = false; }
   }
 
@@ -78,7 +86,7 @@ export default function ClientSignupPage() {
     if (submitRef.current) return;
     submitRef.current = true; setLoading(true);
     try {
-      const res = await fetch('/api/auth/signup/client', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mobile, email, name, city, area, token: tempToken }) });
+      const res = await fetch('/api/auth/signup/client', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mobile, email, name, city, area, token: tempToken, ...(lat && lng ? { lat, lng } : {}) }) });
       const data = await res.json();
       if (!res.ok) { toast.error(data.message || 'Signup failed'); return; }
       const token = data.token || data.data?.token;

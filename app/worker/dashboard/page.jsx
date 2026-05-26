@@ -147,7 +147,7 @@ export default function WorkerDashboardOverview() {
             <p className="text-gray-400 text-xs mt-0.5">📍 {worker?.location?.city || "—"}</p>
           </div>
         </div>
-        {worker?.isApproved && (
+        {worker?.status === "approved" && (
           <div className="mt-3 flex items-center gap-1 text-green-600 text-xs font-semibold">
             <CheckCircle size={14} /> Verified Worker
           </div>

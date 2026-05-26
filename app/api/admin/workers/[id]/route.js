@@ -3,6 +3,7 @@ import Worker from "@/lib/models/Worker";
 import User from "@/lib/models/User";
 import { verifyToken, getTokenFromRequest } from "@/lib/utils/jwt";
 import { ok, error, unauthorized, notFound } from "@/lib/utils/apiResponse";
+import { sendApprovalEmail } from "@/lib/utils/email";
 
 export async function PATCH(request, { params }) {
   try {
@@ -71,6 +72,13 @@ export async function PATCH(request, { params }) {
 
     worker.status = update.status;
     await worker.save();
+
+    if (action === "approve") {
+      const user = await User.findById(worker.user).select("email name").lean();
+      if (user?.email) {
+        sendApprovalEmail(user.email, worker.name || user.name).catch(() => {});
+      }
+    }
 
     return ok({ message: `Worker ${action}d`, status: update.status });
   } catch (err) {

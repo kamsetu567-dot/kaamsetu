@@ -36,7 +36,7 @@ export async function PATCH(request, { params }) {
     const body = await request.json();
     const { status, adminNotes } = body;
 
-    const validStatuses = ["pending", "accepted", "completed", "cancelled", "rejected"];
+    const validStatuses = ["pending", "accepted", "in_progress", "completed", "cancelled", "rejected"];
     if (status && !validStatuses.includes(status)) {
       return error(`Invalid status. Must be one of: ${validStatuses.join(", ")}`, 400);
     }

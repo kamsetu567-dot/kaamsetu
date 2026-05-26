@@ -13,6 +13,7 @@ const HISTORY_STATUS = {
   accepted:    { label: "⏳ Accepted",     cls: "bg-green-100 text-green-700" },
   in_progress: { label: "🔧 In Progress", cls: "bg-orange-100 text-orange-700" },
   rejected:    { label: "✗ Rejected",     cls: "bg-red-100 text-red-600" },
+  cancelled:   { label: "✗ Cancelled",    cls: "bg-gray-100 text-gray-600" },
 };
 
 export default function WorkerJobsPage() {

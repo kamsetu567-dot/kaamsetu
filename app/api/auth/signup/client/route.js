@@ -8,7 +8,7 @@ import { logger } from "@/lib/utils/logger";
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { mobile, name, email, city, area, location, otpToken, token: otpProofToken } = body;
+    const { mobile, name, email, city, area, location, lat, lng, otpToken, token: otpProofToken } = body;
     const verifyTokenStr = otpToken || otpProofToken;
 
     if (!mobile || !name) return error("mobile and name are required");
@@ -29,14 +29,28 @@ export async function POST(request) {
       await user.save();
     }
 
+    const locationData = location || {
+      city: city || "",
+      address: area || "",
+      ...(lat && lng && {
+        coordinates: {
+          type: "Point",
+          coordinates: [parseFloat(lng), parseFloat(lat)],
+        },
+      }),
+    };
+
     let client = await Client.findOne({ user: user._id });
     if (!client) {
       client = await Client.create({
         user: user._id,
         mobile,
         name,
-        location: location || { city: city || "", address: area || "" },
+        location: locationData,
       });
+    } else if (lat && lng) {
+      client.location = { ...client.location.toObject?.() || client.location, ...locationData };
+      await client.save();
     }
 
     const authToken = signToken({ id: user._id, mobile, role: "client" });
@@ -44,7 +58,7 @@ export async function POST(request) {
     return created({
       message: "Client registered successfully.",
       token: authToken,
-      user: { id: user._id, mobile, name, role: "client" },
+      user: { id: user._id, mobile, name, email: email || "", role: "client" },
     });
   } catch (err) {
     logger.error("client signup error", { err: err.message });
