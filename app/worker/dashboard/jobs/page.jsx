@@ -1,11 +1,12 @@
 ﻿"use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Bell, CheckCircle, Clock } from "lucide-react";
+import { Bell, CheckCircle, Clock, AlertCircle, RefreshCw } from "lucide-react";
 import JobNotificationCard from "@/components/JobNotificationCard";
 import EmptyState from "@/components/EmptyState";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
-import { getIncomingJobs, getJobHistory } from "@/lib/api/jobs";
+import { getJobHistory } from "@/lib/api/jobs";
+import { apiGet } from "@/lib/api/client";
 import { useRoleGuard } from "@/lib/auth/useRoleGuard";
 
 const HISTORY_STATUS = {
@@ -22,7 +23,9 @@ export default function WorkerJobsPage() {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [historyLoading, setHistoryLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(null);
   const pollRef = useRef(null);
+  const workerIdRef = useRef(null);
 
   useEffect(() => {
     const token = typeof window !== "undefined" ? localStorage.getItem("kaamsetu_token") : null;
@@ -34,11 +37,19 @@ export default function WorkerJobsPage() {
         workerId = payload.id || null;
       } catch {}
     }
+    workerIdRef.current = workerId;
 
-    function fetchJobs() {
-      getIncomingJobs(workerId)
-        .then(setJobs)
-        .finally(() => setLoading(false));
+    async function fetchJobs() {
+      try {
+        const data = await apiGet("/api/jobs", { workerId, status: "pending" });
+        setJobs(data.jobs || []);
+        setFetchError(null);
+      } catch (err) {
+        setFetchError(err.message || "Connection error");
+        setJobs([]);
+      } finally {
+        setLoading(false);
+      }
     }
 
     getJobHistory(workerId)
@@ -52,6 +63,14 @@ export default function WorkerJobsPage() {
 
   function handleAccepted() {}
   function handleRejected() {}
+
+  function manualRefresh() {
+    setLoading(true);
+    apiGet("/api/jobs", { workerId: workerIdRef.current, status: "pending" })
+      .then(data => { setJobs(data.jobs || []); setFetchError(null); })
+      .catch(err => { setFetchError(err.message || "Connection error"); setJobs([]); })
+      .finally(() => setLoading(false));
+  }
 
   return (
     <div className="space-y-5">
@@ -91,14 +110,38 @@ export default function WorkerJobsPage() {
 
       {loading ? (
         <LoadingSkeleton type="card" count={3} />
+      ) : fetchError ? (
+        <div className="bg-red-50 border-2 border-red-200 rounded-2xl p-4 flex flex-col gap-3">
+          <div className="flex items-start gap-3">
+            <AlertCircle size={20} className="text-red-500 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-semibold text-red-700 text-sm">Connection Error / कनेक्शन समस्या</p>
+              <p className="text-red-600 text-xs mt-1">{fetchError}</p>
+            </div>
+          </div>
+          <button
+            onClick={manualRefresh}
+            className="flex items-center justify-center gap-2 bg-red-600 text-white rounded-xl py-2.5 text-sm font-semibold"
+          >
+            <RefreshCw size={16} /> Retry / दोबारा कोशिश करें
+          </button>
+        </div>
       ) : jobs.length === 0 ? (
-        <EmptyState
-          icon="jobs"
-          titleHi="अभी कोई जॉब नहीं"
-          titleEn="No incoming jobs right now"
-          descHi="जब कोई client request करेगा, job यहाँ दिखेगी।"
-          descEn="When a client sends a request near you, it will appear here."
-        />
+        <div className="space-y-3">
+          <EmptyState
+            icon="jobs"
+            titleHi="अभी कोई जॉब नहीं"
+            titleEn="No incoming jobs right now"
+            descHi="जब कोई client request करेगा, job यहाँ दिखेगी।"
+            descEn="When a client sends a request near you, it will appear here."
+          />
+          <button
+            onClick={manualRefresh}
+            className="w-full flex items-center justify-center gap-2 border-2 border-gray-200 text-gray-500 rounded-xl py-2.5 text-sm"
+          >
+            <RefreshCw size={15} /> Refresh
+          </button>
+        </div>
       ) : (
         <div className="space-y-4">
           {jobs.map(job => (
