@@ -1,6 +1,7 @@
 ﻿"use client";
 
-import { Bell, Info } from "lucide-react";
+import Link from "next/link";
+import { Bell, Info, Briefcase } from "lucide-react";
 import EmptyState from "@/components/EmptyState";
 import { useRoleGuard } from "@/lib/auth/useRoleGuard";
 
@@ -21,6 +22,19 @@ export default function WorkerNotificationsPage() {
         <p className="text-gray-500 text-sm mt-0.5">Notifications / Alerts</p>
       </div>
 
+      {/* Incoming jobs shortcut */}
+      <Link href="/worker/dashboard/jobs"
+        className="flex items-center gap-4 bg-brand-navy text-white rounded-2xl px-5 py-4 hover:opacity-90 transition-opacity">
+        <div className="w-11 h-11 bg-white/10 rounded-xl flex items-center justify-center flex-shrink-0">
+          <Briefcase size={22} />
+        </div>
+        <div className="flex-1">
+          <p className="font-black font-hindi">Incoming Jobs देखें</p>
+          <p className="text-white/70 text-sm">नए job notifications — जॉब्स tab में हैं</p>
+        </div>
+        <span className="text-white/60 text-xl">→</span>
+      </Link>
+
       {/* Info banner */}
       <div className="flex items-start gap-3 bg-blue-50 border-2 border-blue-200 rounded-2xl px-4 py-3">
         <Info size={20} className="text-blue-600 flex-shrink-0 mt-0.5" />
@@ -28,8 +42,8 @@ export default function WorkerNotificationsPage() {
           className="text-blue-600 text-sm"
           style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
         >
-          Job notifications, subscription alerts, और admin messages यहाँ आएंगे।
-          <span className="font-normal text-blue-700"> / Job alerts, subscription notices, and admin messages appear here.</span>
+          Subscription alerts और admin messages यहाँ आएंगे।
+          <span className="font-normal text-blue-700"> / Subscription notices and admin messages will appear here.</span>
         </p>
       </div>
 
