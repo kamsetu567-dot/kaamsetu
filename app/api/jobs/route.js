@@ -54,27 +54,30 @@ export async function GET(request) {
 
           const geoJobs = await JobRequest.aggregate(pipeline);
 
-          return ok({
-            jobs: geoJobs.map((j) => ({
-              id: j._id,
-              category: j.category,
-              subcategory: j.subcategory,
-              description: j.description,
-              location: j.location?.city || j.location?.address || "",
-              locationAddress: j.location?.address || "",
-              distanceKm: j.distanceMeters ? parseFloat((j.distanceMeters / 1000).toFixed(1)) : null,
-              status: j.status,
-              source: j.source,
-              worker: j.worker,
-              createdAt: j.createdAt,
-            })),
-          });
+          // If geo found jobs, return them; otherwise fall through to city-based match
+          if (geoJobs.length > 0) {
+            return ok({
+              jobs: geoJobs.map((j) => ({
+                id: j._id,
+                category: j.category,
+                subcategory: j.subcategory,
+                description: j.description,
+                location: j.location?.city || j.location?.address || "",
+                locationAddress: j.location?.address || "",
+                distanceKm: j.distanceMeters ? parseFloat((j.distanceMeters / 1000).toFixed(1)) : null,
+                status: j.status,
+                source: j.source,
+                worker: j.worker,
+                createdAt: j.createdAt,
+              })),
+            });
+          }
         }
 
-        // Fallback: no GPS saved — filter by city + category
+        // City-based fallback: used when no GPS saved OR geo returned 0 results
         filter.dismissedBy = { $nin: [workerProfile._id] };
         if (workerProfile.category) {
-          filter.category = workerProfile.category; // exact match on category slug
+          filter.category = workerProfile.category;
         }
         if (workerProfile.location?.city) {
           filter["location.city"] = { $regex: workerProfile.location.city, $options: "i" };
