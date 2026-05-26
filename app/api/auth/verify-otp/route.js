@@ -77,6 +77,7 @@ export async function POST(request) {
       user: {
         id: user._id,
         mobile: user.mobile,
+        email: user.email || "",
         name: user.name,
         role: user.role,
         status: user.status,

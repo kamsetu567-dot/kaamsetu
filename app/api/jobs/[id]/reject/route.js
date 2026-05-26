@@ -33,12 +33,11 @@ export async function POST(request, { params }) {
       return ok({ message: "Job rejected" });
     }
 
-    // Unassigned pending job — just dismiss from this worker's feed
-    // without changing the job status so other workers can still see it
-    if (!job.dismissedBy.includes(worker._id)) {
-      job.dismissedBy.push(worker._id);
-      await job.save();
-    }
+    // Unassigned pending job — add worker to dismissedBy so it disappears
+    // from their feed without changing status for other workers
+    await JobRequest.findByIdAndUpdate(job._id, {
+      $addToSet: { dismissedBy: worker._id },
+    });
     return ok({ message: "Job dismissed" });
   } catch (err) {
     console.error("POST /api/jobs/[id]/reject error:", err);

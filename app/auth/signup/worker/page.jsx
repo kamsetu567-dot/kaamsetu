@@ -151,12 +151,10 @@ export default function WorkerSignupPage() {
     if (submitRef.current) return;
     submitRef.current = true; setLoading(true);
     try {
-      setUploadProgress('Aadhar front compress हो रही है...');
       const aadharFrontUrl = await compressImage(aadharFrontFile, 1200, 0.7);
 
       let aadharBackUrl = '';
       if (aadharBackFile) {
-        setUploadProgress('Aadhar back compress हो रही है...');
         aadharBackUrl = await compressImage(aadharBackFile, 1200, 0.7);
       }
 

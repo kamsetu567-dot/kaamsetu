@@ -63,7 +63,7 @@ export default function WorkerJobsPage() {
             Incoming Jobs / आने वाली जॉब्स
           </h2>
           <p className="text-gray-500 text-sm mt-0.5">
-            Accept करने पर client का नंबर मिलेगा / Accept to reveal client's number
+            Accept करने पर client call करेगा / Client will call you after accept
           </p>
         </div>
         <div className="relative">

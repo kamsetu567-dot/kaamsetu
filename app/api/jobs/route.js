@@ -18,66 +18,73 @@ export async function GET(request) {
 
     if (workerId) {
       if (status === "pending") {
-        // Pending jobs are unassigned — filter by the worker's category + city
         const workerProfile = await Worker.findOne({ user: workerId }).lean();
-        if (workerProfile) {
-          const workerCoords = workerProfile.location?.coordinates?.coordinates;
-          const radiusKm = parseInt(searchParams.get("radius") || "50");
 
-          if (workerCoords?.length === 2) {
-            // Use MongoDB geospatial query
-            const pipeline = [
-              {
-                $geoNear: {
-                  near: { type: "Point", coordinates: workerCoords },
-                  distanceField: "distanceMeters",
-                  maxDistance: radiusKm * 1000,
-                  spherical: true,
-                  query: {
-                    status: "pending",
-                    dismissedBy: { $ne: workerProfile._id },
-                    ...(workerProfile.category && {
-                      category: { $regex: workerProfile.category, $options: "i" },
-                    }),
-                  },
-                },
-              },
-              { $sort: { distanceMeters: 1 } },
-              { $limit: 50 },
-            ];
+        // If workerId is given but no Worker document exists, return nothing
+        // (avoids leaking all pending jobs to an incomplete profile)
+        if (!workerProfile) {
+          return ok({ jobs: [] });
+        }
 
-            const geoJobs = await JobRequest.aggregate(pipeline);
+        const workerCoords = workerProfile.location?.coordinates?.coordinates;
+        const radiusKm = parseInt(searchParams.get("radius") || "50");
 
-            return ok({
-              jobs: geoJobs.map((j) => ({
-                id: j._id,
-                category: j.category,
-                subcategory: j.subcategory,
-                description: j.description,
-                location: j.location?.city || j.location?.address || "",
-                locationAddress: j.location?.address || "",
-                distanceKm: j.distanceMeters ? parseFloat((j.distanceMeters / 1000).toFixed(1)) : null,
-                status: j.status,
-                source: j.source,
-                worker: j.worker,
-                createdAt: j.createdAt,
-              })),
-            });
-          }
-
-          // Fallback: no coordinates saved — use city match as before
-          filter.dismissedBy = { $ne: workerProfile._id };
+        if (workerCoords?.length === 2) {
+          // Geospatial query when worker has GPS coordinates saved
+          const geoQuery = {
+            status: "pending",
+            dismissedBy: { $nin: [workerProfile._id] },
+          };
           if (workerProfile.category) {
-            filter.category = { $regex: workerProfile.category, $options: "i" };
+            geoQuery.category = workerProfile.category;
           }
-          if (workerProfile.location?.city) {
-            filter["location.city"] = { $regex: workerProfile.location.city, $options: "i" };
-          }
+
+          const pipeline = [
+            {
+              $geoNear: {
+                near: { type: "Point", coordinates: workerCoords },
+                distanceField: "distanceMeters",
+                maxDistance: radiusKm * 1000,
+                spherical: true,
+                query: geoQuery,
+              },
+            },
+            { $sort: { distanceMeters: 1 } },
+            { $limit: 50 },
+          ];
+
+          const geoJobs = await JobRequest.aggregate(pipeline);
+
+          return ok({
+            jobs: geoJobs.map((j) => ({
+              id: j._id,
+              category: j.category,
+              subcategory: j.subcategory,
+              description: j.description,
+              location: j.location?.city || j.location?.address || "",
+              locationAddress: j.location?.address || "",
+              distanceKm: j.distanceMeters ? parseFloat((j.distanceMeters / 1000).toFixed(1)) : null,
+              status: j.status,
+              source: j.source,
+              worker: j.worker,
+              createdAt: j.createdAt,
+            })),
+          });
+        }
+
+        // Fallback: no GPS saved — filter by city + category
+        filter.dismissedBy = { $nin: [workerProfile._id] };
+        if (workerProfile.category) {
+          filter.category = workerProfile.category; // exact match on category slug
+        }
+        if (workerProfile.location?.city) {
+          filter["location.city"] = { $regex: workerProfile.location.city, $options: "i" };
         }
       } else {
-        // For job history, filter by Worker._id
+        // Job history: return jobs assigned to this worker (any status)
         const workerProfile = await Worker.findOne({ user: workerId }).lean();
-        if (workerProfile) filter.worker = workerProfile._id;
+        if (!workerProfile) return ok({ jobs: [] });
+        filter.worker = workerProfile._id;
       }
     }
 

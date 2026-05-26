@@ -100,6 +100,7 @@ export async function POST(request) {
       message: "Worker registered. Pending admin approval.",
       token: newToken,
       worker: { id: worker._id, name, status: "pending" },
+      user: { id: user._id, mobile, email: email || "", name, role: "worker" },
     });
   } catch (err) {
     logger.error("[WORKER_SIGNUP] error", { msg: err.message, code: err.code });

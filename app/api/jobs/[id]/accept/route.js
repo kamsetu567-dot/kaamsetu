@@ -26,13 +26,21 @@ export async function POST(request, { params }) {
       return error("Your subscription has expired. Please renew to accept jobs.", 403);
     }
 
+    if (worker.workStatus === "working") {
+      return error("You already have an active job. Complete it before accepting a new one.", 409);
+    }
+
     job.worker = worker._id;
     job.status = "accepted";
     await job.save();
 
     await Worker.findByIdAndUpdate(worker._id, { workStatus: "working" });
 
-    return ok({ message: "Job accepted. The client will call you soon." });
+    return ok({
+      message: "Job accepted. Contact the client now.",
+      clientMobile: job.clientMobile,
+      clientName: job.clientName || null,
+    });
   } catch (err) {
     console.error("POST /api/jobs/[id]/accept error:", err);
     return error("Server error", 500);

@@ -28,15 +28,19 @@ export default function JobNotificationCard({ job, onAccepted, onRejected }) {
   const [rejected, setRejected] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
   const [workStage, setWorkStage] = useState("accepted");
+  const [clientContact, setClientContact] = useState(null);
 
   async function handleAccept() {
     setLoading("accept");
     const res = await acceptJob(job.id);
     setLoading(null);
     if (res.success) {
+      setClientContact({ mobile: res.clientMobile, name: res.clientName });
       setAccepted(true);
       setShowPopup(true);
       onAccepted?.(job.id);
+    } else {
+      alert(res.message || "Could not accept job. Please try again.");
     }
   }
 
@@ -109,10 +113,21 @@ export default function JobNotificationCard({ job, onAccepted, onRejected }) {
             <span className="font-bold text-green-700 font-hindi">जॉब Accept हो गई! / Job Accepted!</span>
           </div>
 
-          <div className="bg-green-100 rounded-xl px-3 py-2 text-center">
-            <p className="text-green-700 text-sm font-hindi">📞 Client जल्द ही call करेगा — फ़ोन पास रखें</p>
-            <p className="text-green-600 text-xs mt-0.5">Client will call you soon. Keep your phone nearby.</p>
-          </div>
+          {clientContact?.mobile ? (
+            <div className="bg-white border-2 border-green-500 rounded-xl px-4 py-3 text-center">
+              <p className="text-xs text-gray-500 mb-1 font-hindi">Client का नंबर / Client Number</p>
+              <p className="text-xl font-black text-brand-navy tracking-wide">{clientContact.name && `${clientContact.name} — `}+91 {clientContact.mobile}</p>
+              <a href={`tel:${clientContact.mobile}`}
+                className="mt-2 inline-flex items-center gap-2 bg-green-600 text-white font-bold px-5 py-2.5 rounded-xl hover:bg-green-700 transition-colors text-sm">
+                📞 <span className="font-hindi">अभी Call करें / Call Now</span>
+              </a>
+            </div>
+          ) : (
+            <div className="bg-green-100 rounded-xl px-3 py-2 text-center">
+              <p className="text-green-700 text-sm font-hindi">📞 Client जल्द ही call करेगा — फ़ोन पास रखें</p>
+              <p className="text-green-600 text-xs mt-0.5">Client will call you soon. Keep your phone nearby.</p>
+            </div>
+          )}
 
           {workStage === "accepted" && (
             <button onClick={handleStart} disabled={!!loading}
