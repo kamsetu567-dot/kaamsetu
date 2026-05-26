@@ -20,9 +20,8 @@ export async function GET(request) {
       if (status === "pending") {
         const workerProfile = await Worker.findOne({ user: workerId }).lean();
 
-        // If workerId is given but no Worker document exists, return nothing
-        // (avoids leaking all pending jobs to an incomplete profile)
-        if (!workerProfile) {
+        // Only approved workers see jobs
+        if (!workerProfile || workerProfile.status !== "approved") {
           return ok({ jobs: [] });
         }
 

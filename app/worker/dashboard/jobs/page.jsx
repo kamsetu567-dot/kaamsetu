@@ -29,7 +29,8 @@ export default function WorkerJobsPage() {
     let workerId = null;
     if (token) {
       try {
-        const payload = JSON.parse(atob(token.split(".")[1]));
+        const b64 = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+        const payload = JSON.parse(atob(b64 + "=".repeat((4 - b64.length % 4) % 4)));
         workerId = payload.id || null;
       } catch {}
     }
