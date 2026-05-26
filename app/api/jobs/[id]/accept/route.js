@@ -1,8 +1,11 @@
 import { connectDB } from "@/lib/db/mongoose";
 import JobRequest from "@/lib/models/JobRequest";
 import Worker from "@/lib/models/Worker";
+import Client from "@/lib/models/Client";
+import User from "@/lib/models/User";
 import { verifyToken, getTokenFromRequest } from "@/lib/utils/jwt";
 import { ok, error, unauthorized, notFound } from "@/lib/utils/apiResponse";
+import { sendJobAcceptedEmail } from "@/lib/utils/email";
 
 export async function POST(request, { params }) {
   try {
@@ -35,6 +38,24 @@ export async function POST(request, { params }) {
     await job.save();
 
     await Worker.findByIdAndUpdate(worker._id, { workStatus: "working" });
+
+    // Fire-and-forget: email the client that their job was accepted
+    if (job.clientId) {
+      Client.findById(job.clientId).lean().then(async clientDoc => {
+        if (!clientDoc?.user) return;
+        const userDoc = await User.findById(clientDoc.user).select("email name").lean();
+        if (userDoc?.email) {
+          sendJobAcceptedEmail(
+            userDoc.email,
+            userDoc.name || job.clientName,
+            worker.name,
+            worker.mobile,
+            job.category,
+            job.subcategory
+          ).catch(() => {});
+        }
+      }).catch(() => {});
+    }
 
     return ok({
       message: "Job accepted. The client will call you shortly.",

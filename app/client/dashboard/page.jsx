@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { PlusCircle, LogOut } from "lucide-react";
+import { PlusCircle, LogOut, Star } from "lucide-react";
 
 const STATUS_CONFIG = {
   pending: { bg: "bg-yellow-100", text: "text-yellow-700", label: "⏳ Worker ढूंढ रहे हैं" },
@@ -20,6 +20,61 @@ function StatusBadge({ status }) {
     <span className={`${cfg.bg} ${cfg.text} text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap font-hindi`}>
       {cfg.label}
     </span>
+  );
+}
+
+function RatingWidget({ jobId, onRated }) {
+  const [selected, setSelected] = useState(0);
+  const [hover, setHover] = useState(0);
+  const [submitting, setSubmitting] = useState(false);
+  const [done, setDone] = useState(false);
+
+  async function submitRating() {
+    if (!selected) return;
+    setSubmitting(true);
+    try {
+      const token = localStorage.getItem("kaamsetu_token");
+      const res = await fetch(`/api/jobs/${jobId}/rate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ rating: selected }),
+      });
+      const data = await res.json();
+      if (data.success) { setDone(true); onRated?.(jobId, selected); }
+      else alert(data.message || "Could not submit rating.");
+    } catch { alert("Network error. Please try again."); }
+    finally { setSubmitting(false); }
+  }
+
+  if (done) return (
+    <div className="mt-3 pt-3 border-t border-gray-100 text-center">
+      <p className="text-sm text-green-600 font-semibold font-hindi">⭐ Rating दी गई — शुक्रिया!</p>
+    </div>
+  );
+
+  return (
+    <div className="mt-3 pt-3 border-t border-gray-100">
+      <p className="text-xs text-gray-500 mb-2 font-hindi">Worker को rate करें / Rate the worker</p>
+      <div className="flex items-center gap-1 mb-3">
+        {[1,2,3,4,5].map(star => (
+          <button key={star}
+            onClick={() => setSelected(star)}
+            onMouseEnter={() => setHover(star)}
+            onMouseLeave={() => setHover(0)}
+            className="p-0.5">
+            <Star size={24}
+              className={(hover || selected) >= star ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}
+            />
+          </button>
+        ))}
+      </div>
+      {selected > 0 && (
+        <button onClick={submitRating} disabled={submitting}
+          className="bg-brand-navy text-white font-bold text-sm px-4 py-2 rounded-xl disabled:opacity-50 font-hindi">
+          {submitting ? "Submit हो रही है..." : "Submit Rating"}
+        </button>
+      )}
+    </div>
   );
 }
 
@@ -58,6 +113,12 @@ export default function ClientDashboardPage() {
     }
     fetchRequests();
   }, []);
+
+  function handleRated(jobId, rating) {
+    setRequests(prev => prev.map(r =>
+      String(r._id) === String(jobId) ? { ...r, clientRating: rating } : r
+    ));
+  }
 
   function handleLogout() {
     localStorage.removeItem("kaamsetu_token");
@@ -148,6 +209,19 @@ export default function ClientDashboardPage() {
                     className="bg-green-500 text-white px-4 py-2 rounded-xl text-sm font-bold flex-shrink-0 hover:bg-green-600 transition-colors">
                     📞 Call
                   </a>
+                </div>
+              )}
+
+              {req.status === "completed" && !req.clientRating && (
+                <RatingWidget jobId={req._id} onRated={handleRated} />
+              )}
+              {req.status === "completed" && req.clientRating && (
+                <div className="mt-3 pt-3 border-t border-gray-100 flex items-center gap-1">
+                  <p className="text-xs text-gray-400 mr-1 font-hindi">आपकी Rating:</p>
+                  {[1,2,3,4,5].map(s => (
+                    <Star key={s} size={14}
+                      className={req.clientRating >= s ? "text-yellow-400 fill-yellow-400" : "text-gray-200"} />
+                  ))}
                 </div>
               )}
 
