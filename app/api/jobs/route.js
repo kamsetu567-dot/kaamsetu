@@ -2,7 +2,7 @@ import { connectDB } from "@/lib/db/mongoose";
 import JobRequest from "@/lib/models/JobRequest";
 import Worker from "@/lib/models/Worker";
 import Client from "@/lib/models/Client";
-import { ok, error, created } from "@/lib/utils/apiResponse";
+import { ok, error, created, unauthorized } from "@/lib/utils/apiResponse";
 import { getTokenFromRequest, verifyToken } from "@/lib/utils/jwt";
 
 export async function GET(request) {
@@ -33,6 +33,8 @@ export async function GET(request) {
           const geoQuery = {
             status: "pending",
             dismissedBy: { $nin: [workerProfile._id] },
+            // Only show unassigned jobs OR jobs specifically routed to this worker
+            worker: { $in: [null, workerProfile._id] },
           };
           if (workerProfile.category) {
             geoQuery.category = workerProfile.category;
@@ -76,6 +78,8 @@ export async function GET(request) {
 
         // City-based fallback: used when no GPS saved OR geo returned 0 results
         filter.dismissedBy = { $nin: [workerProfile._id] };
+        // Only show unassigned jobs OR jobs specifically routed to this worker
+        filter.worker = { $in: [null, workerProfile._id] };
         if (workerProfile.category) {
           filter.category = workerProfile.category;
         }
@@ -117,29 +121,25 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
+    // Require authenticated client — prevents unauthenticated job spam
+    const token = getTokenFromRequest(request);
+    if (!token) return unauthorized("Login required to post a job");
+    const payload = verifyToken(token);
+    if (!payload || payload.role !== "client") return unauthorized("Client access required");
+
     const body = await request.json();
 
-    const clientMobile = body.clientMobile || body.mobile;
-    const clientName = body.clientName || body.name;
     const category = body.category || "General";
     const city = body.city || body.location || "Unknown";
 
-    if (!clientMobile) {
-      return error("clientMobile is required");
-    }
-
     await connectDB();
 
-    // clientId is derived only from the auth token — never accepted from request body
-    let clientId = null;
-    const token = getTokenFromRequest(request);
-    if (token) {
-      const payload = verifyToken(token);
-      if (payload?.id) {
-        const clientDoc = await Client.findOne({ user: payload.id }).lean();
-        if (clientDoc) clientId = clientDoc._id;
-      }
-    }
+    // clientMobile and clientId always come from the authenticated session — never from the body
+    const clientDoc = await Client.findOne({ user: payload.id }).lean();
+    if (!clientDoc) return error("Client profile not found", 404);
+    const clientId = clientDoc._id;
+    const clientMobile = clientDoc.mobile;
+    const clientName = clientDoc.name || body.clientName || null;
 
     const jobData = {
       clientMobile,
@@ -159,7 +159,7 @@ export async function POST(request) {
       },
       status: "pending",
       source: body.source || "search",
-      clientId: clientId || null,
+      clientId,
     };
 
     if (body.workerId) {

@@ -18,26 +18,34 @@ export async function POST(request, { params }) {
     const { id } = await params;
     await connectDB();
 
-    const job = await JobRequest.findById(id);
-    if (!job) return notFound("Job not found");
-    if (job.status !== "pending") return error("Job is no longer pending");
-
-    const worker = await Worker.findOne({ user: payload.id });
+    const worker = await Worker.findOne({ user: payload.id }).lean();
     if (!worker) return error("Worker profile not found");
     if (worker.status !== "approved") return error("Your account is not approved yet.", 403);
     if (!worker.subscriptionExpiry || worker.subscriptionExpiry < new Date()) {
       return error("Your subscription has expired. Please renew to accept jobs.", 403);
     }
 
-    if (worker.workStatus === "working") {
+    // Step 1 — Atomically claim the worker slot (prevents accepting two jobs in parallel)
+    const claimedWorker = await Worker.findOneAndUpdate(
+      { _id: worker._id, workStatus: "free" },
+      { $set: { workStatus: "working" } }
+    );
+    if (!claimedWorker) {
       return error("You already have an active job. Complete it before accepting a new one.", 409);
     }
 
-    job.worker = worker._id;
-    job.status = "accepted";
-    await job.save();
-
-    await Worker.findByIdAndUpdate(worker._id, { workStatus: "working" });
+    // Step 2 — Atomically claim the job: only succeeds if still pending AND
+    // either unassigned or pre-assigned to this specific worker
+    const job = await JobRequest.findOneAndUpdate(
+      { _id: id, status: "pending", worker: { $in: [null, worker._id] } },
+      { $set: { status: "accepted", worker: worker._id } },
+      { new: true }
+    );
+    if (!job) {
+      // Job was already taken or assigned to someone else — release the worker slot
+      await Worker.findByIdAndUpdate(worker._id, { $set: { workStatus: "free" } });
+      return error("Job is no longer available.", 409);
+    }
 
     // Fire-and-forget: email the client that their job was accepted
     if (job.clientId) {
