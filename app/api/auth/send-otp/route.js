@@ -1,3 +1,4 @@
+import { randomInt } from "crypto";
 import { connectDB } from "@/lib/db/mongoose";
 import OTP from "@/lib/models/OTP";
 import User from "@/lib/models/User";
@@ -61,11 +62,18 @@ export async function POST(request) {
 
     await OTP.deleteMany({ mobile });
 
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otp = randomInt(100000, 1000000).toString(); // cryptographically secure
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 min
-    await OTP.create({ mobile, email, otp, expiresAt });
+    const otpRecord = await OTP.create({ mobile, email, otp, expiresAt });
 
-    await sendOTPEmail(email, otp);
+    // Send email — if it fails, remove the OTP record so the rate-limit slot isn't wasted
+    try {
+      await sendOTPEmail(email, otp);
+    } catch (emailErr) {
+      await OTP.findByIdAndDelete(otpRecord._id);
+      logger.error("OTP email send failed", { err: emailErr.message, mobile });
+      return error("Failed to send OTP to your email. Please check the email address and try again.", 500);
+    }
 
     logger.info("OTP sent via email", { mobile, email });
     return ok({ message: "OTP sent to your email" });

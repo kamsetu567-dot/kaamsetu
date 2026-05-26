@@ -30,7 +30,7 @@ export async function POST(request) {
     }
 
     record.attempts += 1;
-    if (record.attempts > 5) {
+    if (record.attempts >= 5) {
       await record.save();
       return error("Too many attempts / बहुत अधिक प्रयास", 429);
     }
@@ -47,7 +47,8 @@ export async function POST(request) {
 
     if (!user) {
       if (mode === "signup") {
-        const token = signToken({ mobile });
+        // Short-lived proof token — only valid for 10 min (matches OTP window)
+        const token = signToken({ mobile }, "10m");
         return ok({ token, mobile, isNewUser: true });
       }
       return error("Account not found. Please sign up first.", 404);

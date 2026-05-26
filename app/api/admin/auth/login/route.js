@@ -1,7 +1,16 @@
+import { timingSafeEqual } from "crypto";
 import { signToken } from "@/lib/utils/jwt";
 import { ok, error, unauthorized } from "@/lib/utils/apiResponse";
 import { createRateLimit } from "@/lib/middleware/rateLimit";
 import { logger } from "@/lib/utils/logger";
+
+function safeCompare(a, b) {
+  try {
+    return timingSafeEqual(Buffer.from(a, "utf8"), Buffer.from(b, "utf8"));
+  } catch {
+    return false; // buffers of different lengths
+  }
+}
 
 const limiter = createRateLimit(10, 15 * 60 * 1000); // 10 per 15 min per IP
 
@@ -22,7 +31,7 @@ export async function POST(request) {
     const validUsername = process.env.ADMIN_USERNAME;
     const validPassword = process.env.ADMIN_SECRET_PASSWORD;
 
-    if (username !== validUsername || password !== validPassword) {
+    if (!safeCompare(username, validUsername || "") || !safeCompare(password, validPassword || "")) {
       return unauthorized("Invalid username or password");
     }
 

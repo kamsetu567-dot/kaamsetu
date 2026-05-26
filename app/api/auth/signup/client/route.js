@@ -39,12 +39,19 @@ export async function POST(request) {
 
     let client = await Client.findOne({ user: user._id });
     if (!client) {
-      client = await Client.create({
-        user: user._id,
-        mobile,
-        name,
-        location: locationData,
-      });
+      try {
+        client = await Client.create({
+          user: user._id,
+          mobile,
+          name,
+          location: locationData,
+        });
+      } catch (clientErr) {
+        // If Client creation fails after User was created, clean up the orphaned User
+        await User.findByIdAndDelete(user._id);
+        logger.error("Client create failed, rolled back User", { err: clientErr.message });
+        return error("Registration failed. Please try again.", 500);
+      }
     } else {
       client.location = { ...locationData };
       await client.save();
