@@ -37,9 +37,7 @@ export async function POST(request, { params }) {
     await Worker.findByIdAndUpdate(worker._id, { workStatus: "working" });
 
     return ok({
-      message: "Job accepted. Contact the client now.",
-      clientMobile: job.clientMobile,
-      clientName: job.clientName || null,
+      message: "Job accepted. The client will call you shortly.",
     });
   } catch (err) {
     console.error("POST /api/jobs/[id]/accept error:", err);
