@@ -29,16 +29,13 @@ export async function POST(request) {
       await user.save();
     }
 
-    const locationData = location || {
+    const locationData = {
       city: city || "",
       address: area || "",
-      ...(lat && lng && {
-        coordinates: {
-          type: "Point",
-          coordinates: [parseFloat(lng), parseFloat(lat)],
-        },
-      }),
     };
+    if (lat && lng) {
+      locationData.coordinates = { type: "Point", coordinates: [parseFloat(lng), parseFloat(lat)] };
+    }
 
     let client = await Client.findOne({ user: user._id });
     if (!client) {
@@ -48,8 +45,8 @@ export async function POST(request) {
         name,
         location: locationData,
       });
-    } else if (lat && lng) {
-      client.location = { ...client.location.toObject?.() || client.location, ...locationData };
+    } else {
+      client.location = { ...locationData };
       await client.save();
     }
 
