@@ -74,7 +74,7 @@ export default function WorkerSignupPage() {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { toast.error('Valid email address required'); return; }
     setLoading(true);
     try {
-      const res = await fetch('/api/auth/send-otp', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mobile, email }) });
+      const res = await fetch('/api/auth/send-otp', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mobile, email, role: 'worker' }) });
       const data = await res.json();
       if (!res.ok) { toast.error(data.message || 'OTP भेजने में error'); return; }
       setOtp(['', '', '', '', '', '']); setOtpSent(true); startResendTimer();
@@ -231,8 +231,8 @@ export default function WorkerSignupPage() {
             <form onSubmit={handleSendOTP} className="space-y-4">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1.5 font-hindi">मोबाइल नंबर</label>
-                <div className="flex gap-2">
-                  <span className="flex items-center bg-gray-100 border border-gray-200 rounded-xl px-3 text-gray-600 text-sm">+91</span>
+                <div className="flex gap-2 items-stretch">
+                  <span className="flex items-center bg-gray-100 border border-gray-200 rounded-xl px-3 py-3.5 text-gray-600 text-sm font-semibold whitespace-nowrap">+91</span>
                   <input type="tel" inputMode="numeric" maxLength={10} value={mobile}
                     onChange={e => setMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
                     placeholder="10-digit mobile"
