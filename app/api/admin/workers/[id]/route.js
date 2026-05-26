@@ -28,15 +28,13 @@ export async function PATCH(request, { params }) {
     };
 
     if (action === "block") {
-      worker.status = "blocked";
-      await worker.save();
+      await Worker.findByIdAndUpdate(id, { status: "blocked" });
       await User.findByIdAndUpdate(worker.user, { status: "blocked" });
       return ok({ message: "Worker blocked", status: "blocked" });
     }
 
     if (action === "unblock") {
-      worker.status = "approved";
-      await worker.save();
+      await Worker.findByIdAndUpdate(id, { status: "approved" });
       await User.findByIdAndUpdate(worker.user, { status: "active" });
       return ok({ message: "Worker unblocked", status: "approved" });
     }
@@ -49,9 +47,7 @@ export async function PATCH(request, { params }) {
 
     if (action === "boost") {
       const boostedUntil = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-      worker.boosted = true;
-      worker.boostedUntil = boostedUntil;
-      await worker.save();
+      await Worker.findByIdAndUpdate(id, { boosted: true, boostedUntil });
       return ok({ message: "Worker boosted for 7 days", boostedUntil });
     }
 
@@ -62,16 +58,14 @@ export async function PATCH(request, { params }) {
         ? worker.subscriptionExpiry
         : now;
       const newExpiry = new Date(base.getTime() + days * 24 * 60 * 60 * 1000);
-      worker.subscriptionExpiry = newExpiry;
-      await worker.save();
+      await Worker.findByIdAndUpdate(id, { subscriptionExpiry: newExpiry });
       return ok({ message: `Subscription extended by ${days} days`, expiresAt: newExpiry });
     }
 
     const update = actionMap[action];
     if (!update) return error("Invalid action");
 
-    worker.status = update.status;
-    await worker.save();
+    await Worker.findByIdAndUpdate(id, { status: update.status });
 
     if (action === "approve") {
       const user = await User.findById(worker.user).select("email name").lean();

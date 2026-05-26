@@ -46,6 +46,11 @@ export async function GET(request) {
       rating: w.rating,
       subscriptionExpiry: w.subscriptionExpiry,
       createdAt: w.createdAt,
+      aadharNumber: w.aadharNumber || null,
+      aadharFrontUrl: w.aadharFrontUrl || null,
+      aadharBackUrl: w.aadharBackUrl || null,
+      photo: w.photo || null,
+      city: w.location?.city || null,
     }));
 
     const pages = Math.ceil(total / limit);

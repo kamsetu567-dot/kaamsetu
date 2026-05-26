@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import {
   CheckCircle, XCircle, ShieldOff, ShieldCheck,
-  Ban, Star, CalendarCheck, Search, RefreshCw,
+  Ban, Star, CalendarCheck, Search, RefreshCw, IdCard, X,
 } from "lucide-react";
 import { getAllWorkers, approveWorker, rejectWorker, activateWorker, deactivateWorker, blockUser, boostWorker, extendWorkerSubscription } from "@/lib/api/admin";
 import { useToast } from "@/components/Toast";
@@ -33,6 +33,54 @@ function ActionBtn({ label, onClick, color = "blue", icon: Icon, disabled = fals
   );
 }
 
+function AadharModal({ worker, onClose }) {
+  if (!worker) return null;
+  return (
+    <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-white rounded-3xl p-6 w-full max-w-lg shadow-2xl" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="font-black text-brand-navy text-lg">{worker.name}</h3>
+            <p className="text-gray-400 text-sm">📞 {worker.mobile} · {worker.city || "—"}</p>
+          </div>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 min-h-0"><X size={22} /></button>
+        </div>
+
+        {worker.aadharNumber && (
+          <div className="bg-gray-50 rounded-xl px-4 py-2 mb-4">
+            <p className="text-xs text-gray-500">Aadhar Number</p>
+            <p className="font-black text-brand-navy tracking-widest text-lg">{worker.aadharNumber}</p>
+          </div>
+        )}
+
+        <div className="space-y-3">
+          {worker.aadharFrontUrl ? (
+            <div>
+              <p className="text-xs font-semibold text-gray-500 mb-1.5">Aadhar Front</p>
+              <img src={worker.aadharFrontUrl} alt="Aadhar Front" className="w-full rounded-xl border border-gray-200 object-contain max-h-52" />
+            </div>
+          ) : (
+            <p className="text-sm text-gray-400 text-center py-4">No Aadhar front photo uploaded</p>
+          )}
+          {worker.aadharBackUrl && (
+            <div>
+              <p className="text-xs font-semibold text-gray-500 mb-1.5">Aadhar Back</p>
+              <img src={worker.aadharBackUrl} alt="Aadhar Back" className="w-full rounded-xl border border-gray-200 object-contain max-h-52" />
+            </div>
+          )}
+        </div>
+
+        {worker.photo && (
+          <div className="mt-3">
+            <p className="text-xs font-semibold text-gray-500 mb-1.5">Profile Photo</p>
+            <img src={worker.photo} alt="Profile" className="w-20 h-20 rounded-full object-cover border-2 border-brand-navy mx-auto" />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function AdminWorkersPage() {
   const toast = useToast();
   const [workers, setWorkers] = useState([]);
@@ -40,6 +88,7 @@ export default function AdminWorkersPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [actionInProgress, setActionInProgress] = useState(null);
+  const [aadharWorker, setAadharWorker] = useState(null);
 
   function load() {
     setLoading(true);
@@ -107,6 +156,7 @@ export default function AdminWorkersPage() {
 
   return (
     <div className="space-y-5">
+      <AadharModal worker={aadharWorker} onClose={() => setAadharWorker(null)} />
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-black text-brand-navy font-hindi">
@@ -199,6 +249,7 @@ export default function AdminWorkersPage() {
                         {(w.status === "rejected" || w.status === "deactivated") && (
                           <ActionBtn label="Activate" icon={ShieldCheck} color="green" onClick={() => handleAction("activate", w.id)} disabled={!!actionInProgress} />
                         )}
+                        <ActionBtn label="Aadhar"  icon={IdCard}        color="blue" onClick={() => setAadharWorker(w)} disabled={!!actionInProgress} />
                         <ActionBtn label="Block"   icon={Ban}          color="gray" onClick={() => handleBlock(w.id)}  disabled={!!actionInProgress} />
                         <ActionBtn label="Boost ⭐" icon={Star}         color="blue" onClick={() => handleBoost(w.id)}  disabled={!!actionInProgress} />
                         <ActionBtn label="Extend"  icon={CalendarCheck} color="blue" onClick={() => handleExtend(w.id)} disabled={!!actionInProgress} />
