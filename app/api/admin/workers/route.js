@@ -44,6 +44,7 @@ export async function GET(request) {
       status: w.status,
       workStatus: w.workStatus,
       rating: w.rating,
+      totalRatings: w.totalRatings || 0,
       subscriptionExpiry: w.subscriptionExpiry,
       createdAt: w.createdAt,
       aadharNumber: w.aadharNumber || null,

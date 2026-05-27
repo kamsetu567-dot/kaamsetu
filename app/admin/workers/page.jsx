@@ -335,7 +335,11 @@ export default function AdminWorkersPage() {
                         {w.workStatus === "working" ? "व्यस्त" : "खाली"}
                       </span>
                     </td>
-                    <td className="px-4 py-3 font-semibold text-brand-navy">{w.rating ?? "—"}</td>
+                    <td className="px-4 py-3 font-semibold text-brand-navy whitespace-nowrap">
+                      {w.totalRatings > 0
+                        ? <>{Number(w.rating || 0).toFixed(1)} <span className="text-amber-500">★</span> <span className="text-gray-400 font-normal text-xs">({w.totalRatings})</span></>
+                        : <span className="text-gray-400 font-normal text-xs">No ratings</span>}
+                    </td>
                     <td className="px-4 py-3 text-gray-400 text-xs">
                       {w.subscriptionExpiry ? new Date(w.subscriptionExpiry).toLocaleDateString("en-IN") : "—"}
                     </td>

@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import {
-  ArrowLeft, Phone, Send, User, MapPin, Clock,
+  ArrowLeft, Phone, User, MapPin, Clock,
   Star, ShieldCheck, ChevronLeft, ChevronRight, MessageSquare, FileText, Briefcase, Flag,
 } from "lucide-react";
 import Header from "@/components/Header";
@@ -93,11 +93,6 @@ export default function WorkerProfilePage() {
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState(null); // null | "not_found" | "server_error" | "network_error"
 
-  const [requestSent, setRequestSent] = useState(false);
-  const [showRequestForm, setShowRequestForm] = useState(false);
-  const [requestDescription, setRequestDescription] = useState("");
-  const [sendingRequest, setSendingRequest] = useState(false);
-
   const [showReport, setShowReport] = useState(false);
   const [reportReason, setReportReason] = useState("");
   const [reportDesc, setReportDesc] = useState("");
@@ -128,40 +123,6 @@ export default function WorkerProfilePage() {
   }, [id]);
 
   useEffect(() => { loadWorker(); }, [loadWorker]);
-
-  async function handleSendRequest() {
-    const token = typeof window !== "undefined" ? localStorage.getItem("kaamsetu_token") : null;
-    if (!token) {
-      router.push("/auth/login");
-      return;
-    }
-    setSendingRequest(true);
-    try {
-      const res = await fetch("/api/jobs", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({
-          workerId: worker.id || worker._id,
-          category: worker.category,
-          subcategory: worker.subcategory || "",
-          description: requestDescription,
-          source: "search",
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        toast.error(data.message || "Request failed. Please try again.");
-        return;
-      }
-      setRequestSent(true);
-      setShowRequestForm(false);
-      setRequestDescription("");
-    } catch {
-      toast.error("Network error. Please try again.");
-    } finally {
-      setSendingRequest(false);
-    }
-  }
 
   async function submitReport() {
     if (!reportReason) return;
@@ -452,21 +413,7 @@ export default function WorkerProfilePage() {
         {/* Sticky action bar — only when worker profile is loaded */}
         {!loading && worker && (
           <div className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-border-light px-4 py-3 z-40">
-            <div className="max-w-2xl mx-auto space-y-2">
-              {requestSent ? (
-                <div className="text-center bg-green-50 border-2 border-primary-green text-primary-green font-bold py-3 rounded-2xl">
-                  <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>✅ Request भेज दी! / Request sent!</span>
-                </div>
-              ) : (
-                <button
-                  onClick={() => setShowRequestForm(true)}
-                  className="w-full flex items-center justify-center gap-2 border-2 border-primary-blue text-primary-blue font-bold py-2.5 rounded-2xl hover:bg-blue-50 transition-colors"
-                  aria-label="Send service request"
-                >
-                  <Send size={16} />
-                  <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>Request भेजें / Send Request</span>
-                </button>
-              )}
+            <div className="max-w-2xl mx-auto">
               <div className="flex gap-2">
                 <a
                   href={`tel:+91${worker.mobile}`}
@@ -488,45 +435,6 @@ export default function WorkerProfilePage() {
                   <span>WhatsApp</span>
                 </a>
               </div>
-            </div>
-          </div>
-        )}
-
-        {/* Send Request modal */}
-        {showRequestForm && worker && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex items-end">
-            <div className="bg-white rounded-t-3xl w-full p-6 space-y-4 max-w-2xl mx-auto">
-              <div>
-                <h3 className="font-black text-brand-navy text-lg" style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>
-                  Request भेजें
-                </h3>
-                <p className="text-sm text-gray-500 mt-0.5">
-                  {worker.name} · {worker.subcategory || worker.category}
-                </p>
-              </div>
-              <textarea
-                value={requestDescription}
-                onChange={e => setRequestDescription(e.target.value)}
-                placeholder="काम का विवरण लिखें (optional) / Describe the work (optional)"
-                rows={3}
-                className="w-full border-2 border-gray-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-brand-navy resize-none"
-                autoFocus
-              />
-              <button
-                onClick={handleSendRequest}
-                disabled={sendingRequest}
-                className="w-full bg-brand-navy text-white font-bold py-3.5 rounded-2xl disabled:opacity-50 transition-opacity"
-              >
-                {sendingRequest
-                  ? "भेज रहे हैं... / Sending..."
-                  : "Request भेजें / Send Request"}
-              </button>
-              <button
-                onClick={() => { setShowRequestForm(false); setRequestDescription(""); }}
-                className="w-full text-gray-500 font-semibold py-2 text-sm"
-              >
-                Cancel
-              </button>
             </div>
           </div>
         )}

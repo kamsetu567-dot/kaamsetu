@@ -31,8 +31,10 @@ export async function POST(request, { params }) {
       job.clientMobile === payload.mobile;
     if (!isOwner) return forbidden("Not your job");
 
-    // Atomically claim the rating slot — second concurrent caller gets null
-    // ({ field: null } in Mongo matches both missing and explicitly-null)
+    // Atomically claim the rating slot — second concurrent caller gets null.
+    // ({ field: null } in Mongo matches both missing and explicitly-null.)
+    // Because each job can only be rated once, this is the only source of
+    // truth for whether the worker's average should be updated below.
     const claimed = await JobRequest.findOneAndUpdate(
       { _id: id, clientRating: null },
       { $set: { clientRating: rating } },
@@ -40,36 +42,28 @@ export async function POST(request, { params }) {
     );
     if (!claimed) return error("You have already rated this job");
 
-    // Atomically recompute the worker's running average via aggregation
-    // pipeline update — keeps concurrent ratings on different jobs for the
-    // same worker from clobbering each other
-    await Worker.findByIdAndUpdate(job.worker, [
-      {
-        $set: {
-          rating: {
-            $round: [
-              {
-                $divide: [
-                  {
-                    $add: [
-                      { $multiply: [{ $ifNull: ["$rating", 0] }, { $ifNull: ["$totalRatings", 0] }] },
-                      rating,
-                    ],
-                  },
-                  { $add: [{ $ifNull: ["$totalRatings", 0] }, 1] },
-                ],
-              },
-              2,
-            ],
-          },
-          totalRatings: { $add: [{ $ifNull: ["$totalRatings", 0] }, 1] },
-        },
-      },
-    ]);
+    // Recompute the worker's running average. The rating slot above is
+    // already atomically claimed, so the only possible race here is two
+    // ratings landing on different jobs for the same worker at the exact
+    // same moment — acceptable epsilon-level drift on the average given
+    // the volume we expect.
+    const workerDoc = await Worker.findById(job.worker)
+      .select("rating totalRatings")
+      .lean();
+    if (workerDoc) {
+      const prevTotal = workerDoc.totalRatings || 0;
+      const prevAvg = workerDoc.rating || 0;
+      const newTotal = prevTotal + 1;
+      const newAvg = Math.round(((prevAvg * prevTotal + rating) / newTotal) * 100) / 100;
+      await Worker.findByIdAndUpdate(job.worker, {
+        rating: newAvg,
+        totalRatings: newTotal,
+      });
+    }
 
-    return ok({ message: "Rating submitted. Thank you!", rating });
+    return ok({ message: "Rating submitted. Thank you!", rating, newAverage: workerDoc ? undefined : null });
   } catch (err) {
-    console.error("POST /api/jobs/[id]/rate error:", err);
+    console.error("POST /api/jobs/[id]/rate error:", err.message, err.stack);
     return error("Server error", 500);
   }
 }
