@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { PlusCircle, LogOut, Star, User, Phone, ShieldCheck, ExternalLink } from "lucide-react";
+import { PlusCircle, LogOut, Star, User, ShieldCheck, ExternalLink } from "lucide-react";
 
 const STATUS_CONFIG = {
   pending: { bg: "bg-yellow-100", text: "text-yellow-700", label: "⏳ Worker ढूंढ रहे हैं" },
@@ -217,20 +217,12 @@ export default function ClientDashboardPage() {
                       </p>
                     </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Link
-                      href={`/workers/${req.workerDetails.id}`}
-                      className="flex-1 inline-flex items-center justify-center gap-1.5 bg-brand-navy text-white font-bold text-sm py-2.5 rounded-xl hover:opacity-90 transition-opacity"
-                    >
-                      <ExternalLink size={14} /> View Profile
-                    </Link>
-                    <a
-                      href={`tel:${req.workerDetails.mobile}`}
-                      className="inline-flex items-center justify-center gap-1.5 border-2 border-green-500 text-green-600 font-bold text-sm px-4 py-2.5 rounded-xl hover:bg-green-50 transition-colors"
-                    >
-                      <Phone size={14} /> Call
-                    </a>
-                  </div>
+                  <Link
+                    href={`/workers/${req.workerDetails.id}`}
+                    className="w-full inline-flex items-center justify-center gap-1.5 bg-brand-navy text-white font-bold text-sm py-2.5 rounded-xl hover:opacity-90 transition-opacity"
+                  >
+                    <ExternalLink size={14} /> View Profile
+                  </Link>
                 </div>
               )}
 
