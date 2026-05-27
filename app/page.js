@@ -31,24 +31,6 @@ const SEARCH_SUGGESTIONS = [
   { label: 'Accountant / अकाउंटेंट',     query: 'Accountant' },
 ].filter((item, i, arr) => arr.findIndex(x => x.query === item.query) === i); // deduplicate by query
 
-const SERVICE_TILES = [
-  { icon: '/icons/mistri.png',       hi: 'मिस्त्री',         en: 'Mistri',          count: '200+', bg: 'bg-orange-50',  href: '/workers?q=mistri' },
-  { icon: '/icons/plumber.png',      hi: 'प्लंबर',           en: 'Plumber',         count: '150+', bg: 'bg-blue-50',    href: '/workers?q=plumber' },
-  { icon: '/icons/electrician.png',  hi: 'इलेक्ट्रीशियन',    en: 'Electrician',     count: '180+', bg: 'bg-yellow-50',  href: '/workers?q=electrician' },
-  { icon: '/icons/painter.png',      hi: 'पेंटर',            en: 'Painter',         count: '120+', bg: 'bg-pink-50',    href: '/workers?q=painter' },
-  { icon: '/icons/carpenter.png',    hi: 'कारपेंटर',         en: 'Carpenter',       count: '100+', bg: 'bg-amber-50',   href: '/workers?q=carpenter' },
-  { icon: '/icons/driver.png',       hi: 'ड्राइवर',          en: 'Driver',          count: '250+', bg: 'bg-cyan-50',    href: '/workers?category=vehicle-travel' },
-  { icon: '/icons/caterer.png',      hi: 'कैटरर',            en: 'Caterer',         count: '80+',  bg: 'bg-green-50',   href: '/workers?q=caterer' },
-  { icon: '/icons/dj.png',           hi: 'DJ',               en: 'DJ',              count: '60+',  bg: 'bg-purple-50',  href: '/workers?q=dj' },
-  { icon: '/icons/dancer.png',       hi: 'डांसर',            en: 'Dancer',          count: '50+',  bg: 'bg-rose-50',    href: '/workers?q=dancer' },
-  { icon: '/icons/singer.png',       hi: 'सिंगर',            en: 'Singer',          count: '40+',  bg: 'bg-indigo-50',  href: '/workers?q=singer' },
-  { icon: '/icons/tutor.png',        hi: 'ट्यूटर',           en: 'Tutor',           count: '90+',  bg: 'bg-teal-50',    href: '/workers?category=talent-training' },
-  { icon: '/icons/caretaker.png',    hi: 'होम केयरटेकर',     en: 'Home Caretaker',  count: '70+',  bg: 'bg-sky-50',     href: '/workers?category=home-care-living' },
-  { icon: '/icons/security.png',     hi: 'सिक्योरिटी',       en: 'Security',        count: '60+',  bg: 'bg-slate-50',   href: '/workers?category=security-event-safety' },
-  { icon: '/icons/logistics.png',    hi: 'होम लॉजिस्टिक',    en: 'Logistics',       count: '50+',  bg: 'bg-lime-50',    href: '/workers?category=packing-logistics' },
-  { icon: '/icons/packing.png',      hi: 'पैकिंग सर्विस',    en: 'Packing',         count: '40+',  bg: 'bg-orange-50',  href: '/workers?q=packing' },
-  { icon: '/icons/more.png',         hi: 'और भी बहुत कुछ',   en: '& Many More',     count: '...',  bg: 'bg-gray-50',    href: '/categories' },
-];
 
 const ACTION_CARDS = [
   {
@@ -325,21 +307,26 @@ export default function HomePage() {
             <p className="text-gray-500 text-sm font-hindi">{t({ hi: 'आपको जो भी काम चाहिए, हमारे पास सही वर्कर है', en: 'Whatever work you need, we have the right worker' })}</p>
           </div>
 
-          <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-4">
-            {SERVICE_TILES.map(tile => (
-              <Link key={tile.hi} href={tile.href}
-                className={`${tile.bg} rounded-2xl p-5 flex flex-col items-center text-center card-hover border border-white hover:border-gray-200`}>
-                <div className="w-16 h-16 relative mb-3">
-                  <Image
-                    src={tile.icon}
-                    alt={tile.hi}
-                    fill
-                    className="object-contain"
-                    sizes="64px"
-                  />
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            {CATEGORIES.map(cat => (
+              <Link
+                key={cat.slug}
+                href={`/categories/${cat.slug}`}
+                className="relative overflow-hidden rounded-2xl group block h-40 sm:h-44"
+                aria-label={`${cat.nameEn} — ${cat.nameHi}`}
+              >
+                <Image
+                  src={cat.image}
+                  alt={cat.nameEn}
+                  fill
+                  className="object-cover transition-transform duration-300 group-hover:scale-105"
+                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-3">
+                  <p className="text-white font-black text-sm leading-tight drop-shadow font-hindi">{t({ hi: cat.nameHi, en: cat.nameEn })}</p>
                 </div>
-                <p className="text-brand-navy font-bold text-sm font-hindi leading-tight mb-1">{t(tile)}</p>
-                <p className="text-gray-400 text-xs font-hindi">{tile.count} {t({ hi: 'वर्कर', en: 'workers' })}</p>
+                <div className="absolute inset-0 border-4 border-transparent group-hover:border-brand-yellow rounded-2xl transition-colors duration-200 pointer-events-none" />
               </Link>
             ))}
           </div>
