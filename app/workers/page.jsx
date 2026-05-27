@@ -2,8 +2,8 @@
 
 import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { MapPin, Info } from "lucide-react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { MapPin } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import WorkerCard from "@/components/WorkerCard";
@@ -88,6 +88,7 @@ function SaveRequestModal({ onClose }) {
 
 function WorkerList() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const { filters, updateFilters } = useFilters();
   const [workers, setWorkers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -110,6 +111,12 @@ function WorkerList() {
       const user = JSON.parse(localStorage.getItem("kaamsetu_user") || "{}");
       userRole = user.role || null;
     } catch {}
+
+    // Workers have no business browsing the hire page — send them home
+    if (userRole === "worker") {
+      router.replace("/worker/dashboard");
+      return;
+    }
     setRole(userRole);
 
     // Only clients need their saved GPS — workers don't use distance filter
@@ -127,7 +134,7 @@ function WorkerList() {
     } else {
       setCoordsResolved(true);
     }
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     setLoading(true);
@@ -145,15 +152,6 @@ function WorkerList() {
 
   return (
     <>
-      {role === "worker" && (
-        <div className="mb-4 flex items-start gap-3 bg-blue-50 border-2 border-blue-200 rounded-2xl px-4 py-3">
-          <Info size={18} className="text-blue-600 flex-shrink-0 mt-0.5" />
-          <p className="text-sm text-blue-900">
-            You are signed in as a worker. Hiring features (call, WhatsApp, send request) are hidden on this page.
-          </p>
-        </div>
-      )}
-
       {showLocationBanner && (
         <div className="mb-4 flex items-start gap-3 bg-yellow-50 border-2 border-yellow-200 rounded-2xl px-4 py-3">
           <MapPin size={18} className="text-yellow-700 flex-shrink-0 mt-0.5" />
@@ -198,15 +196,15 @@ function WorkerList() {
               titleEn="No workers found"
               descHi="अपनी request save करें — हम आपको जल्द call करेंगे!"
               descEn="Save your request — we will call you back soon!"
-              action={role !== "worker" ? {
+              action={{
                 labelHi: "Request Save करें",
                 labelEn: "Save My Request",
                 onClick: () => setShowModal(true),
-              } : null}
+              }}
             />
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {workers.map(w => <WorkerCard key={w.id} worker={w} hideHireActions={role === "worker"} />)}
+              {workers.map(w => <WorkerCard key={w.id} worker={w} />)}
             </div>
           )}
         </div>

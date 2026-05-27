@@ -103,14 +103,12 @@ export default function WorkerProfilePage() {
   const [reportDesc, setReportDesc] = useState("");
   const [reportSubmitted, setReportSubmitted] = useState(false);
 
-  const [viewerRole, setViewerRole] = useState(null);
   useEffect(() => {
     try {
       const u = JSON.parse(localStorage.getItem("kaamsetu_user") || "{}");
-      setViewerRole(u.role || null);
+      if (u.role === "worker") router.replace("/worker/dashboard");
     } catch {}
-  }, []);
-  const hideHireActions = viewerRole === "worker";
+  }, [router]);
 
   const loadWorker = useCallback(() => {
     if (!id) return;
@@ -443,15 +441,8 @@ export default function WorkerProfilePage() {
           ) : null}
         </div>
 
-        {/* Sticky action bar — only when worker profile is loaded AND viewer is allowed to hire */}
-        {!loading && worker && hideHireActions && (
-          <div className="fixed bottom-0 left-0 right-0 bg-blue-50 border-t-2 border-blue-200 px-4 py-3 z-40">
-            <div className="max-w-2xl mx-auto text-center text-sm text-blue-900">
-              You are signed in as a worker. Contact and hiring actions are hidden.
-            </div>
-          </div>
-        )}
-        {!loading && worker && !hideHireActions && (
+        {/* Sticky action bar — only when worker profile is loaded */}
+        {!loading && worker && (
           <div className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-border-light px-4 py-3 z-40">
             <div className="max-w-2xl mx-auto space-y-2">
               {requestSent ? (

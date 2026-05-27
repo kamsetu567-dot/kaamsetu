@@ -6,7 +6,7 @@ import RatingStars from "./RatingStars";
 import WorkerStatusBadge from "./WorkerStatusBadge";
 import { useT } from "@/lib/i18n/useT";
 
-export default function WorkerCard({ worker, hideHireActions = false }) {
+export default function WorkerCard({ worker }) {
   const t = useT();
   const {
     id,
@@ -72,24 +72,14 @@ export default function WorkerCard({ worker, hideHireActions = false }) {
         </span>
       </div>
 
-      {hideHireActions ? (
-        <Link
-          href={`/workers/${id}`}
-          className="flex items-center justify-center gap-2 w-full border-2 border-brand-navy text-brand-navy font-bold text-sm py-3 rounded-xl hover:bg-brand-navy hover:text-white transition-colors min-h-12"
-          aria-label={`View ${name} profile`}
-        >
-          <span className="font-hindi">{t({ hi: 'प्रोफ़ाइल देखें', en: 'View Profile' })}</span>
-        </Link>
-      ) : (
-        <Link
-          href={`/workers/${id}`}
-          className="flex items-center justify-center gap-2 w-full bg-brand-navy text-white font-bold text-base py-3 rounded-xl hover:opacity-90 transition-opacity min-h-12"
-          aria-label={`Call ${name}`}
-        >
-          <Phone size={18} />
-          <span className="font-hindi">{t({ hi: 'अभी कॉल करें', en: 'Call Now' })}</span>
-        </Link>
-      )}
+      <Link
+        href={`/workers/${id}`}
+        className="flex items-center justify-center gap-2 w-full bg-brand-navy text-white font-bold text-base py-3 rounded-xl hover:opacity-90 transition-opacity min-h-12"
+        aria-label={`Call ${name}`}
+      >
+        <Phone size={18} />
+        <span className="font-hindi">{t({ hi: 'अभी कॉल करें', en: 'Call Now' })}</span>
+      </Link>
     </div>
   );
 }
