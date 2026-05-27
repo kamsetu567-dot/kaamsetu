@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { PlusCircle, LogOut, Star, User, ShieldCheck, ExternalLink } from "lucide-react";
+import AdSlot from "@/components/AdSlot";
 
 const STATUS_CONFIG = {
   pending: { bg: "bg-yellow-100", text: "text-yellow-700", label: "⏳ Worker ढूंढ रहे हैं" },
@@ -142,6 +143,8 @@ export default function ClientDashboardPage() {
           <LogOut size={14} /> Logout
         </button>
       </div>
+
+      <AdSlot variant="banner-narrow" limit={1} />
 
       {/* My requests */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">

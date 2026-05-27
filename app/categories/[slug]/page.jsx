@@ -4,6 +4,7 @@ import { ArrowRight, Search } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import EmptyState from "@/components/EmptyState";
+import AdSlot from "@/components/AdSlot";
 import { getCategoryBySlug, CATEGORIES } from "@/lib/data/categories";
 
 export function generateStaticParams() {
@@ -53,6 +54,8 @@ export default async function CategoryPage({ params }) {
         </div>
 
         <div className="max-w-7xl mx-auto px-4 pb-8">
+
+        <AdSlot variant="banner-wide" category={category.slug} limit={1} className="mb-6" />
 
         {/* Subcategories */}
         <div className="mb-8">
