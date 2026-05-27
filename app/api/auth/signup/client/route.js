@@ -1,6 +1,7 @@
 import { connectDB } from "@/lib/db/mongoose";
 import User from "@/lib/models/User";
 import Client from "@/lib/models/Client";
+import OTP from "@/lib/models/OTP";
 import { signToken, verifyToken } from "@/lib/utils/jwt";
 import { ok, error, created } from "@/lib/utils/apiResponse";
 import { logger } from "@/lib/utils/logger";
@@ -15,9 +16,20 @@ export async function POST(request) {
 
     if (!verifyTokenStr) return error("OTP verification required before signup");
     const tokenPayload = verifyToken(verifyTokenStr);
-    if (!tokenPayload) return error("OTP verification required before signup");
+    if (!tokenPayload || !tokenPayload.otpId || tokenPayload.mobile !== mobile) {
+      return error("OTP proof invalid or expired. Please verify your OTP again.");
+    }
 
     await connectDB();
+
+    // Atomically burn the OTP proof — second use of the same token gets null
+    const claimedOtp = await OTP.findOneAndUpdate(
+      { _id: tokenPayload.otpId, mobile, verified: true, consumed: false },
+      { $set: { consumed: true } }
+    );
+    if (!claimedOtp) {
+      return error("OTP proof already used or expired. Please verify your OTP again.");
+    }
 
     let user = await User.findOne({ mobile });
     if (user && user.role !== "client") return error("Mobile already registered with a different role");

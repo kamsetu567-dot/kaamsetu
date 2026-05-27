@@ -21,7 +21,7 @@ export async function POST(request) {
       return error("Valid email address is required");
     }
 
-    const { allowed, retryAfter } = limiter(mobile);
+    const { allowed, retryAfter } = await limiter(mobile);
     if (!allowed) {
       return error(`Too many OTP requests. Try again in ${retryAfter}s`, 429);
     }

@@ -9,6 +9,8 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+
 export async function POST(request) {
   try {
     if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
@@ -27,6 +29,10 @@ export async function POST(request) {
 
     if (!file || typeof file === "string") {
       return error("No file provided");
+    }
+
+    if (file.size > MAX_FILE_SIZE) {
+      return error(`File too large. Maximum ${MAX_FILE_SIZE / (1024 * 1024)}MB allowed.`, 413);
     }
 
     const bytes = await file.arrayBuffer();

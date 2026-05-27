@@ -24,6 +24,11 @@ export async function GET(request) {
         if (!workerProfile || workerProfile.status !== "approved") {
           return ok({ jobs: [] });
         }
+        // Workers with lapsed subscriptions can't accept jobs — hide the feed
+        // so they're not staring at clickable-but-broken cards
+        if (!workerProfile.subscriptionExpiry || workerProfile.subscriptionExpiry < new Date()) {
+          return ok({ jobs: [] });
+        }
 
         const workerCoords = workerProfile.location?.coordinates?.coordinates;
         const radiusKm = parseInt(searchParams.get("radius") || "50");

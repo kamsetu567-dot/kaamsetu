@@ -1,6 +1,7 @@
 import { connectDB } from "@/lib/db/mongoose";
 import User from "@/lib/models/User";
 import Worker from "@/lib/models/Worker";
+import OTP from "@/lib/models/OTP";
 import { signToken, verifyToken } from "@/lib/utils/jwt";
 import { ok, error, created } from "@/lib/utils/apiResponse";
 import { logger } from "@/lib/utils/logger";
@@ -35,9 +36,20 @@ export async function POST(request) {
     if (!aadharFrontUrl) return error("Aadhar card front photo is required");
     if (!token) return error("OTP verification required before signup");
     const tokenPayload = verifyToken(token);
-    if (!tokenPayload) return error("OTP verification required before signup");
+    if (!tokenPayload || !tokenPayload.otpId || tokenPayload.mobile !== mobile) {
+      return error("OTP proof invalid or expired. Please verify your OTP again.");
+    }
 
     await connectDB();
+
+    // Atomically burn the OTP proof — single-use across all signup endpoints
+    const claimedOtp = await OTP.findOneAndUpdate(
+      { _id: tokenPayload.otpId, mobile, verified: true, consumed: false },
+      { $set: { consumed: true } }
+    );
+    if (!claimedOtp) {
+      return error("OTP proof already used or expired. Please verify your OTP again.");
+    }
 
     const existingWorker = await Worker.findOne({ mobile });
     if (existingWorker) {

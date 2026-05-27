@@ -14,7 +14,7 @@ export async function POST(request) {
 
     if (!mobile || !otp) return error("mobile and otp are required");
 
-    const { allowed, retryAfter } = limiter(mobile);
+    const { allowed, retryAfter } = await limiter(mobile);
     if (!allowed) {
       return error(`Too many attempts. Try again in ${retryAfter}s`, 429);
     }
@@ -28,15 +28,16 @@ export async function POST(request) {
     if (new Date() > record.expiresAt) {
       return error("OTP expired / OTP expire हो गया", 400);
     }
-
-    record.attempts += 1;
     if (record.attempts >= 5) {
-      await record.save();
-      return error("Too many attempts / बहुत अधिक प्रयास", 429);
+      return error("Too many wrong attempts. Please request a new OTP.", 429);
     }
 
     if (record.otp !== otp) {
+      record.attempts += 1;
       await record.save();
+      if (record.attempts >= 5) {
+        return error("Too many wrong attempts. Please request a new OTP.", 429);
+      }
       return error("Invalid OTP / गलत OTP", 400);
     }
 
@@ -47,8 +48,9 @@ export async function POST(request) {
 
     if (!user) {
       if (mode === "signup") {
-        // Short-lived proof token — only valid for 10 min (matches OTP window)
-        const token = signToken({ mobile }, "10m");
+        // Proof token is bound to this specific OTP doc so signup can
+        // atomically burn it (single-use) — prevents replay across roles.
+        const token = signToken({ mobile, otpId: record._id.toString() }, "10m");
         return ok({ token, mobile, isNewUser: true });
       }
       return error("Account not found. Please sign up first.", 404);

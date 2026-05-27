@@ -20,17 +20,27 @@ export async function POST(request, { params }) {
 
     const worker = await Worker.findOne({ user: payload.id }).lean();
     if (!worker) return error("Worker profile not found");
-    if (worker.status !== "approved") return error("Your account is not approved yet.", 403);
-    if (!worker.subscriptionExpiry || worker.subscriptionExpiry < new Date()) {
-      return error("Your subscription has expired. Please renew to accept jobs.", 403);
-    }
 
-    // Step 1 — Atomically claim the worker slot (prevents accepting two jobs in parallel)
+    // Step 1 — Atomically claim the worker slot. The filter checks all
+    // accept-time invariants (free, approved, valid subscription) in one shot,
+    // closing the TOCTOU window between read and write.
     const claimedWorker = await Worker.findOneAndUpdate(
-      { _id: worker._id, workStatus: "free" },
+      {
+        _id: worker._id,
+        workStatus: "free",
+        status: "approved",
+        subscriptionExpiry: { $gt: new Date() },
+      },
       { $set: { workStatus: "working" } }
     );
     if (!claimedWorker) {
+      // Atomic claim failed — re-read once to give a specific error
+      const fresh = await Worker.findById(worker._id).lean();
+      if (!fresh) return error("Worker profile not found");
+      if (fresh.status !== "approved") return error("Your account is not approved yet.", 403);
+      if (!fresh.subscriptionExpiry || fresh.subscriptionExpiry < new Date()) {
+        return error("Your subscription has expired. Please renew to accept jobs.", 403);
+      }
       return error("You already have an active job. Complete it before accepting a new one.", 409);
     }
 

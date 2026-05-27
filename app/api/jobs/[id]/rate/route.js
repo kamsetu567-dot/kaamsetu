@@ -19,10 +19,10 @@ export async function POST(request, { params }) {
     const { id } = await params;
     await connectDB();
 
-    const job = await JobRequest.findById(id);
+    const job = await JobRequest.findById(id).lean();
     if (!job) return notFound("Job not found");
     if (job.status !== "completed") return error("Can only rate completed jobs");
-    if (job.clientRating) return error("You have already rated this job");
+    if (!job.worker) return error("No worker assigned to this job");
 
     // Verify this client owns the job
     const client = await Client.findOne({ user: payload.id }).lean();
@@ -31,23 +31,41 @@ export async function POST(request, { params }) {
       job.clientMobile === payload.mobile;
     if (!isOwner) return forbidden("Not your job");
 
-    if (!job.worker) return error("No worker assigned to this job");
+    // Atomically claim the rating slot — second concurrent caller gets null
+    // ({ field: null } in Mongo matches both missing and explicitly-null)
+    const claimed = await JobRequest.findOneAndUpdate(
+      { _id: id, clientRating: null },
+      { $set: { clientRating: rating } },
+      { new: true }
+    );
+    if (!claimed) return error("You have already rated this job");
 
-    // Compute new average rating for the worker
-    const worker = await Worker.findById(job.worker);
-    if (!worker) return error("Worker not found");
-
-    const prevTotal = worker.rating * worker.totalRatings;
-    const newTotalRatings = worker.totalRatings + 1;
-    const newRating = parseFloat(((prevTotal + rating) / newTotalRatings).toFixed(2));
-
-    await Worker.findByIdAndUpdate(worker._id, {
-      rating: newRating,
-      totalRatings: newTotalRatings,
-    });
-
-    job.clientRating = rating;
-    await job.save();
+    // Atomically recompute the worker's running average via aggregation
+    // pipeline update — keeps concurrent ratings on different jobs for the
+    // same worker from clobbering each other
+    await Worker.findByIdAndUpdate(job.worker, [
+      {
+        $set: {
+          rating: {
+            $round: [
+              {
+                $divide: [
+                  {
+                    $add: [
+                      { $multiply: [{ $ifNull: ["$rating", 0] }, { $ifNull: ["$totalRatings", 0] }] },
+                      rating,
+                    ],
+                  },
+                  { $add: [{ $ifNull: ["$totalRatings", 0] }, 1] },
+                ],
+              },
+              2,
+            ],
+          },
+          totalRatings: { $add: [{ $ifNull: ["$totalRatings", 0] }, 1] },
+        },
+      },
+    ]);
 
     return ok({ message: "Rating submitted. Thank you!", rating });
   } catch (err) {

@@ -1,5 +1,6 @@
 import { connectDB } from "@/lib/db/mongoose";
 import Worker from "@/lib/models/Worker";
+import JobRequest from "@/lib/models/JobRequest";
 import { verifyToken, getTokenFromRequest } from "@/lib/utils/jwt";
 import { ok, error, unauthorized } from "@/lib/utils/apiResponse";
 
@@ -18,15 +19,31 @@ export async function PATCH(request) {
 
     await connectDB();
 
-    const worker = await Worker.findOneAndUpdate(
+    const worker = await Worker.findOne({ user: payload.id }).lean();
+    if (!worker) return error("Worker profile not found");
+
+    // Block self-flipping to 'free' while a job is still active — otherwise a
+    // worker could accept multiple jobs in parallel by resetting their own status
+    if (workStatus === "free") {
+      const activeJob = await JobRequest.findOne({
+        worker: worker._id,
+        status: { $in: ["accepted", "in_progress"] },
+      }).lean();
+      if (activeJob) {
+        return error(
+          "Complete or reject your active job before going free.",
+          409
+        );
+      }
+    }
+
+    const updated = await Worker.findOneAndUpdate(
       { user: payload.id },
       { workStatus },
       { new: true }
     ).lean();
 
-    if (!worker) return error("Worker profile not found");
-
-    return ok({ workStatus: worker.workStatus });
+    return ok({ workStatus: updated.workStatus });
   } catch (err) {
     console.error("PATCH /api/workers/status error:", err);
     return error("Server error", 500);

@@ -17,7 +17,7 @@ const limiter = createRateLimit(10, 15 * 60 * 1000); // 10 per 15 min per IP
 export async function POST(request) {
   try {
     const ip = request.headers.get("x-forwarded-for") || "unknown";
-    const { allowed, retryAfter } = limiter(ip);
+    const { allowed, retryAfter } = await limiter(ip);
     if (!allowed) {
       return error(`Too many login attempts. Try again in ${retryAfter}s`, 429);
     }
