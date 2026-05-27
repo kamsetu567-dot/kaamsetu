@@ -65,8 +65,12 @@ export async function POST(request) {
       });
     } catch (createError) {
       await User.findByIdAndDelete(user._id);
-      logger.error("Shop create failed", { msg: createError.message });
-      return error("Shop registration failed. Please try again.", 500);
+      logger.error("Shop create failed", { msg: createError.message, code: createError.code, name: createError.name });
+      if (createError.name === "ValidationError") {
+        const fields = Object.keys(createError.errors || {}).join(", ");
+        return error(`Missing or invalid shop fields: ${fields}`, 400);
+      }
+      return error(`Shop registration failed: ${createError.message}`, 500);
     }
 
     const newToken = signToken({ id: user._id, mobile, role: "shop" });
@@ -77,10 +81,15 @@ export async function POST(request) {
       user: { id: user._id, mobile, name: ownerName, role: "shop" },
     });
   } catch (err) {
-    logger.error("[SHOP_SIGNUP] error", { msg: err.message, code: err.code });
+    logger.error("[SHOP_SIGNUP] error", { msg: err.message, code: err.code, name: err.name, stack: err.stack });
     if (err.code === 11000) {
       return error("Mobile number already registered", 409);
     }
-    return error("Server error", 500);
+    if (err.name === "ValidationError") {
+      const fields = Object.keys(err.errors || {}).join(", ");
+      return error(`Missing or invalid: ${fields}`, 400);
+    }
+    // Temporarily expose error message so we can see what's actually failing
+    return error(`Server error: ${err.message}`, 500);
   }
 }
