@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import {
   PlusCircle, X, Upload, CheckCircle, Eye,
   MousePointerClick, TrendingUp, Trash2, Megaphone,
-  Tag, Loader2,
+  Tag, Loader2, Copy, Smartphone, ChevronLeft,
 } from "lucide-react";
 import CategorySelect from "@/components/CategorySelect";
 import EmptyState from "@/components/EmptyState";
@@ -45,6 +45,7 @@ function CreateAdForm({ onCreated, onCancel }) {
   const [preview,   setPreview]   = useState(null);     // object URL for display
   const [loading,   setLoading]   = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [stage,     setStage]     = useState("form"); // "form" | "payment"
 
   const daysNum = parseInt(days, 10);
   const validDays = Number.isFinite(daysNum) && daysNum >= MIN_DAYS && daysNum <= MAX_DAYS;
@@ -58,10 +59,20 @@ function CreateAdForm({ onCreated, onCancel }) {
     setCreative(b64);
   }
 
-  async function onSubmit(e) {
+  function onSubmit(e) {
     e.preventDefault();
     if (!adType || !category) { toast.error("Ad type और category चुनें"); return; }
     if (!validDays) { toast.error(`Days must be between ${MIN_DAYS} and ${MAX_DAYS}`); return; }
+    // Move to payment stage. The actual ad doesn't get created in the DB
+    // until the shop confirms payment on the next screen.
+    setStage("payment");
+  }
+
+  // Called from <AdPaymentScreen> after the shop hits "I have paid via UPI".
+  // This is where the ad finally lands in the DB with status: "pending".
+  // When PayU/Razorpay is wired in the future, the gateway's success
+  // webhook will call this same code path instead of the manual button.
+  async function confirmPayment() {
     setLoading(true);
     try {
       const token = localStorage.getItem("kaamsetu_token");
@@ -75,9 +86,11 @@ function CreateAdForm({ onCreated, onCancel }) {
         setSubmitted(true);
       } else {
         toast.error(data.message || "Ad submit failed");
+        setStage("form");
       }
     } catch {
       toast.error("Network error");
+      setStage("form");
     } finally {
       setLoading(false);
     }
@@ -95,6 +108,18 @@ function CreateAdForm({ onCreated, onCancel }) {
           ठीक है / Done
         </button>
       </div>
+    );
+  }
+
+  if (stage === "payment") {
+    return (
+      <AdPaymentScreen
+        amount={totalCost}
+        days={daysNum}
+        onPaid={confirmPayment}
+        onBack={() => setStage("form")}
+        submitting={loading}
+      />
     );
   }
 
@@ -245,9 +270,120 @@ function CreateAdForm({ onCreated, onCancel }) {
 
       <button type="submit" disabled={!canSubmit}
         className="w-full bg-brand-navy text-white font-black text-xl py-5 rounded-2xl hover:bg-blue-900 transition-colors disabled:opacity-40 flex items-center justify-center gap-2 font-hindi">
-        {loading ? <><Loader2 size={20} className="animate-spin" /> Submit हो रहा है...</> : "Ad Submit करें / Submit for Review"}
+        Payment / आगे बढ़ें {validDays && `· ₹${totalCost}`}
       </button>
     </form>
+  );
+}
+
+// Manual UPI payment screen. Shown after the shop fills the form and
+// before the ad lands in the DB. When PayU/Razorpay is wired later,
+// this whole component gets replaced with a gateway redirect — the rest
+// of the flow (onPaid -> confirmPayment -> POST /api/shop/ads) stays.
+function AdPaymentScreen({ amount, days, onPaid, onBack, submitting }) {
+  const toast = useToast();
+  const [config, setConfig] = useState({ upiId: "", qrCodeUrl: "" });
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/payment-config")
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) setConfig({ upiId: data.upiId || "", qrCodeUrl: data.qrCodeUrl || "" });
+      })
+      .catch(() => {});
+  }, []);
+
+  function copyUpi() {
+    if (!config.upiId) return;
+    navigator.clipboard?.writeText(config.upiId).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
+
+  const upiDeepLink = config.upiId
+    ? `upi://pay?pa=${encodeURIComponent(config.upiId)}&pn=KaamSetu&am=${amount}&cu=INR&tn=${encodeURIComponent(`Ad for ${days} days`)}`
+    : null;
+
+  return (
+    <div className="bg-white rounded-3xl border-2 border-brand-navy p-6 space-y-5">
+      <div className="flex items-center justify-between">
+        <button type="button" onClick={onBack} disabled={submitting}
+          className="flex items-center gap-1 text-gray-500 hover:text-brand-navy text-sm font-semibold disabled:opacity-40">
+          <ChevronLeft size={16} /> Back
+        </button>
+        <h3 className="font-black text-brand-navy text-lg font-hindi">Payment</h3>
+        <span className="w-12" /> {/* spacer for symmetry */}
+      </div>
+
+      {/* Amount headline */}
+      <div className="bg-green-50 border-2 border-green-200 rounded-2xl p-5 text-center">
+        <p className="text-xs text-green-700 font-semibold uppercase tracking-wide">Amount due</p>
+        <p className="text-5xl font-black text-green-700 mt-1">₹{amount}</p>
+        <p className="text-xs text-gray-500 mt-1 font-hindi">
+          {days} {days === 1 ? "day" : "days"} × ₹{PRICE_PER_DAY} per day
+        </p>
+      </div>
+
+      {/* QR */}
+      <div className="text-center">
+        <p className="text-xs font-semibold text-gray-500 mb-2 font-hindi">QR Code scan करें / Scan QR</p>
+        <div className="inline-block bg-white border-2 border-gray-200 rounded-2xl p-3">
+          {config.qrCodeUrl ? (
+            <img src={config.qrCodeUrl} alt="UPI QR" className="w-48 h-48 object-contain" />
+          ) : (
+            <div className="w-48 h-48 bg-gray-100 rounded-xl flex items-center justify-center text-gray-400 text-xs text-center px-4">
+              QR not set by admin yet — use UPI ID below
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* UPI ID */}
+      {config.upiId && (
+        <div className="bg-brand-bg border-2 border-gray-200 rounded-2xl px-4 py-3 flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-xs text-gray-500">UPI ID</p>
+            <p className="font-bold text-brand-navy text-base truncate">{config.upiId}</p>
+          </div>
+          <button type="button" onClick={copyUpi}
+            className="flex items-center gap-1.5 bg-brand-navy text-white font-semibold text-sm px-3 py-2 rounded-lg hover:opacity-90 flex-shrink-0">
+            <Copy size={14} />
+            {copied ? "Copied!" : "Copy"}
+          </button>
+        </div>
+      )}
+
+      {/* Mobile UPI app deep-link */}
+      {upiDeepLink && (
+        <a href={upiDeepLink}
+          className="flex items-center justify-center gap-2 w-full bg-blue-600 text-white font-bold py-3.5 rounded-2xl hover:bg-blue-700 transition-colors">
+          <Smartphone size={18} />
+          <span className="font-hindi">UPI app में खोलें / Open in UPI app</span>
+        </a>
+      )}
+
+      {/* Steps */}
+      <ol className="text-xs text-gray-600 space-y-1 list-decimal list-inside bg-gray-50 rounded-xl p-3">
+        <li>QR scan करें या UPI ID copy करके payment app में paste करें</li>
+        <li>Exactly ₹{amount} pay करें</li>
+        <li>Payment हो जाने पर नीचे "I have paid" button दबाएँ</li>
+        <li>Admin verification के बाद आपका ad live हो जाएगा</li>
+      </ol>
+
+      {/* Confirm */}
+      <button type="button" onClick={onPaid} disabled={submitting}
+        className="w-full bg-green-600 text-white font-black text-lg py-4 rounded-2xl hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 font-hindi">
+        {submitting
+          ? (<><Loader2 size={20} className="animate-spin" /> Submit हो रहा है...</>)
+          : (<><CheckCircle size={20} /> Payment हो गई / I have paid</>)}
+      </button>
+
+      <p className="text-[11px] text-gray-400 text-center">
+        Auto payment verification coming soon. Right now admin manually approves.
+      </p>
+    </div>
   );
 }
 
