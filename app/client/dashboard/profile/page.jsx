@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { User, MapPin, Phone, CheckCircle, Loader2 } from "lucide-react";
+import { User, MapPin, Phone, CheckCircle, Loader2, Crosshair } from "lucide-react";
 import { useToast } from "@/components/Toast";
 
 export default function ClientProfilePage() {
@@ -19,6 +19,8 @@ export default function ClientProfilePage() {
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
   const [pincode, setPincode] = useState("");
+  const [coords, setCoords] = useState(null); // { lat, lng } | null
+  const [detecting, setDetecting] = useState(false);
 
   useEffect(() => {
     const token = typeof window !== "undefined" ? localStorage.getItem("kaamsetu_token") : null;
@@ -44,6 +46,11 @@ export default function ClientProfilePage() {
           setCity(c.location?.city || "");
           setState(c.location?.state || "");
           setPincode(c.location?.pincode || "");
+          const stored = c.location?.coordinates?.coordinates;
+          if (Array.isArray(stored) && stored.length === 2) {
+            // GeoJSON stores [lng, lat]
+            setCoords({ lng: stored[0], lat: stored[1] });
+          }
         }
       } catch (err) {
         toast.error("Failed to load profile");
@@ -54,18 +61,51 @@ export default function ClientProfilePage() {
     load();
   }, []);
 
+  function detectLocation() {
+    if (detecting) return;
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      toast.error("Your browser doesn't support location / Browser location support नहीं करता");
+      return;
+    }
+    setDetecting(true);
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setDetecting(false);
+        toast.success("Location detected! Click Save to apply / Save दबाएँ");
+      },
+      err => {
+        setDetecting(false);
+        const msg = err.code === 1
+          ? "Location permission denied / Browser में location allow करें"
+          : err.code === 3
+          ? "Location request timed out / दोबारा try करें"
+          : "Couldn't get your location";
+        toast.error(msg);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
+    );
+  }
+
   async function handleSave(e) {
     e.preventDefault();
     if (!name.trim()) { toast.error("Name is required / नाम जरूरी है"); return; }
     setSaving(true);
     try {
       const token = localStorage.getItem("kaamsetu_token");
+      const locationPayload = { address, city, state, pincode };
+      if (coords) {
+        locationPayload.coordinates = {
+          type: "Point",
+          coordinates: [coords.lng, coords.lat],
+        };
+      }
       const res = await fetch("/api/client/me", {
         method: "PATCH",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           name: name.trim(),
-          location: { address, city, state, pincode },
+          location: locationPayload,
         }),
       });
       const data = await res.json();
@@ -144,6 +184,44 @@ export default function ClientProfilePage() {
           <h3 className="font-black text-brand-navy font-hindi flex items-center gap-2">
             <MapPin size={16} /> Location / पता
           </h3>
+
+          {/* GPS coordinates — used by the distance filter on /workers */}
+          <div className={`rounded-2xl p-4 border-2 ${coords ? "bg-green-50 border-green-200" : "bg-yellow-50 border-yellow-200"}`}>
+            <div className="flex items-start gap-3">
+              <Crosshair size={20} className={`flex-shrink-0 mt-0.5 ${coords ? "text-green-600" : "text-yellow-700"}`} />
+              <div className="flex-1 min-w-0">
+                <p className={`font-bold text-sm ${coords ? "text-green-700" : "text-yellow-800"}`}>
+                  {coords ? "GPS location saved" : "GPS location not set"}
+                </p>
+                <p className={`text-xs mt-0.5 ${coords ? "text-green-700/80" : "text-yellow-700"}`}>
+                  {coords
+                    ? `Lat ${coords.lat.toFixed(5)}, Lng ${coords.lng.toFixed(5)}`
+                    : "Needed to filter workers by distance (5/10/20 km)"}
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={detectLocation}
+              disabled={detecting}
+              className="mt-3 w-full flex items-center justify-center gap-2 bg-brand-navy text-white font-bold text-sm py-2.5 rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50"
+            >
+              {detecting ? (
+                <><Loader2 size={14} className="animate-spin" /> Detecting…</>
+              ) : (
+                <><Crosshair size={14} /> {coords ? "Update my location" : "Detect my location"}</>
+              )}
+            </button>
+            {coords && (
+              <button
+                type="button"
+                onClick={() => setCoords(null)}
+                className="mt-2 w-full text-xs text-gray-500 hover:text-red-600"
+              >
+                Clear saved GPS
+              </button>
+            )}
+          </div>
 
           <div>
             <label className="block text-xs font-semibold text-gray-500 mb-1.5 font-hindi">
