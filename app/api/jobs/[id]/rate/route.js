@@ -64,6 +64,8 @@ export async function POST(request, { params }) {
     return ok({ message: "Rating submitted. Thank you!", rating, newAverage: workerDoc ? undefined : null });
   } catch (err) {
     console.error("POST /api/jobs/[id]/rate error:", err.message, err.stack);
-    return error("Server error", 500);
+    // Temporarily expose the real error message so we can see what's failing
+    // in production. Remove once root cause is fixed.
+    return error(`Server error: ${err.message}`, 500);
   }
 }
