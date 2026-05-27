@@ -22,10 +22,13 @@ export async function POST(request) {
     let user = await User.findOne({ mobile });
     if (user && user.role !== "client") return error("Mobile already registered with a different role");
 
+    let userCreatedHere = false;
     if (!user) {
       user = await User.create({ mobile, name, email: email || "", role: "client" });
+      userCreatedHere = true;
     } else {
       user.name = name;
+      if (email) user.email = email;
       await user.save();
     }
 
@@ -37,7 +40,8 @@ export async function POST(request) {
       locationData.coordinates = { type: "Point", coordinates: [parseFloat(lng), parseFloat(lat)] };
     }
 
-    let client = await Client.findOne({ user: user._id });
+    // Search by mobile to recover orphaned Client docs from previous failed signups
+    let client = await Client.findOne({ mobile });
     if (!client) {
       try {
         client = await Client.create({
@@ -47,12 +51,17 @@ export async function POST(request) {
           location: locationData,
         });
       } catch (clientErr) {
-        // If Client creation fails after User was created, clean up the orphaned User
-        await User.findByIdAndDelete(user._id);
-        logger.error("Client create failed, rolled back User", { err: clientErr.message });
+        // Only roll back the User if we created it in this request
+        if (userCreatedHere) {
+          await User.findByIdAndDelete(user._id);
+        }
+        logger.error("Client create failed", { err: clientErr.message });
         return error("Registration failed. Please try again.", 500);
       }
     } else {
+      // Update existing client (possibly orphaned from a previous attempt)
+      client.user = user._id;
+      client.name = name;
       client.location = { ...locationData };
       await client.save();
     }
