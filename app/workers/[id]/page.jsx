@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useState, useEffect, useCallback } from "react";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -13,9 +13,8 @@ import Footer from "@/components/Footer";
 import WorkerStatusBadge from "@/components/WorkerStatusBadge";
 import RatingStars from "@/components/RatingStars";
 import EmptyState from "@/components/EmptyState";
-import { getWorkerById } from "@/lib/api/workers";
+import { useToast } from "@/components/Toast";
 
-// Skeleton for the full profile while loading
 function ProfileSkeleton() {
   return (
     <div className="animate-pulse space-y-5">
@@ -35,7 +34,6 @@ function ProfileSkeleton() {
   );
 }
 
-// Simple photo gallery carousel
 function PhotoGallery({ photos, name }) {
   const [idx, setIdx] = useState(0);
   if (!photos || photos.length === 0) return null;
@@ -67,7 +65,6 @@ function PhotoGallery({ photos, name }) {
           >
             <ChevronRight size={18} />
           </button>
-          {/* Dots */}
           <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
             {photos.map((_, i) => (
               <button
@@ -89,19 +86,81 @@ function PhotoGallery({ photos, name }) {
 
 export default function WorkerProfilePage() {
   const { id } = useParams();
+  const router = useRouter();
+  const toast = useToast();
+
   const [worker, setWorker] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(null); // null | "not_found" | "server_error" | "network_error"
+
   const [requestSent, setRequestSent] = useState(false);
+  const [showRequestForm, setShowRequestForm] = useState(false);
+  const [requestDescription, setRequestDescription] = useState("");
+  const [sendingRequest, setSendingRequest] = useState(false);
+
   const [showReport, setShowReport] = useState(false);
   const [reportReason, setReportReason] = useState("");
   const [reportDesc, setReportDesc] = useState("");
   const [reportSubmitted, setReportSubmitted] = useState(false);
 
+  const loadWorker = useCallback(() => {
+    if (!id) return;
+    setLoading(true);
+    setFetchError(null);
+    fetch(`/api/workers/${id}`)
+      .then(async res => {
+        if (!res.ok) {
+          setFetchError(res.status === 404 ? "not_found" : "server_error");
+          return;
+        }
+        const data = await res.json();
+        setWorker(data.worker || null);
+      })
+      .catch(() => setFetchError("network_error"))
+      .finally(() => setLoading(false));
+  }, [id]);
+
+  useEffect(() => { loadWorker(); }, [loadWorker]);
+
+  async function handleSendRequest() {
+    const token = typeof window !== "undefined" ? localStorage.getItem("kaamsetu_token") : null;
+    if (!token) {
+      router.push("/auth/login");
+      return;
+    }
+    setSendingRequest(true);
+    try {
+      const res = await fetch("/api/jobs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          workerId: worker.id || worker._id,
+          category: worker.category,
+          subcategory: worker.subcategory || "",
+          description: requestDescription,
+          source: "search",
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.message || "Request failed. Please try again.");
+        return;
+      }
+      setRequestSent(true);
+      setShowRequestForm(false);
+      setRequestDescription("");
+    } catch {
+      toast.error("Network error. Please try again.");
+    } finally {
+      setSendingRequest(false);
+    }
+  }
+
   async function submitReport() {
     if (!reportReason) return;
     try {
       const token = typeof window !== "undefined" ? localStorage.getItem("kaamsetu_token") : null;
-      if (!token) { alert("Please login to report"); return; }
+      if (!token) { toast.error("Please login to report"); return; }
       await fetch("/api/reports", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
@@ -110,12 +169,6 @@ export default function WorkerProfilePage() {
       setReportSubmitted(true);
     } catch {}
   }
-
-  useEffect(() => {
-    getWorkerById(id)
-      .then(setWorker)
-      .finally(() => setLoading(false));
-  }, [id]);
 
   const serviceTypeLabel = {
     home_visit: { hi: "घर पर आकर", en: "Home Visit" },
@@ -128,7 +181,6 @@ export default function WorkerProfilePage() {
       <Header />
       <main className="flex-1 bg-neutral-bg pb-28">
 
-        {/* Back nav + blue bar */}
         <div className="bg-primary-blue px-4 py-4">
           <div className="max-w-2xl mx-auto">
             <Link
@@ -157,66 +209,40 @@ export default function WorkerProfilePage() {
             <div className="bg-white rounded-3xl border-2 border-border-light p-6">
               <ProfileSkeleton />
             </div>
-          ) : worker === null ? (
-            /* Worker not found (API returns null for now) — show placeholder */
-            <div className="bg-white rounded-3xl border-2 border-border-light p-6">
-              <div className="text-center py-8">
-                <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
-                  <User size={48} className="text-gray-400" />
-                </div>
-                <p
-                  className="text-xl font-black text-text-primary mb-1"
-                  style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
-                >
-                  वर्कर का प्रोफ़ाइल
-                </p>
-                <p className="text-text-secondary text-sm mb-1">Worker Profile</p>
-                <div className="inline-flex items-center gap-2 mt-2">
-                  <WorkerStatusBadge status="free" size="md" />
-                </div>
 
-                {/* Demo info block */}
-                <div className="mt-6 bg-neutral-bg rounded-2xl p-4 text-left space-y-3">
-                  <InfoRow icon={Star} label="Rating / रेटिंग" value="— (No data yet)" />
-                  <InfoRow icon={Clock} label="Experience / अनुभव" value="— years" />
-                  <InfoRow icon={MapPin} label="Location / लोकेशन" value="—" />
-                  <InfoRow icon={User} label="Gender / लिंग" value="—" />
-                  <InfoRow icon={ShieldCheck} label="Service Type / सेवा प्रकार" value="—" />
-                </div>
-
-                {/* Work photos placeholder */}
-                <div className="mt-5 text-left">
-                  <h3
-                    className="font-bold text-text-primary mb-2"
-                    style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
-                  >
-                    काम की फ़ोटो / Work Photos
-                  </h3>
-                  <div className="bg-gray-100 rounded-2xl h-40 flex items-center justify-center">
-                    <p className="text-text-secondary text-sm">No photos uploaded yet</p>
+          ) : fetchError ? (
+            <div className="bg-white rounded-3xl border-2 border-border-light p-6 text-center py-12">
+              {fetchError === "not_found" ? (
+                <>
+                  <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
+                    <User size={40} className="text-gray-400" />
                   </div>
-                </div>
-
-                {/* Skills/tags placeholder */}
-                <div className="mt-5 text-left">
-                  <h3
-                    className="font-bold text-text-primary mb-2"
-                    style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
+                  <p className="font-black text-text-primary text-lg mb-2">Worker Not Found</p>
+                  <p className="text-text-secondary text-sm mb-4">
+                    This profile is no longer available or has been removed.
+                  </p>
+                  <Link
+                    href="/workers"
+                    className="inline-block bg-primary-blue text-white font-bold py-2.5 px-6 rounded-2xl text-sm"
                   >
-                    Skills / हुनर
-                  </h3>
-                  <div className="flex flex-wrap gap-2">
-                    {["—", "—", "—"].map((s, i) => (
-                      <span key={i} className="bg-blue-50 text-primary-blue text-sm px-3 py-1 rounded-full border border-blue-100">
-                        {s}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
+                    Browse Workers
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <p className="font-black text-text-primary text-lg mb-2">Failed to load profile</p>
+                  <p className="text-text-secondary text-sm mb-4">Please check your internet and try again.</p>
+                  <button
+                    onClick={loadWorker}
+                    className="bg-primary-blue text-white font-bold py-2.5 px-6 rounded-2xl text-sm"
+                  >
+                    Try Again
+                  </button>
+                </>
+              )}
             </div>
-          ) : (
-            /* Real worker data */
+
+          ) : worker ? (
             <>
               {/* Header card */}
               <div className="bg-white rounded-3xl border-2 border-border-light p-6">
@@ -244,12 +270,11 @@ export default function WorkerProfilePage() {
                       <RatingStars rating={worker.rating || 0} size={16} />
                     </div>
                     <div className="mt-2">
-                      <WorkerStatusBadge status={worker.status || "free"} size="md" />
+                      <WorkerStatusBadge status={worker.workStatus || "free"} size="md" />
                     </div>
                   </div>
                 </div>
 
-                {/* Info rows */}
                 <div className="space-y-3 border-t border-border-light pt-4">
                   {worker.experience > 0 && (
                     <InfoRow icon={Clock}
@@ -286,7 +311,6 @@ export default function WorkerProfilePage() {
                 </div>
               </div>
 
-              {/* Work Photos */}
               {worker.workPhotos?.length > 0 && (
                 <div className="bg-white rounded-3xl border-2 border-border-light p-5">
                   <h3
@@ -299,7 +323,6 @@ export default function WorkerProfilePage() {
                 </div>
               )}
 
-              {/* Biodata */}
               {worker.biodata && (
                 <div className="bg-white rounded-3xl border-2 border-border-light p-5">
                   <h3 className="font-black text-text-primary mb-3" style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>
@@ -320,7 +343,6 @@ export default function WorkerProfilePage() {
                 </div>
               )}
 
-              {/* Skills */}
               {worker.skills?.length > 0 && (
                 <div className="bg-white rounded-3xl border-2 border-border-light p-5">
                   <h3
@@ -339,7 +361,6 @@ export default function WorkerProfilePage() {
                 </div>
               )}
 
-              {/* Report button */}
               <div className="flex justify-end">
                 <button onClick={() => setShowReport(true)}
                   className="flex items-center gap-1.5 text-xs text-red-400 hover:text-red-600 transition-colors py-1">
@@ -347,7 +368,6 @@ export default function WorkerProfilePage() {
                 </button>
               </div>
 
-              {/* Report modal */}
               {showReport && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
                   <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl">
@@ -395,7 +415,6 @@ export default function WorkerProfilePage() {
                 </div>
               )}
 
-              {/* Reviews */}
               <div className="bg-white rounded-3xl border-2 border-border-light p-5">
                 <h3
                   className="font-black text-text-primary mb-3"
@@ -412,63 +431,104 @@ export default function WorkerProfilePage() {
                 />
               </div>
             </>
-          )}
+          ) : null}
         </div>
 
-        {/* Sticky bottom action buttons */}
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-border-light px-4 py-3 z-40">
-          <div className="max-w-2xl mx-auto space-y-2">
-            {requestSent ? (
-              <div className="text-center bg-green-50 border-2 border-primary-green text-primary-green font-bold py-3 rounded-2xl">
-                <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>✅ Request भेज दी! / Request sent!</span>
+        {/* Sticky action bar — only when worker profile is loaded */}
+        {!loading && worker && (
+          <div className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-border-light px-4 py-3 z-40">
+            <div className="max-w-2xl mx-auto space-y-2">
+              {requestSent ? (
+                <div className="text-center bg-green-50 border-2 border-primary-green text-primary-green font-bold py-3 rounded-2xl">
+                  <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>✅ Request भेज दी! / Request sent!</span>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setShowRequestForm(true)}
+                  className="w-full flex items-center justify-center gap-2 border-2 border-primary-blue text-primary-blue font-bold py-2.5 rounded-2xl hover:bg-blue-50 transition-colors"
+                  aria-label="Send service request"
+                >
+                  <Send size={16} />
+                  <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>Request भेजें / Send Request</span>
+                </button>
+              )}
+              <div className="flex gap-2">
+                <a
+                  href={`tel:+91${worker.mobile}`}
+                  className="flex-1 flex items-center justify-center gap-1.5 bg-primary-green text-white font-bold py-2.5 rounded-2xl hover:bg-green-700 transition-colors text-sm"
+                  aria-label="Call worker"
+                >
+                  <Phone size={16} />
+                  <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>कॉल</span>
+                </a>
+                <a
+                  href={`https://wa.me/91${worker.mobile}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 flex items-center justify-center gap-1.5 bg-[#25D366] text-white font-bold py-2.5 rounded-2xl hover:opacity-90 transition-opacity text-sm"
+                  aria-label="WhatsApp worker"
+                >
+                  <MessageSquare size={16} />
+                  <span>WhatsApp</span>
+                </a>
+                <a
+                  href={`sms:+91${worker.mobile}`}
+                  className="flex-1 flex items-center justify-center gap-1.5 bg-gray-700 text-white font-bold py-2.5 rounded-2xl hover:bg-gray-800 transition-colors text-sm"
+                  aria-label="SMS worker"
+                >
+                  <Send size={16} />
+                  <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>Message</span>
+                </a>
               </div>
-            ) : (
-              <button
-                onClick={() => setRequestSent(true)}
-                className="w-full flex items-center justify-center gap-2 border-2 border-primary-blue text-primary-blue font-bold py-2.5 rounded-2xl hover:bg-blue-50 transition-colors"
-                aria-label="Send service request"
-              >
-                <Send size={16} />
-                <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>Request भेजें / Send Request</span>
-              </button>
-            )}
-            <div className="flex gap-2">
-              <a
-                href={worker?.mobile ? `tel:+91${worker.mobile}` : "#"}
-                className="flex-1 flex items-center justify-center gap-1.5 bg-primary-green text-white font-bold py-2.5 rounded-2xl hover:bg-green-700 transition-colors text-sm"
-                aria-label="Call worker"
-              >
-                <Phone size={16} />
-                <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>कॉल</span>
-              </a>
-              <a
-                href={worker?.mobile ? `https://wa.me/91${worker.mobile}` : "#"}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-1 flex items-center justify-center gap-1.5 bg-[#25D366] text-white font-bold py-2.5 rounded-2xl hover:opacity-90 transition-opacity text-sm"
-                aria-label="WhatsApp worker"
-              >
-                <MessageSquare size={16} />
-                <span>WhatsApp</span>
-              </a>
-              <a
-                href={worker?.mobile ? `sms:+91${worker.mobile}` : "#"}
-                className="flex-1 flex items-center justify-center gap-1.5 bg-gray-700 text-white font-bold py-2.5 rounded-2xl hover:bg-gray-800 transition-colors text-sm"
-                aria-label="SMS worker"
-              >
-                <Send size={16} />
-                <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>Message</span>
-              </a>
             </div>
           </div>
-        </div>
+        )}
+
+        {/* Send Request modal */}
+        {showRequestForm && worker && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-end">
+            <div className="bg-white rounded-t-3xl w-full p-6 space-y-4 max-w-2xl mx-auto">
+              <div>
+                <h3 className="font-black text-brand-navy text-lg" style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>
+                  Request भेजें
+                </h3>
+                <p className="text-sm text-gray-500 mt-0.5">
+                  {worker.name} · {worker.subcategory || worker.category}
+                </p>
+              </div>
+              <textarea
+                value={requestDescription}
+                onChange={e => setRequestDescription(e.target.value)}
+                placeholder="काम का विवरण लिखें (optional) / Describe the work (optional)"
+                rows={3}
+                className="w-full border-2 border-gray-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-brand-navy resize-none"
+                autoFocus
+              />
+              <button
+                onClick={handleSendRequest}
+                disabled={sendingRequest}
+                className="w-full bg-brand-navy text-white font-bold py-3.5 rounded-2xl disabled:opacity-50 transition-opacity"
+              >
+                {sendingRequest
+                  ? "भेज रहे हैं... / Sending..."
+                  : "Request भेजें / Send Request"}
+              </button>
+              <button
+                onClick={() => { setShowRequestForm(false); setRequestDescription(""); }}
+                className="w-full text-gray-500 font-semibold py-2 text-sm"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+
       </main>
       <Footer />
     </>
   );
 }
 
-// Small helper row for info items
 function InfoRow({ icon: Icon, label, value }) {
   return (
     <div className="flex items-center gap-3">
