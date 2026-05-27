@@ -1,8 +1,13 @@
 "use client";
 
+import { usePathname } from "next/navigation";
+
 const SUPPORT_NUMBER = process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP || "918410270299";
 
 export default function FloatingWhatsApp() {
+  const pathname = usePathname();
+  // Admin panel doesn't need a customer-support bubble
+  if (pathname?.startsWith("/admin")) return null;
   if (!SUPPORT_NUMBER) return null;
   return (
     <a
