@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { PlusCircle, LogOut, Star } from "lucide-react";
+import { PlusCircle, LogOut, Star, User, Phone, ShieldCheck, ExternalLink } from "lucide-react";
 
 const STATUS_CONFIG = {
   pending: { bg: "bg-yellow-100", text: "text-yellow-700", label: "⏳ Worker ढूंढ रहे हैं" },
@@ -198,17 +198,39 @@ export default function ClientDashboardPage() {
               )}
 
               {req.workerDetails && (
-                <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between gap-3">
-                  <div>
-                    <p className="font-semibold text-sm text-brand-navy">{req.workerDetails.name}</p>
-                    <p className="text-xs text-gray-400">
-                      ⭐ {req.workerDetails.rating || "New"} · {req.workerDetails.experience} yr exp
-                    </p>
+                <div className="mt-3 pt-3 border-t border-gray-100">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-11 h-11 rounded-full overflow-hidden bg-gray-100 flex-shrink-0 border-2 border-brand-navy">
+                      {req.workerDetails.photo ? (
+                        <img src={req.workerDetails.photo} alt={req.workerDetails.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center"><User size={22} className="text-gray-400" /></div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <p className="font-semibold text-sm text-brand-navy truncate">{req.workerDetails.name}</p>
+                        <ShieldCheck size={14} className="text-brand-navy flex-shrink-0" />
+                      </div>
+                      <p className="text-xs text-gray-400">
+                        ⭐ {req.workerDetails.rating || "New"} · {req.workerDetails.experience || 0} yr exp
+                      </p>
+                    </div>
                   </div>
-                  <a href={`tel:${req.workerDetails.mobile}`}
-                    className="bg-green-500 text-white px-4 py-2 rounded-xl text-sm font-bold flex-shrink-0 hover:bg-green-600 transition-colors">
-                    📞 Call
-                  </a>
+                  <div className="flex gap-2">
+                    <Link
+                      href={`/workers/${req.workerDetails.id}`}
+                      className="flex-1 inline-flex items-center justify-center gap-1.5 bg-brand-navy text-white font-bold text-sm py-2.5 rounded-xl hover:opacity-90 transition-opacity"
+                    >
+                      <ExternalLink size={14} /> View Profile
+                    </Link>
+                    <a
+                      href={`tel:${req.workerDetails.mobile}`}
+                      className="inline-flex items-center justify-center gap-1.5 border-2 border-green-500 text-green-600 font-bold text-sm px-4 py-2.5 rounded-xl hover:bg-green-50 transition-colors"
+                    >
+                      <Phone size={14} /> Call
+                    </a>
+                  </div>
                 </div>
               )}
 

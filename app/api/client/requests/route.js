@@ -30,9 +30,9 @@ export async function GET(request) {
     const workersById = {};
     if (workerIds.length > 0) {
       const workers = await Worker.find({ _id: { $in: workerIds } })
-        .select("name mobile rating experience")
+        .select("name mobile rating experience photo")
         .lean();
-      workers.forEach(w => { workersById[String(w._id)] = w; });
+      workers.forEach(w => { workersById[String(w._id)] = { ...w, id: w._id }; });
     }
 
     const requestsWithWorker = requests.map(req => ({
