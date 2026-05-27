@@ -33,6 +33,15 @@ export async function POST(request) {
 
     await connectDB();
 
+    // If caller passes { cleanupOrphans: true }, delete ads whose shop no
+    // longer exists in the shops collection.
+    let orphansDeleted = 0;
+    if (body.cleanupOrphans) {
+      const allShopIds = (await Shop.find({}).select("_id").lean()).map(s => String(s._id));
+      const result = await Ad.deleteMany({ shop: { $nin: allShopIds } });
+      orphansDeleted = result.deletedCount || 0;
+    }
+
     const ads = await Ad.find({}).sort({ createdAt: -1 }).lean();
     const shopIds = [...new Set(ads.map(a => String(a.shop)))];
     const shops = await Shop.find({ _id: { $in: shopIds } }).lean();
@@ -45,6 +54,7 @@ export async function POST(request) {
     users.forEach(u => { userMap[String(u._id)] = u; });
 
     return ok({
+      orphansDeleted,
       totalAds: ads.length,
       adsByStatus: ads.reduce((acc, a) => {
         acc[a.status] = (acc[a.status] || 0) + 1;

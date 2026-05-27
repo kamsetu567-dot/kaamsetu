@@ -1,6 +1,7 @@
 import { connectDB } from "@/lib/db/mongoose";
 import Shop from "@/lib/models/Shop";
 import User from "@/lib/models/User";
+import Ad from "@/lib/models/Ad";
 import { verifyToken, getTokenFromRequest } from "@/lib/utils/jwt";
 import { ok, error, unauthorized, notFound } from "@/lib/utils/apiResponse";
 
@@ -62,9 +63,11 @@ export async function PATCH(request, { params }) {
     }
 
     if (action === "delete") {
+      // Cascade: drop all the shop's ads so they don't orphan the admin Ads list
+      await Ad.deleteMany({ shop: id });
       await Shop.findByIdAndDelete(id);
       await User.findByIdAndUpdate(shop.user, { role: "client" });
-      return ok({ message: "Shop deleted" });
+      return ok({ message: "Shop and its ads deleted" });
     }
 
     return error("Invalid action");

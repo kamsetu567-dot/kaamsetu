@@ -30,12 +30,20 @@ export default function AdminAdsPage() {
   async function loadAds(status) {
     setLoading(true);
     try {
-      const token = localStorage.getItem("kaamsetu_token");
+      const token = localStorage.getItem("kaamsetu_admin_token");
       const q = status && status !== "all" ? `?status=${status}` : "";
       const res  = await fetch(`/api/admin/ads${q}`, { headers: { Authorization: `Bearer ${token}` } });
       const data = await res.json();
-      if (data.success) setAds(data.ads || []);
-    } catch {}
+      if (data.success) {
+        setAds(data.ads || []);
+      } else {
+        console.error("Admin ads fetch failed:", data.message);
+        setAds([]);
+      }
+    } catch (err) {
+      console.error("Admin ads network error:", err);
+      setAds([]);
+    }
     setLoading(false);
   }
 
@@ -44,7 +52,7 @@ export default function AdminAdsPage() {
   async function handleAction(adId, action) {
     setActionMap(m => ({ ...m, [adId]: action === "approve" ? "approving" : "rejecting" }));
     try {
-      const token = localStorage.getItem("kaamsetu_token");
+      const token = localStorage.getItem("kaamsetu_admin_token");
       const res  = await fetch(`/api/admin/ads/${adId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
