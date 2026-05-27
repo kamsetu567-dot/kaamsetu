@@ -289,8 +289,16 @@ export default function WorkerProfilePage() {
                       value={`${worker.experience} साल / years`}
                     />
                   )}
-                  {worker.location && (
-                    <InfoRow icon={MapPin} label="लोकेशन / Location" value={worker.location} />
+                  {(worker.location?.city || worker.location?.address || typeof worker.location === "string") && (
+                    <InfoRow
+                      icon={MapPin}
+                      label="लोकेशन / Location"
+                      value={
+                        typeof worker.location === "string"
+                          ? worker.location
+                          : [worker.location?.address, worker.location?.city].filter(Boolean).join(", ") || "—"
+                      }
+                    />
                   )}
                   {worker.gender && (
                     <InfoRow icon={User}
