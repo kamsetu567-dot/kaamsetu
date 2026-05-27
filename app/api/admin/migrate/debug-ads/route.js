@@ -1,0 +1,86 @@
+import { timingSafeEqual } from "crypto";
+import { connectDB } from "@/lib/db/mongoose";
+import Ad from "@/lib/models/Ad";
+import Shop from "@/lib/models/Shop";
+import User from "@/lib/models/User";
+import { ok, error, unauthorized } from "@/lib/utils/apiResponse";
+
+function safeCompare(a, b) {
+  try {
+    return timingSafeEqual(Buffer.from(a || "", "utf8"), Buffer.from(b || "", "utf8"));
+  } catch {
+    return false;
+  }
+}
+
+// Debug-only: dump every ad + the related shop + user state. Used to diagnose
+// "shop submitted ad but admin sees nothing" — usually a status filter or
+// orphaned reference. Auth via body-secret only (no JWT path) so it can be
+// called from any terminal.
+//
+// Call:
+//   curl -X POST https://www.kaamsetu.live/api/admin/migrate/debug-ads \
+//        -H "Content-Type: application/json" \
+//        -d '{"adminSecret":"<ADMIN_SECRET_PASSWORD>"}'
+export async function POST(request) {
+  try {
+    let body = {};
+    try { body = await request.json(); } catch {}
+    const expectedSecret = process.env.ADMIN_SECRET_PASSWORD;
+    if (!expectedSecret || !body?.adminSecret || !safeCompare(body.adminSecret, expectedSecret)) {
+      return unauthorized();
+    }
+
+    await connectDB();
+
+    const ads = await Ad.find({}).sort({ createdAt: -1 }).lean();
+    const shopIds = [...new Set(ads.map(a => String(a.shop)))];
+    const shops = await Shop.find({ _id: { $in: shopIds } }).lean();
+    const userIds = [...new Set(shops.map(s => String(s.user)))];
+    const users = await User.find({ _id: { $in: userIds } }).select("mobile email role status").lean();
+
+    const shopMap = {};
+    shops.forEach(s => { shopMap[String(s._id)] = s; });
+    const userMap = {};
+    users.forEach(u => { userMap[String(u._id)] = u; });
+
+    return ok({
+      totalAds: ads.length,
+      adsByStatus: ads.reduce((acc, a) => {
+        acc[a.status] = (acc[a.status] || 0) + 1;
+        return acc;
+      }, {}),
+      ads: ads.map(a => {
+        const shop = shopMap[String(a.shop)];
+        const user = shop ? userMap[String(shop.user)] : null;
+        return {
+          id: String(a._id),
+          status: a.status,
+          type: a.type,
+          category: a.category,
+          duration: a.duration,
+          budget: a.budget,
+          createdAt: a.createdAt,
+          hasCreative: !!a.creative,
+          shopId: String(a.shop),
+          shopExists: !!shop,
+          shopName: shop?.shopName,
+          shopStatus: shop?.status,
+          userMobile: user?.mobile,
+          userRole: user?.role,
+        };
+      }),
+      totalShops: shops.length,
+      shops: shops.map(s => ({
+        id: String(s._id),
+        shopName: s.shopName,
+        status: s.status,
+        userId: String(s.user),
+        userExists: !!userMap[String(s.user)],
+      })),
+    });
+  } catch (err) {
+    console.error("debug-ads error:", err);
+    return error("Debug failed: " + err.message, 500);
+  }
+}
