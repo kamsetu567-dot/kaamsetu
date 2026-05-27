@@ -82,6 +82,7 @@ export default function HomePage() {
   const [suggestions, setSuggestions] = useState([]);
   const [activeIdx, setActiveIdx] = useState(-1);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [showAllCategories, setShowAllCategories] = useState(false);
   const suggestionsRef = useRef(null);
 
   useEffect(() => {
@@ -308,7 +309,7 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-            {CATEGORIES.map(cat => (
+            {(showAllCategories ? CATEGORIES : CATEGORIES.slice(0, 8)).map(cat => (
               <Link
                 key={cat.slug}
                 href={`/categories/${cat.slug}`}
@@ -332,10 +333,17 @@ export default function HomePage() {
           </div>
 
           <div className="text-center mt-8">
-            <Link href="/categories"
-              className="inline-flex items-center gap-2 bg-brand-navy text-white font-bold px-6 py-2.5 rounded-xl hover:bg-brand-navy-dark transition-colors font-hindi text-sm">
-              {t({ hi: 'सभी सेवाएँ देखें', en: 'View All Services' })} <ArrowRight size={15} />
-            </Link>
+            {showAllCategories ? (
+              <Link href="/categories"
+                className="inline-flex items-center gap-2 bg-brand-navy text-white font-bold px-6 py-2.5 rounded-xl hover:bg-brand-navy-dark transition-colors font-hindi text-sm">
+                {t({ hi: 'सभी सेवाएँ देखें', en: 'View All Services' })} <ArrowRight size={15} />
+              </Link>
+            ) : (
+              <button onClick={() => setShowAllCategories(true)}
+                className="inline-flex items-center gap-2 bg-brand-navy text-white font-bold px-6 py-2.5 rounded-xl hover:bg-brand-navy-dark transition-colors font-hindi text-sm">
+                {t({ hi: 'सभी सेवाएँ देखें', en: 'View All Services' })} <ArrowRight size={15} />
+              </button>
+            )}
           </div>
         </div>
       </section>
