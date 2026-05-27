@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import Image from "next/image";
 import AdminSidebar from "@/components/AdminSidebar";
 import { Menu } from "lucide-react";
 import { isAdminLoggedIn } from "@/lib/utils/adminAuth";
@@ -70,6 +71,14 @@ export default function AdminLayout({ children }) {
           >
             <Menu size={22} />
           </button>
+          <Image
+            src="/logo.png"
+            alt="KaamSetu"
+            width={32}
+            height={32}
+            className="w-8 h-8 rounded-md object-contain flex-shrink-0"
+            unoptimized
+          />
           <span className="text-white font-black text-lg">KAAMSETU Admin</span>
         </div>
 

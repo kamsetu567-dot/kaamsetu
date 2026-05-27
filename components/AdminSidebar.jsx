@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, Users, UserCheck, Briefcase, CreditCard,
-  Tag, Bell, BarChart3, Settings, Shield, Megaphone, Search, Wrench, LogOut, Store,
+  Tag, Bell, BarChart3, Settings, Shield, Megaphone, Search, LogOut, Store,
   AlertTriangle, FolderOpen,
 } from "lucide-react";
 import { adminLogout } from "@/lib/utils/adminAuth";
@@ -41,9 +42,14 @@ export default function AdminSidebar() {
       {/* Logo */}
       <div className="p-5 border-b border-white/10">
         <Link href="/admin" className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-brand-yellow rounded-lg flex items-center justify-center">
-            <Wrench size={16} className="text-brand-navy" />
-          </div>
+          <Image
+            src="/logo.png"
+            alt="KaamSetu"
+            width={40}
+            height={40}
+            className="w-10 h-10 rounded-lg object-contain flex-shrink-0"
+            unoptimized
+          />
           <div>
             <span className="font-black text-white text-lg">KAAMSETU</span>
             <p className="text-white/50 text-xs">Admin Panel</p>

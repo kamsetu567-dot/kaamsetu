@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -46,8 +47,15 @@ export default function AdminLoginPage() {
     <div className="min-h-screen bg-brand-navy flex items-center justify-center px-4">
       <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-brand-navy rounded-2xl flex items-center justify-center mx-auto mb-4 text-3xl">
-            🔐
+          <div className="w-16 h-16 bg-brand-navy rounded-2xl flex items-center justify-center mx-auto mb-4 overflow-hidden p-2">
+            <Image
+              src="/logo.png"
+              alt="KaamSetu"
+              width={48}
+              height={48}
+              className="w-full h-full object-contain"
+              unoptimized
+            />
           </div>
           <h1 className="text-2xl font-bold text-gray-900">KaamSetu Admin</h1>
           <p className="text-gray-500 mt-1 text-sm">Authorized Access Only</p>
