@@ -45,9 +45,9 @@ export default function AdminSidebar() {
           <Image
             src="/logo.png"
             alt="KaamSetu"
-            width={40}
-            height={40}
-            className="w-10 h-10 rounded-lg object-contain flex-shrink-0"
+            width={56}
+            height={56}
+            className="w-14 h-14 rounded-xl object-contain flex-shrink-0"
             unoptimized
           />
           <div>

@@ -74,9 +74,9 @@ export default function AdminLayout({ children }) {
           <Image
             src="/logo.png"
             alt="KaamSetu"
-            width={32}
-            height={32}
-            className="w-8 h-8 rounded-md object-contain flex-shrink-0"
+            width={44}
+            height={44}
+            className="w-11 h-11 rounded-lg object-contain flex-shrink-0"
             unoptimized
           />
           <span className="text-white font-black text-lg">KAAMSETU Admin</span>
