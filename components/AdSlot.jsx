@@ -54,9 +54,20 @@ export default function AdSlot({
     );
   }
 
+  // banner-wide: 1/2/3-up flex row. Single ad sits centered with a
+  // max-w-md cap so it doesn't stretch the full content column; two ads
+  // share half-and-half within max-w-3xl; three ads fill the full row.
+  // Below 640px they stack vertically.
+  const rowMaxW = ads.length === 1 ? "max-w-md" : ads.length === 2 ? "max-w-3xl" : "max-w-full";
   return (
-    <div className={className}>
-      {ads.map(ad => <WideBanner key={String(ad.id)} ad={ad} />)}
+    <div className={`mx-auto ${rowMaxW} ${className}`}>
+      <div className="flex flex-col sm:flex-row gap-3">
+        {ads.map(ad => (
+          <div key={String(ad.id)} className="flex-1 min-w-0">
+            <WideBanner ad={ad} />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -74,38 +85,38 @@ function WideBanner({ ad }) {
   return (
     <a
       href={shop?.mobile ? `tel:+91${shop.mobile}` : "#"}
-      className="block bg-white rounded-2xl border-2 border-brand-yellow overflow-hidden hover:shadow-lg transition-shadow"
+      className="block bg-white rounded-2xl border-2 border-brand-yellow overflow-hidden hover:shadow-lg transition-shadow h-full"
     >
-      <div className="flex items-stretch">
+      <div className="flex items-stretch h-full">
         {ad.creative ? (
           <img
             src={ad.creative}
             alt={shop?.shopName || "Sponsored"}
-            className="w-32 h-28 sm:w-44 sm:h-32 object-cover flex-shrink-0"
+            className="w-24 h-24 sm:w-28 sm:h-28 object-cover flex-shrink-0"
           />
         ) : (
-          <div className="w-32 sm:w-44 bg-brand-navy flex items-center justify-center flex-shrink-0">
-            <Store size={36} className="text-brand-yellow" />
+          <div className="w-24 h-24 sm:w-28 sm:h-28 bg-brand-navy flex items-center justify-center flex-shrink-0">
+            <Store size={28} className="text-brand-yellow" />
           </div>
         )}
-        <div className="flex-1 min-w-0 p-3 sm:p-4 flex flex-col justify-between">
+        <div className="flex-1 min-w-0 p-3 flex flex-col justify-between">
           <div>
             <div className="flex items-center gap-2 mb-1 flex-wrap">
               <SponsoredLabel />
-              {shop?.city && <span className="text-xs text-gray-500">📍 {shop.city}</span>}
+              {shop?.city && <span className="text-[10px] text-gray-500 truncate">📍 {shop.city}</span>}
             </div>
-            <p className="font-black text-brand-navy text-base sm:text-lg leading-tight truncate">
+            <p className="font-black text-brand-navy text-sm sm:text-base leading-tight truncate">
               {shop?.shopName || "Local Business"}
             </p>
-            <p className="text-xs text-gray-500 mt-0.5 truncate">{ad.category}</p>
+            <p className="text-[11px] text-gray-500 mt-0.5 truncate">{ad.category}</p>
           </div>
           {shop?.mobile && (
-            <div className="flex gap-2 mt-2">
-              <span className="inline-flex items-center gap-1 bg-primary-green text-white text-xs font-bold px-2.5 py-1.5 rounded-lg">
-                <Phone size={12} /> Call
+            <div className="flex gap-1.5 mt-2">
+              <span className="inline-flex items-center gap-1 bg-primary-green text-white text-[10px] font-bold px-2 py-1 rounded-md">
+                <Phone size={10} /> Call
               </span>
-              <span className="inline-flex items-center gap-1 bg-[#25D366] text-white text-xs font-bold px-2.5 py-1.5 rounded-lg">
-                <MessageSquare size={12} /> WhatsApp
+              <span className="inline-flex items-center gap-1 bg-[#25D366] text-white text-[10px] font-bold px-2 py-1 rounded-md">
+                <MessageSquare size={10} /> WhatsApp
               </span>
             </div>
           )}

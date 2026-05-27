@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import {
   PlusCircle, X, Upload, CheckCircle, Eye,
   MousePointerClick, TrendingUp, Trash2, Megaphone,
-  Tag, Clock, Loader2,
+  Tag, Loader2,
 } from "lucide-react";
 import CategorySelect from "@/components/CategorySelect";
 import EmptyState from "@/components/EmptyState";
@@ -17,11 +17,9 @@ const AD_TYPES = [
   { value: "featured", hi: "Featured Listing",  en: "Shop listed at top of search results", icon: Tag, tag: "Best Value" },
 ];
 
-const DURATION_OPTIONS = [
-  { days: 30, label: "30 दिन / days", discount: null },
-  { days: 60, label: "60 दिन / days", discount: "10% off" },
-  { days: 90, label: "90 दिन / days", discount: "20% off" },
-];
+const PRICE_PER_DAY = 100; // ₹100 / day flat
+const MIN_DAYS = 1;
+const MAX_DAYS = 90;
 
 function compressImage(file, maxPx = 1000, quality = 0.7) {
   return new Promise(resolve => {
@@ -42,12 +40,15 @@ function CreateAdForm({ onCreated, onCancel }) {
   const toast = useToast();
   const [adType,    setAdType]    = useState("");
   const [category,  setCategory]  = useState("");
-  const [duration,  setDuration]  = useState(30);
-  const [budget,    setBudget]    = useState("");
-  const [creative,  setCreative]  = useState(null);   // base64 string
-  const [preview,   setPreview]   = useState(null);   // object URL for display
+  const [days,      setDays]      = useState("7");      // string so the input is empty-friendly
+  const [creative,  setCreative]  = useState(null);     // base64 string
+  const [preview,   setPreview]   = useState(null);     // object URL for display
   const [loading,   setLoading]   = useState(false);
   const [submitted, setSubmitted] = useState(false);
+
+  const daysNum = parseInt(days, 10);
+  const validDays = Number.isFinite(daysNum) && daysNum >= MIN_DAYS && daysNum <= MAX_DAYS;
+  const totalCost = validDays ? daysNum * PRICE_PER_DAY : 0;
 
   async function handleCreativeUpload(e) {
     const file = e.target.files?.[0];
@@ -60,14 +61,14 @@ function CreateAdForm({ onCreated, onCancel }) {
   async function onSubmit(e) {
     e.preventDefault();
     if (!adType || !category) { toast.error("Ad type और category चुनें"); return; }
-    if (!budget || Number(budget) < 100) { toast.error("Minimum budget ₹100 है"); return; }
+    if (!validDays) { toast.error(`Days must be between ${MIN_DAYS} and ${MAX_DAYS}`); return; }
     setLoading(true);
     try {
       const token = localStorage.getItem("kaamsetu_token");
       const res = await fetch("/api/shop/ads", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ type: adType, category, duration, budget: Number(budget), creative }),
+        body: JSON.stringify({ type: adType, category, duration: daysNum, budget: totalCost, creative }),
       });
       const data = await res.json();
       if (data.success) {
@@ -97,8 +98,7 @@ function CreateAdForm({ onCreated, onCancel }) {
     );
   }
 
-  const budgetNum = Number(budget);
-  const canSubmit = adType && category && budgetNum >= 100 && !loading;
+  const canSubmit = adType && category && validDays && !loading;
 
   return (
     <form onSubmit={onSubmit} className="bg-white rounded-3xl border-2 border-brand-navy p-6 space-y-6">
@@ -155,43 +155,56 @@ function CreateAdForm({ onCreated, onCancel }) {
           placeholder="-- Category चुनें / Select Category --" />
       </FieldSection>
 
-      {/* Duration */}
-      <FieldSection labelHi="Duration / अवधि" labelEn="How long should the ad run? *">
-        <div className="grid grid-cols-3 gap-3">
-          {DURATION_OPTIONS.map(opt => (
-            <button key={opt.days} type="button" onClick={() => setDuration(opt.days)}
-              className={`flex flex-col items-center py-3 px-2 rounded-2xl border-2 transition-all ${
-                duration === opt.days
-                  ? "border-brand-navy bg-blue-50 text-brand-navy"
-                  : "border-gray-200 text-gray-500 hover:border-brand-navy"
-              }`}>
-              <Clock size={16} className="mb-1" />
-              <span className="font-bold text-sm text-center leading-tight font-hindi">{opt.label}</span>
-              {opt.discount && <span className="text-xs mt-1 text-green-600 font-semibold">{opt.discount}</span>}
-            </button>
-          ))}
+      {/* Days + cost */}
+      <FieldSection labelHi="Duration / कितने दिन" labelEn="How many days should the ad run? *">
+        <div className="flex items-center gap-3">
+          <div className="relative flex-1">
+            <input
+              type="number"
+              min={MIN_DAYS}
+              max={MAX_DAYS}
+              inputMode="numeric"
+              placeholder="7"
+              value={days}
+              onChange={e => setDays(e.target.value.replace(/\D/g, "").slice(0, 3))}
+              className="w-full pl-4 pr-16 py-4 text-lg border-2 border-gray-200 rounded-xl focus:outline-none focus:border-brand-navy"
+            />
+            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-semibold font-hindi">दिन / days</span>
+          </div>
+        </div>
+        {days && !validDays && (
+          <p className="text-red-500 text-sm mt-2">Enter a number between {MIN_DAYS} and {MAX_DAYS}</p>
+        )}
+        <div className="mt-3 bg-brand-bg border-2 border-gray-200 rounded-2xl p-4 flex items-center justify-between">
+          <div>
+            <p className="text-xs text-gray-500 font-hindi">रेट / Rate</p>
+            <p className="text-sm font-bold text-brand-navy">₹{PRICE_PER_DAY} / day</p>
+          </div>
+          <div className="text-right">
+            <p className="text-xs text-gray-500 font-hindi">कुल / Total</p>
+            <p className="text-2xl font-black text-green-600">
+              {validDays ? `₹${totalCost}` : "—"}
+            </p>
+            {validDays && (
+              <p className="text-xs text-gray-400">{daysNum} × ₹{PRICE_PER_DAY}</p>
+            )}
+          </div>
         </div>
       </FieldSection>
 
-      {/* Budget */}
-      <FieldSection labelHi="Budget / बजट" labelEn="How much do you want to spend? *">
-        <div className="relative">
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold text-lg">₹</span>
-          <input
-            type="number" min={100} inputMode="numeric" placeholder="500"
-            value={budget} onChange={e => setBudget(e.target.value)}
-            className="w-full pl-10 pr-4 py-4 text-lg border-2 border-gray-200 rounded-xl focus:outline-none focus:border-brand-navy"
-          />
-        </div>
-        {budget && budgetNum < 100 && (
-          <p className="text-red-500 text-sm mt-1">Minimum ₹100</p>
-        )}
-        {budget && budgetNum >= 100 && (
-          <p className="text-gray-500 text-xs mt-1">
-            {duration} days · Final amount: <span className="font-bold text-brand-navy">₹{budget}</span>
-          </p>
-        )}
-      </FieldSection>
+      {/* Creative guidelines */}
+      <div className="bg-yellow-50 border-2 border-brand-yellow rounded-2xl p-4">
+        <p className="font-bold text-brand-navy text-sm mb-2 font-hindi">
+          📐 Image Guidelines / इमेज नियम
+        </p>
+        <ul className="text-xs text-gray-700 space-y-1.5 leading-relaxed">
+          <li>• <strong>Recommended size:</strong> 1200 × 400 px (banner aspect ~3:1)</li>
+          <li>• <strong>Format:</strong> JPG or PNG, max 5 MB (auto-compressed)</li>
+          <li>• <strong>Safe area:</strong> keep text & logo at least 50 px from each edge — edges may crop on small screens</li>
+          <li>• <strong>Don't include phone numbers in the image</strong> — your shop's phone is shown next to the ad automatically</li>
+          <li>• High-contrast, readable text works best on small phone screens</li>
+        </ul>
+      </div>
 
       {/* Creative */}
       <FieldSection labelHi="Ad Creative / विज्ञापन इमेज" labelEn="Upload banner image or logo (optional)">
@@ -220,13 +233,13 @@ function CreateAdForm({ onCreated, onCancel }) {
       </FieldSection>
 
       {/* Summary */}
-      {adType && category && budgetNum >= 100 && (
+      {adType && category && validDays && (
         <div className="bg-brand-bg border-2 border-gray-200 rounded-2xl p-4 space-y-2 text-sm">
           <p className="font-bold text-brand-navy font-hindi">Ad Summary / सारांश</p>
           <SummaryRow label="Type"     value={AD_TYPES.find(t => t.value === adType)?.hi || adType} />
           <SummaryRow label="Category" value={category} />
-          <SummaryRow label="Duration" value={`${duration} days`} />
-          <SummaryRow label="Budget"   value={`₹${budget}`} bold />
+          <SummaryRow label="Duration" value={`${daysNum} day${daysNum === 1 ? "" : "s"}`} />
+          <SummaryRow label="Total"    value={`₹${totalCost}`} bold />
         </div>
       )}
 
@@ -407,18 +420,23 @@ export default function ShopAdsPage() {
 
       <div className="bg-white rounded-3xl border-2 border-gray-200 p-5">
         <h3 className="font-black text-brand-navy mb-4 font-hindi">Pricing / कीमत</h3>
-        <div className="space-y-3 text-sm">
+        <div className="bg-green-50 border-2 border-green-200 rounded-2xl p-4 mb-3 text-center">
+          <p className="text-3xl font-black text-green-700">₹{PRICE_PER_DAY} <span className="text-base font-bold text-green-600">/ day</span></p>
+          <p className="text-xs text-gray-500 mt-1 font-hindi">Flat rate — pick any duration from {MIN_DAYS} to {MAX_DAYS} days</p>
+        </div>
+        <div className="space-y-2 text-sm">
           {[
-            { duration: "30 दिन / 30 days", price: "आपके budget के अनुसार", note: "Minimum ₹100" },
-            { duration: "60 दिन / 60 days", price: "10% discount",           note: "More reach" },
-            { duration: "90 दिन / 90 days", price: "20% discount",           note: "Best value" },
+            { days: 1,   note: "Try it out / एक दिन" },
+            { days: 7,   note: "One week / एक सप्ताह" },
+            { days: 30,  note: "Monthly / महीना" },
+            { days: 90,  note: "Best value / सबसे ज़्यादा reach" },
           ].map(row => (
-            <div key={row.duration} className="flex items-center justify-between py-2.5 border-b border-gray-200 last:border-0">
+            <div key={row.days} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
               <div>
-                <p className="font-semibold text-brand-navy font-hindi">{row.duration}</p>
-                <p className="text-gray-500 text-xs">{row.note}</p>
+                <p className="font-semibold text-brand-navy">{row.days} day{row.days === 1 ? "" : "s"}</p>
+                <p className="text-gray-500 text-xs font-hindi">{row.note}</p>
               </div>
-              <span className="font-bold text-green-600">{row.price}</span>
+              <span className="font-bold text-green-600">₹{row.days * PRICE_PER_DAY}</span>
             </div>
           ))}
         </div>

@@ -55,7 +55,7 @@ export default async function CategoryPage({ params }) {
 
         <div className="max-w-7xl mx-auto px-4 pb-8">
 
-        <AdSlot variant="banner-wide" category={category.slug} limit={1} className="mb-6" />
+        <AdSlot variant="banner-wide" category={category.slug} limit={3} className="mb-6" />
 
         {/* Subcategories */}
         <div className="mb-8">

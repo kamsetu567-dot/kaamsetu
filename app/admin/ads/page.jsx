@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { CheckCircle, XCircle, Eye, MousePointerClick, TrendingUp, Megaphone } from "lucide-react";
+import { CheckCircle, XCircle, Eye, MousePointerClick, TrendingUp, Megaphone, X } from "lucide-react";
 import EmptyState from "@/components/EmptyState";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 
@@ -26,6 +26,7 @@ export default function AdminAdsPage() {
   const [filter,      setFilter]      = useState("all");
   const [actionMap,   setActionMap]   = useState({}); // adId → "approving"|"rejecting"
   const [rejectNote,  setRejectNote]  = useState({}); // adId → string
+  const [zoomSrc,     setZoomSrc]     = useState(null); // creative URL when zoom modal open
 
   async function loadAds(status) {
     setLoading(true);
@@ -68,6 +69,27 @@ export default function AdminAdsPage() {
 
   return (
     <div className="space-y-5 max-w-5xl">
+      {zoomSrc && (
+        <div
+          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
+          onClick={() => setZoomSrc(null)}
+        >
+          <button
+            type="button"
+            onClick={() => setZoomSrc(null)}
+            className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"
+            aria-label="Close"
+          >
+            <X size={20} />
+          </button>
+          <img
+            src={zoomSrc}
+            alt="Ad creative full size"
+            className="max-w-full max-h-full object-contain rounded-xl"
+            onClick={e => e.stopPropagation()}
+          />
+        </div>
+      )}
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-black text-brand-navy flex items-center gap-2">
@@ -100,7 +122,7 @@ export default function AdminAdsPage() {
             const id = String(ad.id || ad._id);
             const busy = actionMap[id];
             return (
-              <div key={id} className="bg-white rounded-2xl border-2 border-gray-200 p-5">
+              <div key={id} className="bg-white rounded-2xl border-2 border-gray-200 p-4">
                 <div className="flex items-start justify-between gap-3 mb-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
@@ -117,7 +139,19 @@ export default function AdminAdsPage() {
                 </div>
 
                 {ad.creative && (
-                  <img src={ad.creative} alt="Ad creative" className="w-full h-36 object-cover rounded-xl mb-3" />
+                  <button
+                    type="button"
+                    onClick={() => setZoomSrc(ad.creative)}
+                    className="block w-full mb-3 group"
+                    aria-label="View full-size creative"
+                  >
+                    <img
+                      src={ad.creative}
+                      alt="Ad creative"
+                      className="w-full max-h-48 object-contain bg-gray-50 rounded-xl group-hover:opacity-90 transition-opacity"
+                    />
+                    <p className="text-[10px] text-gray-400 mt-1 text-center">Click image to zoom</p>
+                  </button>
                 )}
 
                 {/* Metrics */}
@@ -172,7 +206,9 @@ export default function AdminAdsPage() {
                 {/* Active ad expiry info */}
                 {ad.status === "active" && ad.expiresAt && (
                   <p className="text-xs text-gray-400 pt-3 border-t border-gray-100">
-                    Expires: <span className="font-semibold text-brand-navy">{ad.expiresAt}</span>
+                    Expires: <span className="font-semibold text-brand-navy">
+                      {new Date(ad.expiresAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                    </span>
                   </p>
                 )}
               </div>
