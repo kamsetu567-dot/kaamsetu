@@ -3,9 +3,10 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { User, Star, CreditCard, Briefcase, LogOut, CheckCircle, Clock } from "lucide-react";
+import { User, Star, CreditCard, Briefcase, LogOut, CheckCircle, Clock, Play, Trophy, MapPin } from "lucide-react";
 import { useToast } from "@/components/Toast";
 import SubscriptionCountdown from "@/components/SubscriptionCountdown";
+import { getJobHistory } from "@/lib/api/jobs";
 
 export default function WorkerDashboardOverview() {
   const router = useRouter();
@@ -14,6 +15,17 @@ export default function WorkerDashboardOverview() {
   const [worker, setWorker] = useState(null);
   const [status, setStatus] = useState("free");
   const [statusLoading, setStatusLoading] = useState(false);
+  const [activeJob, setActiveJob] = useState(null);
+  const [jobActionLoading, setJobActionLoading] = useState(null); // "start" | "complete"
+
+  async function loadActiveJob(userId) {
+    if (!userId) return;
+    try {
+      const jobs = await getJobHistory(userId);
+      const active = jobs.find(j => j.status === "accepted" || j.status === "in_progress");
+      setActiveJob(active || null);
+    } catch {}
+  }
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -42,7 +54,56 @@ export default function WorkerDashboardOverview() {
       } catch (err) { console.error("Failed to load worker profile:", err); }
     }
     loadWorker();
+
+    // Load currently active (accepted / in_progress) job so the worker can
+    // start or complete it from the dashboard. Without this surface, the
+    // worker has no way to mark a job complete after navigating away.
+    try {
+      const parsedUser = JSON.parse(localStorage.getItem("kaamsetu_user") || "{}");
+      if (parsedUser.id) loadActiveJob(parsedUser.id);
+    } catch {}
   }, []);
+
+  async function handleStartJob() {
+    if (!activeJob || jobActionLoading) return;
+    setJobActionLoading("start");
+    try {
+      const token = localStorage.getItem("kaamsetu_token");
+      const res = await fetch(`/api/jobs/${activeJob.id}/start`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (data.success) {
+        setActiveJob({ ...activeJob, status: "in_progress" });
+        toast.success("काम शुरू हुआ / Work started");
+      } else {
+        toast.error(data.message || "Could not start job");
+      }
+    } catch { toast.error("Network error"); }
+    finally { setJobActionLoading(null); }
+  }
+
+  async function handleCompleteJob() {
+    if (!activeJob || jobActionLoading) return;
+    setJobActionLoading("complete");
+    try {
+      const token = localStorage.getItem("kaamsetu_token");
+      const res = await fetch(`/api/jobs/${activeJob.id}/complete`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (data.success) {
+        setActiveJob(null);
+        setStatus("free");
+        toast.success("काम पूरा हुआ / Job completed");
+      } else {
+        toast.error(data.message || "Could not complete job");
+      }
+    } catch { toast.error("Network error"); }
+    finally { setJobActionLoading(null); }
+  }
 
   async function toggleStatus() {
     if (statusLoading) return;
@@ -55,9 +116,12 @@ export default function WorkerDashboardOverview() {
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ workStatus: newStatus }),
       });
+      const data = await res.json();
       if (res.ok) {
         setStatus(newStatus);
         toast.success(newStatus === "working" ? "काम शुरू हो गया!" : "काम खत्म हो गया!");
+      } else {
+        toast.error(data?.message || "Status update failed");
       }
     } catch { toast.error("Status update failed"); }
     finally { setStatusLoading(false); }
@@ -97,13 +161,52 @@ export default function WorkerDashboardOverview() {
             {isFree ? "खाली हूँ / Free" : "काम पर हूँ / Working"}
           </p>
         </div>
-        <button onClick={toggleStatus} disabled={statusLoading || !worker}
+        <button onClick={toggleStatus} disabled={statusLoading || !worker || !!activeJob}
           className={`w-full font-bold py-4 rounded-2xl transition-colors disabled:opacity-50 font-hindi ${
             isFree ? "bg-green-600 text-white hover:bg-green-700" : "bg-red-500 text-white hover:bg-red-600"
           }`}>
           {statusLoading ? "⏳ अपडेट हो रहा है..." : isFree ? "काम पर जाएं / Start Work" : "काम खत्म / End Work"}
         </button>
+        {activeJob && (
+          <p className="text-xs text-orange-700 mt-2 text-center font-hindi">
+            पहले नीचे active job को complete करें / Complete your active job below first
+          </p>
+        )}
       </div>
+
+      {/* Active Job */}
+      {activeJob && (
+        <div className="bg-orange-50 rounded-3xl border-2 border-orange-300 p-5 space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="font-black text-orange-800 text-lg font-hindi">सक्रिय जॉब / Active Job</h3>
+            <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-orange-100 text-orange-700">
+              {activeJob.status === "in_progress" ? "In Progress" : "Accepted"}
+            </span>
+          </div>
+          <div className="bg-white rounded-2xl p-4 border border-orange-200">
+            <p className="font-bold text-brand-navy">{activeJob.subcategory || activeJob.category}</p>
+            <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+              <MapPin size={12} /> {activeJob.location || "—"}
+            </p>
+            {activeJob.description && (
+              <p className="text-sm text-gray-600 mt-2 bg-gray-50 rounded-lg px-3 py-2">{activeJob.description}</p>
+            )}
+          </div>
+          {activeJob.status === "accepted" ? (
+            <button onClick={handleStartJob} disabled={!!jobActionLoading}
+              className="w-full flex items-center justify-center gap-2 bg-orange-500 text-white font-bold py-3 rounded-2xl hover:bg-orange-600 transition-colors disabled:opacity-50">
+              <Play size={18} />
+              <span className="font-hindi">{jobActionLoading === "start" ? "Starting..." : "काम शुरू करें / Start Work"}</span>
+            </button>
+          ) : (
+            <button onClick={handleCompleteJob} disabled={!!jobActionLoading}
+              className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white font-bold py-3 rounded-2xl hover:bg-blue-700 transition-colors disabled:opacity-50">
+              <Trophy size={18} />
+              <span className="font-hindi">{jobActionLoading === "complete" ? "Completing..." : "काम पूरा / Mark Complete"}</span>
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Quick Stats */}
       <div className="grid grid-cols-3 gap-3">

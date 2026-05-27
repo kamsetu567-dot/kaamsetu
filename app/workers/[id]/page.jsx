@@ -475,6 +475,7 @@ export default function WorkerProfilePage() {
                 >
                   <Phone size={16} />
                   <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>कॉल</span>
+                  <span className="opacity-75">+91 {worker.mobile}</span>
                 </a>
                 <a
                   href={`https://wa.me/91${worker.mobile}`}
@@ -485,14 +486,6 @@ export default function WorkerProfilePage() {
                 >
                   <MessageSquare size={16} />
                   <span>WhatsApp</span>
-                </a>
-                <a
-                  href={`sms:+91${worker.mobile}`}
-                  className="flex-1 flex items-center justify-center gap-1.5 bg-gray-700 text-white font-bold py-2.5 rounded-2xl hover:bg-gray-800 transition-colors text-sm"
-                  aria-label="SMS worker"
-                >
-                  <Send size={16} />
-                  <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>Message</span>
                 </a>
               </div>
             </div>
