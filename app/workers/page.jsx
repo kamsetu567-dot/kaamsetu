@@ -1,7 +1,9 @@
 ﻿"use client";
 
 import { useState, useEffect, Suspense } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { MapPin, Info } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import WorkerCard from "@/components/WorkerCard";
@@ -10,6 +12,7 @@ import EmptyState from "@/components/EmptyState";
 import LoadingSkeleton, { WorkerCardSkeleton } from "@/components/LoadingSkeleton";
 import { useFilters } from "@/lib/context/FilterContext";
 import { getWorkers } from "@/lib/api/workers";
+import { apiGet } from "@/lib/api/client";
 
 function SaveRequestModal({ onClose }) {
   const [name, setName] = useState("");
@@ -89,6 +92,9 @@ function WorkerList() {
   const [workers, setWorkers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [role, setRole] = useState(null);
+  const [clientCoords, setClientCoords] = useState(null); // { lat, lng } | null
+  const [coordsResolved, setCoordsResolved] = useState(false); // true once we know whether client has GPS
 
   // Pre-fill filters from URL params (e.g. from /categories/[slug])
   useEffect(() => {
@@ -97,15 +103,77 @@ function WorkerList() {
     if (cat || sub) updateFilters({ category: cat || "", subcategory: sub || "" });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Read role from localStorage + fetch client coordinates (for distance filter)
+  useEffect(() => {
+    let userRole = null;
+    try {
+      const user = JSON.parse(localStorage.getItem("kaamsetu_user") || "{}");
+      userRole = user.role || null;
+    } catch {}
+    setRole(userRole);
+
+    // Only clients need their saved GPS — workers don't use distance filter
+    if (userRole === "client") {
+      apiGet("/api/client/me")
+        .then(data => {
+          const coords = data?.client?.location?.coordinates?.coordinates;
+          if (Array.isArray(coords) && coords.length === 2) {
+            // GeoJSON stores [lng, lat]
+            setClientCoords({ lng: coords[0], lat: coords[1] });
+          }
+        })
+        .catch(() => {})
+        .finally(() => setCoordsResolved(true));
+    } else {
+      setCoordsResolved(true);
+    }
+  }, []);
+
   useEffect(() => {
     setLoading(true);
-    getWorkers(filters)
+    const augmented = clientCoords
+      ? { ...filters, lat: clientCoords.lat, lng: clientCoords.lng }
+      : filters;
+    getWorkers(augmented)
       .then(setWorkers)
       .finally(() => setLoading(false));
-  }, [filters]);
+  }, [filters, clientCoords]);
+
+  // Banner: shown when a logged-in client uses the distance filter without saved GPS
+  const showLocationBanner =
+    coordsResolved && role === "client" && !clientCoords && filters.distance > 0;
 
   return (
     <>
+      {role === "worker" && (
+        <div className="mb-4 flex items-start gap-3 bg-blue-50 border-2 border-blue-200 rounded-2xl px-4 py-3">
+          <Info size={18} className="text-blue-600 flex-shrink-0 mt-0.5" />
+          <p className="text-sm text-blue-900">
+            You are signed in as a worker. Hiring features (call, WhatsApp, send request) are hidden on this page.
+          </p>
+        </div>
+      )}
+
+      {showLocationBanner && (
+        <div className="mb-4 flex items-start gap-3 bg-yellow-50 border-2 border-yellow-200 rounded-2xl px-4 py-3">
+          <MapPin size={18} className="text-yellow-700 flex-shrink-0 mt-0.5" />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm text-yellow-900 font-semibold">
+              Add your location to use the distance filter accurately
+            </p>
+            <p className="text-xs text-yellow-800 mt-0.5">
+              Showing workers from your city instead. Update your profile to enable km-based matching.
+            </p>
+          </div>
+          <Link
+            href="/client/dashboard/profile"
+            className="bg-yellow-600 text-white text-xs font-bold px-3 py-2 rounded-lg hover:bg-yellow-700 whitespace-nowrap"
+          >
+            Update Profile
+          </Link>
+        </div>
+      )}
+
       <div className="flex gap-6">
         {/* Filter sidebar */}
         <div className="w-64 flex-shrink-0 hidden lg:block">
@@ -130,15 +198,15 @@ function WorkerList() {
               titleEn="No workers found"
               descHi="अपनी request save करें — हम आपको जल्द call करेंगे!"
               descEn="Save your request — we will call you back soon!"
-              action={{
+              action={role !== "worker" ? {
                 labelHi: "Request Save करें",
                 labelEn: "Save My Request",
                 onClick: () => setShowModal(true),
-              }}
+              } : null}
             />
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {workers.map(w => <WorkerCard key={w.id} worker={w} />)}
+              {workers.map(w => <WorkerCard key={w.id} worker={w} hideHireActions={role === "worker"} />)}
             </div>
           )}
         </div>

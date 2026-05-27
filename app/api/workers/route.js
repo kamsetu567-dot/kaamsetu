@@ -17,6 +17,9 @@ export async function GET(request) {
     const sortBy = searchParams.get("sortBy") || "rating";
     const rating = parseFloat(searchParams.get("rating")) || 0;
     const city = searchParams.get("city") || "";
+    const lat = parseFloat(searchParams.get("lat"));
+    const lng = parseFloat(searchParams.get("lng"));
+    const distance = parseInt(searchParams.get("distance"), 10) || 0;
 
     const filter = { status: "approved" };
 
@@ -45,13 +48,36 @@ export async function GET(request) {
     };
     const sort = sortMap[sortBy] || sortMap.rating;
 
-    const workers = await Worker.find(filter)
-      .sort(sort)
-      .limit(50)
-      .select("-__v")
-      .lean();
-
+    // If client passed real GPS + a distance filter, use $geoNear so we
+    // get accurate radius matching AND a per-worker distance back. Workers
+    // without coordinates are naturally excluded by $geoNear.
+    const hasGeo = Number.isFinite(lat) && Number.isFinite(lng) && distance > 0;
     const now = new Date();
+
+    let workers;
+    if (hasGeo) {
+      const pipeline = [
+        {
+          $geoNear: {
+            near: { type: "Point", coordinates: [lng, lat] },
+            distanceField: "distanceMeters",
+            maxDistance: distance * 1000,
+            spherical: true,
+            query: filter,
+          },
+        },
+        { $sort: sort },
+        { $limit: 50 },
+      ];
+      workers = await Worker.aggregate(pipeline);
+    } else {
+      workers = await Worker.find(filter)
+        .sort(sort)
+        .limit(50)
+        .select("-__v")
+        .lean();
+    }
+
     const formatted = workers.map(w => ({
       id: w._id,
       name: w.name,
@@ -64,6 +90,7 @@ export async function GET(request) {
       status: w.workStatus || "free",
       rating: w.rating,
       location: w.location,
+      distance: typeof w.distanceMeters === "number" ? parseFloat((w.distanceMeters / 1000).toFixed(1)) : undefined,
       boosted: w.boosted && w.boostedUntil > now,
       subscriptionActive: w.subscriptionExpiry ? w.subscriptionExpiry > now : false,
       employmentType: w.employmentType || "any",
