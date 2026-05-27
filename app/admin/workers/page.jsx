@@ -81,6 +81,98 @@ function AadharModal({ worker, onClose }) {
   );
 }
 
+function ExtendModal({ worker, onClose, onConfirm, submitting }) {
+  const QUICK = [7, 15, 30, 60, 90];
+  const [selected, setSelected] = useState(30);
+  const [custom, setCustom] = useState("");
+  const isCustom = !QUICK.includes(selected);
+  const days = isCustom ? parseInt(custom, 10) : selected;
+  const valid = Number.isInteger(days) && days >= 1 && days <= 365;
+
+  if (!worker) return null;
+
+  const currentExpiry = worker.subscriptionExpiry ? new Date(worker.subscriptionExpiry) : null;
+  const now = new Date();
+  const baseDate = currentExpiry && currentExpiry > now ? currentExpiry : now;
+  const previewDate = valid ? new Date(baseDate.getTime() + days * 24 * 60 * 60 * 1000) : null;
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" onClick={submitting ? undefined : onClose}>
+      <div className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="font-black text-brand-navy text-lg">Extend Subscription</h3>
+            <p className="text-gray-400 text-sm">{worker.name} · 📞 {worker.mobile}</p>
+          </div>
+          <button onClick={onClose} disabled={submitting} className="text-gray-400 hover:text-gray-600 min-h-0 disabled:opacity-40"><X size={22} /></button>
+        </div>
+
+        {currentExpiry && (
+          <div className="bg-gray-50 rounded-xl px-4 py-2 mb-4">
+            <p className="text-xs text-gray-500">Current expiry</p>
+            <p className="font-semibold text-brand-navy text-sm">
+              {currentExpiry > now
+                ? `${currentExpiry.toLocaleDateString("en-IN")} (${Math.ceil((currentExpiry - now) / 86400000)}d left)`
+                : `${currentExpiry.toLocaleDateString("en-IN")} (expired)`}
+            </p>
+          </div>
+        )}
+
+        <p className="text-xs font-semibold text-gray-500 mb-2">Quick pick</p>
+        <div className="flex flex-wrap gap-2 mb-4">
+          {QUICK.map(d => (
+            <button
+              key={d}
+              type="button"
+              onClick={() => { setSelected(d); setCustom(""); }}
+              className={`px-3 py-2 rounded-xl text-sm font-bold border-2 transition-colors ${
+                selected === d ? "border-brand-navy bg-brand-navy text-white" : "border-gray-200 text-gray-600 hover:border-brand-navy"
+              }`}
+            >
+              {d} days
+            </button>
+          ))}
+        </div>
+
+        <p className="text-xs font-semibold text-gray-500 mb-2">Or custom</p>
+        <input
+          type="number"
+          min={1}
+          max={365}
+          value={custom}
+          onChange={e => {
+            const v = e.target.value;
+            setCustom(v);
+            const n = parseInt(v, 10);
+            if (Number.isFinite(n)) setSelected(n);
+            else setSelected(30);
+          }}
+          placeholder="1 – 365 days"
+          className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-brand-navy text-sm mb-4"
+        />
+
+        {previewDate && (
+          <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-2 mb-4">
+            <p className="text-xs text-green-700">New expiry will be</p>
+            <p className="font-bold text-green-700 text-sm">{previewDate.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</p>
+          </div>
+        )}
+
+        <div className="flex gap-2">
+          <button onClick={onClose} disabled={submitting}
+            className="flex-1 border-2 border-gray-200 text-gray-600 font-bold py-2.5 rounded-xl text-sm disabled:opacity-40">
+            Cancel
+          </button>
+          <button onClick={() => valid && onConfirm(days)} disabled={!valid || submitting}
+            className="flex-1 bg-brand-navy text-white font-bold py-2.5 rounded-xl text-sm hover:opacity-90 disabled:opacity-40">
+            {submitting ? "Extending..." : `Extend ${valid ? `(${days}d)` : ""}`}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function AdminWorkersPage() {
   const toast = useToast();
   const [workers, setWorkers] = useState([]);
@@ -89,6 +181,7 @@ export default function AdminWorkersPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [actionInProgress, setActionInProgress] = useState(null);
   const [aadharWorker, setAadharWorker] = useState(null);
+  const [extendWorker, setExtendWorker] = useState(null);
 
   function load() {
     setLoading(true);
@@ -135,13 +228,18 @@ export default function AdminWorkersPage() {
     finally { setActionInProgress(null); }
   }
 
-  async function handleExtend(id) {
-    if (actionInProgress) return;
+  async function confirmExtend(days) {
+    if (!extendWorker || actionInProgress) return;
+    const id = extendWorker.id;
     setActionInProgress(`extend-${id}`);
     try {
-      await extendWorkerSubscription(id);
+      const res = await extendWorkerSubscription(id, days);
+      const newExpiry = res?.expiresAt ? new Date(res.expiresAt).toLocaleDateString("en-IN") : null;
       load();
-      toast.success("Subscription extended by 30 days.");
+      setExtendWorker(null);
+      toast.success(newExpiry
+        ? `Extended by ${days}d. Now expires ${newExpiry}.`
+        : `Extended by ${days}d.`);
     } catch (err) { toast.error(err?.message || "Extension failed"); }
     finally { setActionInProgress(null); }
   }
@@ -157,6 +255,12 @@ export default function AdminWorkersPage() {
   return (
     <div className="space-y-5">
       <AadharModal worker={aadharWorker} onClose={() => setAadharWorker(null)} />
+      <ExtendModal
+        worker={extendWorker}
+        onClose={() => setExtendWorker(null)}
+        onConfirm={confirmExtend}
+        submitting={!!actionInProgress && actionInProgress.startsWith("extend-")}
+      />
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-black text-brand-navy font-hindi">
@@ -252,7 +356,7 @@ export default function AdminWorkersPage() {
                         <ActionBtn label="Aadhar"  icon={IdCard}        color="blue" onClick={() => setAadharWorker(w)} disabled={!!actionInProgress} />
                         <ActionBtn label="Block"   icon={Ban}          color="gray" onClick={() => handleBlock(w.id)}  disabled={!!actionInProgress} />
                         <ActionBtn label="Boost ⭐" icon={Star}         color="blue" onClick={() => handleBoost(w.id)}  disabled={!!actionInProgress} />
-                        <ActionBtn label="Extend"  icon={CalendarCheck} color="blue" onClick={() => handleExtend(w.id)} disabled={!!actionInProgress} />
+                        <ActionBtn label="Extend"  icon={CalendarCheck} color="blue" onClick={() => setExtendWorker(w)} disabled={!!actionInProgress} />
                       </div>
                     </td>
                   </tr>

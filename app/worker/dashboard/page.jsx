@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { User, Star, CreditCard, Briefcase, LogOut, CheckCircle, Clock } from "lucide-react";
 import { useToast } from "@/components/Toast";
+import SubscriptionCountdown from "@/components/SubscriptionCountdown";
 
 export default function WorkerDashboardOverview() {
   const router = useRouter();
@@ -106,25 +107,21 @@ export default function WorkerDashboardOverview() {
 
       {/* Quick Stats */}
       <div className="grid grid-cols-3 gap-3">
-        {[
-          { label: "Total Jobs", value: worker?.totalJobs ?? "—", icon: Briefcase, bg: "bg-blue-50", color: "text-brand-navy" },
-          { label: "Rating", value: worker?.rating ? worker.rating.toFixed(1) : "New", icon: Star, bg: "bg-yellow-50", color: "text-amber-600" },
-          {
-            label: "Subscription",
-            value: worker?.subscriptionExpiry && new Date(worker.subscriptionExpiry) > new Date()
-              ? `${Math.ceil((new Date(worker.subscriptionExpiry) - new Date()) / 86400000)}d left`
-              : "Expired",
-            icon: CreditCard,
-            bg: "bg-purple-50",
-            color: worker?.subscriptionExpiry && new Date(worker.subscriptionExpiry) > new Date() ? "text-green-600" : "text-red-500",
-          },
-        ].map(s => (
-          <div key={s.label} className={`${s.bg} rounded-2xl p-4 flex flex-col items-center text-center`}>
-            <s.icon size={20} className={`${s.color} mb-2`} />
-            <p className={`text-lg font-black ${s.color}`}>{s.value}</p>
-            <p className="text-xs text-gray-500 font-hindi leading-tight mt-0.5">{s.label}</p>
-          </div>
-        ))}
+        <div className="bg-blue-50 rounded-2xl p-4 flex flex-col items-center text-center">
+          <Briefcase size={20} className="text-brand-navy mb-2" />
+          <p className="text-lg font-black text-brand-navy">{worker?.totalJobs ?? "—"}</p>
+          <p className="text-xs text-gray-500 font-hindi leading-tight mt-0.5">Total Jobs</p>
+        </div>
+        <div className="bg-yellow-50 rounded-2xl p-4 flex flex-col items-center text-center">
+          <Star size={20} className="text-amber-600 mb-2" />
+          <p className="text-lg font-black text-amber-600">{worker?.rating ? worker.rating.toFixed(1) : "New"}</p>
+          <p className="text-xs text-gray-500 font-hindi leading-tight mt-0.5">Rating</p>
+        </div>
+        <div className="bg-purple-50 rounded-2xl p-4 flex flex-col items-center text-center">
+          <CreditCard size={20} className="text-purple-700 mb-2" />
+          <SubscriptionCountdown expiresAt={worker?.subscriptionExpiry} size="sm" />
+          <p className="text-xs text-gray-500 font-hindi leading-tight mt-0.5">Subscription</p>
+        </div>
       </div>
 
       {/* Profile Summary */}

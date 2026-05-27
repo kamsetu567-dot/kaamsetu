@@ -13,7 +13,7 @@ export async function PATCH(request, { params }) {
     if (!payload || payload.role !== "admin") return unauthorized();
 
     const { id } = await params;
-    const { action, reason } = await request.json();
+    const { action, reason, days: daysRaw } = await request.json();
 
     await connectDB();
 
@@ -52,14 +52,17 @@ export async function PATCH(request, { params }) {
     }
 
     if (action === "extend") {
-      const days = 30;
+      const days = Number.isFinite(Number(daysRaw)) ? Math.floor(Number(daysRaw)) : 30;
+      if (days < 1 || days > 365) {
+        return error("Days must be an integer between 1 and 365", 400);
+      }
       const now = new Date();
       const base = worker.subscriptionExpiry && worker.subscriptionExpiry > now
         ? worker.subscriptionExpiry
         : now;
       const newExpiry = new Date(base.getTime() + days * 24 * 60 * 60 * 1000);
       await Worker.findByIdAndUpdate(id, { subscriptionExpiry: newExpiry });
-      return ok({ message: `Subscription extended by ${days} days`, expiresAt: newExpiry });
+      return ok({ message: `Subscription extended by ${days} days`, expiresAt: newExpiry, days });
     }
 
     const update = actionMap[action];

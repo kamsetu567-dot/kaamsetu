@@ -1,9 +1,10 @@
 ﻿"use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CreditCard, CheckCircle, Clock, AlertCircle, Copy } from "lucide-react";
 import { useRoleGuard } from "@/lib/auth/useRoleGuard";
 import EmptyState from "@/components/EmptyState";
+import SubscriptionCountdown from "@/components/SubscriptionCountdown";
 
 // UPI details shown to worker for manual payment (backend will verify later)
 const UPI_ID = "kaamsetu@upi";
@@ -12,6 +13,18 @@ const QR_PLACEHOLDER = "https://picsum.photos/seed/qr/200/200";
 export default function WorkerSubscriptionPage() {
   useRoleGuard("worker");
   const [copied, setCopied] = useState(false);
+  const [worker, setWorker] = useState(null);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    const token = typeof window !== "undefined" ? localStorage.getItem("kaamsetu_token") : null;
+    if (!token) { setLoaded(true); return; }
+    fetch("/api/workers/me", { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.json())
+      .then(data => { if (data.success && data.worker) setWorker(data.worker); })
+      .catch(() => {})
+      .finally(() => setLoaded(true));
+  }, []);
 
   function copyUPI() {
     navigator.clipboard?.writeText(UPI_ID).then(() => {
@@ -20,8 +33,8 @@ export default function WorkerSubscriptionPage() {
     });
   }
 
-  // TODO: Persist via API when backend is ready — fetch real subscription from backend
-  const subscription = null; // null = no active subscription
+  const expiresAt = worker?.subscriptionExpiry;
+  const isActive = expiresAt && new Date(expiresAt) > new Date();
 
   return (
     <div className="space-y-5">
@@ -37,9 +50,11 @@ export default function WorkerSubscriptionPage() {
       </div>
 
       {/* Current status card */}
-      {subscription ? (
+      {!loaded ? (
+        <div className="bg-gray-50 border-2 border-gray-200 rounded-3xl p-6 h-32 animate-pulse" />
+      ) : isActive ? (
         <div className="bg-green-50 border-2 border-green-600 rounded-3xl p-6">
-          <div className="flex items-center gap-3 mb-3">
+          <div className="flex items-center gap-3 mb-4">
             <CheckCircle size={28} className="text-green-600" />
             <div>
               <p
@@ -51,16 +66,13 @@ export default function WorkerSubscriptionPage() {
               <p className="text-green-700 text-sm">Subscription is active</p>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3 text-sm">
-            <div>
-              <p className="text-gray-500" style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>शुरू हुई</p>
-              <p className="font-bold">{subscription.startDate}</p>
-            </div>
-            <div>
-              <p className="text-gray-500" style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>खत्म होगी</p>
-              <p className="font-bold text-red-600">{subscription.endDate}</p>
-            </div>
+          <div className="bg-white rounded-2xl p-4 mb-3 text-center">
+            <p className="text-xs text-gray-500 mb-1.5">Time remaining / बचा हुआ समय</p>
+            <SubscriptionCountdown expiresAt={expiresAt} size="lg" />
           </div>
+          <p className="text-xs text-gray-500 text-center">
+            Expires on {new Date(expiresAt).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}
+          </p>
         </div>
       ) : (
         <div className="bg-yellow-50 border-2 border-accent-yellow rounded-3xl p-5 flex items-start gap-3">
@@ -70,10 +82,12 @@ export default function WorkerSubscriptionPage() {
               className="font-black text-yellow-800"
               style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
             >
-              Subscription Pending है
+              {expiresAt ? "Subscription Expired" : "Subscription Pending है"}
             </p>
             <p className="text-yellow-700 text-sm">
-              Admin approval के बाद subscription start होगी। / Subscription starts after admin approval.
+              {expiresAt
+                ? "Renew now to keep receiving jobs. / Jobs आना बंद हो गई हैं, abhi renew करें."
+                : "Admin approval के बाद subscription start होगी। / Subscription starts after admin approval."}
             </p>
           </div>
         </div>
@@ -173,7 +187,7 @@ export default function WorkerSubscriptionPage() {
           onClick={() => alert("Payment details ऊपर दिए गए हैं। UPI से pay करें। / Pay via UPI details shown above.")}
         >
           <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>
-            {subscription ? "नवीनीकरण करें / Renew" : "₹199 Pay करें / Pay Now"}
+            {isActive ? "नवीनीकरण करें / Renew" : "₹199 Pay करें / Pay Now"}
           </span>
         </button>
       </div>
