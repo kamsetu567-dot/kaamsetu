@@ -1,7 +1,16 @@
 import mongoose from "mongoose";
+import { timingSafeEqual } from "crypto";
 import { connectDB } from "@/lib/db/mongoose";
 import { verifyToken, getTokenFromRequest } from "@/lib/utils/jwt";
 import { ok, error, unauthorized } from "@/lib/utils/apiResponse";
+
+function safeCompare(a, b) {
+  try {
+    return timingSafeEqual(Buffer.from(a || "", "utf8"), Buffer.from(b || "", "utf8"));
+  } catch {
+    return false; // buffers of different lengths
+  }
+}
 
 // One-time admin migration: drops collection-level indexes that the current
 // Mongoose schemas no longer declare. Atlas keeps old indexes alive after a
@@ -10,13 +19,40 @@ import { ok, error, unauthorized } from "@/lib/utils/apiResponse";
 // { userId: null }". This route inspects each known collection and drops any
 // index whose name isn't on its allow-list. Idempotent — safe to call twice.
 //
-// Call: POST /api/admin/migrate/drop-orphan-indexes
+// Auth (either):
+//   - Admin JWT in `Authorization: Bearer <token>` header. Best when called
+//     from the admin DevTools console on the SAME ORIGIN as the admin app
+//     (i.e. `www.kaamsetu.live`). Note: browsers strip the Authorization
+//     header across origin redirects, so calling from the apex domain
+//     (without `www`) will fail with 401.
+//   - `adminSecret` in the request body matched against ADMIN_SECRET_PASSWORD
+//     env var. Use this when calling from curl / a script.
+//
+// Call (header):
+//   POST /api/admin/migrate/drop-orphan-indexes
+//   Authorization: Bearer <admin-jwt>
+//
+// Call (body secret):
+//   curl -X POST https://www.kaamsetu.live/api/admin/migrate/drop-orphan-indexes \
+//        -H "Content-Type: application/json" \
+//        -d '{"adminSecret":"<ADMIN_SECRET_PASSWORD>"}'
 export async function POST(request) {
   try {
+    let body = {};
+    try {
+      body = await request.json();
+    } catch {
+      // No body / not JSON — fine, header auth path may still allow it.
+    }
+
     const token = getTokenFromRequest(request);
-    if (!token) return unauthorized();
-    const payload = verifyToken(token);
-    if (!payload || payload.role !== "admin") return unauthorized();
+    const payload = token ? verifyToken(token) : null;
+    const headerOk = payload?.role === "admin";
+
+    const expectedSecret = process.env.ADMIN_SECRET_PASSWORD;
+    const bodyOk = expectedSecret && body?.adminSecret && safeCompare(body.adminSecret, expectedSecret);
+
+    if (!headerOk && !bodyOk) return unauthorized();
 
     await connectDB();
     const db = mongoose.connection.db;
