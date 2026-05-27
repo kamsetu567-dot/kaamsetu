@@ -1,26 +1,43 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import AdminSidebar from "@/components/AdminSidebar";
 import { Menu } from "lucide-react";
-import { useState } from "react";
 import { isAdminLoggedIn } from "@/lib/utils/adminAuth";
 
 export default function AdminLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    if (pathname === "/admin/login") return;
+    if (pathname === "/admin/login") {
+      setAuthChecked(true);
+      return;
+    }
     if (!isAdminLoggedIn()) {
       router.replace("/admin/login");
+      // Leave authChecked false — children stay hidden while redirecting
+    } else {
+      setAuthChecked(true);
     }
   }, [pathname]);
 
   if (pathname === "/admin/login") {
     return children;
+  }
+
+  // Block children from mounting until auth is confirmed.
+  // Without this, children fire API calls immediately, get 401,
+  // and apiFetch redirects to /auth/login instead of /admin/login.
+  if (!authChecked) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-brand-bg">
+        <div className="w-8 h-8 border-4 border-brand-navy border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
   }
 
   return (
