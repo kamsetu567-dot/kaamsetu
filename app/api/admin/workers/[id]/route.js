@@ -1,6 +1,7 @@
 import { connectDB } from "@/lib/db/mongoose";
 import Worker from "@/lib/models/Worker";
 import User from "@/lib/models/User";
+import JobRequest from "@/lib/models/JobRequest";
 import { verifyToken, getTokenFromRequest } from "@/lib/utils/jwt";
 import { ok, error, unauthorized, notFound } from "@/lib/utils/apiResponse";
 import { sendApprovalEmail } from "@/lib/utils/email";
@@ -49,6 +50,18 @@ export async function PATCH(request, { params }) {
       const boostedUntil = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
       await Worker.findByIdAndUpdate(id, { boosted: true, boostedUntil });
       return ok({ message: "Worker boosted for 7 days", boostedUntil });
+    }
+
+    if (action === "recompute_rating") {
+      const ratedJobs = await JobRequest.find({
+        worker: id,
+        clientRating: { $gte: 1, $lte: 5 },
+      }).select("clientRating").lean();
+      const totalRatings = ratedJobs.length;
+      const sum = ratedJobs.reduce((acc, j) => acc + (j.clientRating || 0), 0);
+      const avg = totalRatings > 0 ? Math.round((sum / totalRatings) * 100) / 100 : 0;
+      await Worker.findByIdAndUpdate(id, { rating: avg, totalRatings });
+      return ok({ message: `Recomputed: ${avg} stars from ${totalRatings} rating(s)`, rating: avg, totalRatings });
     }
 
     if (action === "extend") {

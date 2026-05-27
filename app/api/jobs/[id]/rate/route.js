@@ -42,30 +42,29 @@ export async function POST(request, { params }) {
     );
     if (!claimed) return error("You have already rated this job");
 
-    // Recompute the worker's running average. The rating slot above is
-    // already atomically claimed, so the only possible race here is two
-    // ratings landing on different jobs for the same worker at the exact
-    // same moment — acceptable epsilon-level drift on the average given
-    // the volume we expect.
-    const workerDoc = await Worker.findById(job.worker)
-      .select("rating totalRatings")
-      .lean();
-    if (workerDoc) {
-      const prevTotal = workerDoc.totalRatings || 0;
-      const prevAvg = workerDoc.rating || 0;
-      const newTotal = prevTotal + 1;
-      const newAvg = Math.round(((prevAvg * prevTotal + rating) / newTotal) * 100) / 100;
+    // Recompute the worker's rating directly from JobRequest.clientRating —
+    // self-healing: if a previous rate call ever failed to update the
+    // worker doc, this call will correct the totals. Non-fatal: if it
+    // fails for any reason, the job rating is already saved.
+    try {
+      const ratedJobs = await JobRequest.find({
+        worker: job.worker,
+        clientRating: { $gte: 1, $lte: 5 },
+      }).select("clientRating").lean();
+      const totalRatings = ratedJobs.length;
+      const sum = ratedJobs.reduce((acc, j) => acc + (j.clientRating || 0), 0);
+      const avg = totalRatings > 0 ? Math.round((sum / totalRatings) * 100) / 100 : 0;
       await Worker.findByIdAndUpdate(job.worker, {
-        rating: newAvg,
-        totalRatings: newTotal,
+        rating: avg,
+        totalRatings,
       });
+    } catch (avgErr) {
+      console.error("Worker average update failed (non-fatal):", avgErr.message, avgErr.stack);
     }
 
-    return ok({ message: "Rating submitted. Thank you!", rating, newAverage: workerDoc ? undefined : null });
+    return ok({ message: "Rating submitted. Thank you!", rating });
   } catch (err) {
     console.error("POST /api/jobs/[id]/rate error:", err.message, err.stack);
-    // Temporarily expose the real error message so we can see what's failing
-    // in production. Remove once root cause is fixed.
-    return error(`Server error: ${err.message}`, 500);
+    return error("Server error", 500);
   }
 }
