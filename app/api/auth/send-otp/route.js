@@ -28,11 +28,19 @@ export async function POST(request) {
 
     await connectDB();
 
-    // For login: verify the user is already registered before wasting an OTP
+    // For login: verify the user is registered AND the submitted email is
+    // the one bound to that mobile. Without this, anyone who knows a
+    // victim's mobile can log in by typing their own email and receiving
+    // the OTP there.
     if (mode === "login") {
       const existing = await User.findOne({ mobile }).lean();
       if (!existing) {
         return error("No account found with this number. Please sign up first.", 404);
+      }
+      const storedEmail = (existing.email || "").trim().toLowerCase();
+      const submittedEmail = email.trim().toLowerCase();
+      if (!storedEmail || storedEmail !== submittedEmail) {
+        return error("Credentials mismatch / गलत जानकारी", 401);
       }
     }
 
