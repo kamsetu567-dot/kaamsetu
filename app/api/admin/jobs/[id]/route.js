@@ -69,6 +69,8 @@ export async function DELETE(request, { params }) {
     const { id } = await params;
     await connectDB();
 
+    // workStatus is the worker's own notification toggle now, not a
+    // job-lifecycle flag, so deleting a job doesn't touch it.
     await JobRequest.findByIdAndDelete(id);
     return ok({ message: "Job deleted" });
   } catch (err) {

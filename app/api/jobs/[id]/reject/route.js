@@ -28,8 +28,12 @@ export async function POST(request, { params }) {
       }
       job.status = "rejected";
       job.worker = undefined;
+      // Remember this worker dismissed it, so if an admin re-opens the job
+      // it won't reappear in the same worker's feed.
+      if (!job.dismissedBy?.some(w => String(w) === String(worker._id))) {
+        job.dismissedBy = [...(job.dismissedBy || []), worker._id];
+      }
       await job.save();
-      await Worker.findByIdAndUpdate(worker._id, { workStatus: "free" });
       return ok({ message: "Job rejected" });
     }
 

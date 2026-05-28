@@ -103,7 +103,6 @@ export default function WorkerDashboardOverview() {
       const data = await res.json();
       if (data.success) {
         setActiveJob(null);
-        setStatus("free");
         toast.success("काम पूरा हुआ / Job completed");
       } else {
         toast.error(data.message || "Could not complete job");
@@ -168,17 +167,21 @@ export default function WorkerDashboardOverview() {
             {isFree ? "खाली हूँ / Free" : "काम पर हूँ / Working"}
           </p>
         </div>
-        <button onClick={toggleStatus} disabled={statusLoading || !worker || !!activeJob}
+        <button onClick={toggleStatus} disabled={statusLoading || !worker}
           className={`w-full font-bold py-4 rounded-2xl transition-colors disabled:opacity-50 font-hindi ${
-            isFree ? "bg-green-600 text-white hover:bg-green-700" : "bg-red-500 text-white hover:bg-red-600"
+            isFree ? "bg-red-500 text-white hover:bg-red-600" : "bg-green-600 text-white hover:bg-green-700"
           }`}>
-          {statusLoading ? "⏳ अपडेट हो रहा है..." : isFree ? "काम पर जाएं / Start Work" : "काम खत्म / End Work"}
+          {statusLoading
+            ? "⏳ अपडेट हो रहा है..."
+            : isFree
+              ? "व्यस्त हो जाएं / Stop new jobs"
+              : "उपलब्ध हो जाएं / Start getting jobs"}
         </button>
-        {activeJob && (
-          <p className="text-xs text-orange-700 mt-2 text-center font-hindi">
-            पहले नीचे active job को complete करें / Complete your active job below first
-          </p>
-        )}
+        <p className="text-xs text-gray-500 mt-2 text-center font-hindi">
+          {isFree
+            ? "आपको नई jobs मिल रही हैं / You're receiving new jobs"
+            : "नई jobs बंद हैं — फिर से चालू करें / New jobs are paused"}
+        </p>
       </div>
 
       {/* Active Job */}

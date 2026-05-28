@@ -29,9 +29,9 @@ export async function POST(request, { params }) {
     job.startCode = undefined; // code no longer needed
     await job.save();
 
-    // Free up worker and increment their total jobs count
+    // Increment the worker's completed-jobs count. workStatus is left alone —
+    // it's the worker's own notification toggle, not a job-lifecycle flag.
     await Worker.findByIdAndUpdate(worker._id, {
-      workStatus: "free",
       $inc: { totalJobs: 1 },
     });
 

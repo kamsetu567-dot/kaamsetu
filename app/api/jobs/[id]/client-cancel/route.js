@@ -1,6 +1,5 @@
 import { connectDB } from "@/lib/db/mongoose";
 import JobRequest from "@/lib/models/JobRequest";
-import Worker from "@/lib/models/Worker";
 import Client from "@/lib/models/Client";
 import { verifyToken, getTokenFromRequest } from "@/lib/utils/jwt";
 import { ok, error, unauthorized, forbidden, notFound } from "@/lib/utils/apiResponse";
@@ -30,11 +29,8 @@ export async function POST(request, { params }) {
       job.clientMobile === payload.mobile;
     if (!isOwner) return forbidden("Not your job");
 
-    // Free the worker (no totalJobs, no rating — work didn't happen)
-    if (job.worker) {
-      await Worker.findByIdAndUpdate(job.worker, { $set: { workStatus: "free" } });
-    }
-
+    // No totalJobs, no rating — work didn't happen. workStatus is the
+    // worker's notification toggle, so we don't touch it here.
     job.status = "cancelled";
     job.resolvedAt = new Date();
     job.startCode = undefined;
