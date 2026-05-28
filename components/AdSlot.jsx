@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Megaphone, Phone, MessageSquare, Store } from "lucide-react";
+import { Megaphone, Phone, Store } from "lucide-react";
 
 // Three rendering variants:
 //   banner-wide    — full-width banner (homepage, category page top)
@@ -82,8 +82,6 @@ function SponsoredLabel({ className = "" }) {
 
 function WideBanner({ ad }) {
   const shop = ad.shop;
-  const tel = shop?.mobile ? `tel:+91${shop.mobile}` : "#";
-  const wa = shop?.mobile ? `https://wa.me/91${shop.mobile}` : "#";
   return (
     <div className="bg-white rounded-2xl border-2 border-brand-yellow overflow-hidden hover:shadow-lg transition-shadow h-full flex flex-col">
       {/* Hero creative — fills the card width, badge overlaid top-right */}
@@ -114,21 +112,9 @@ function WideBanner({ ad }) {
           <p className="text-xs text-gray-500 mt-0.5 truncate">{ad.category}</p>
         </div>
         {shop?.mobile && (
-          <div className="flex gap-2 mt-auto">
-            <a
-              href={tel}
-              className="flex-1 inline-flex items-center justify-center gap-1.5 bg-primary-green text-white text-sm font-bold py-2 rounded-lg hover:bg-green-700 transition-colors"
-            >
-              <Phone size={14} /> Call
-            </a>
-            <a
-              href={wa}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex-1 inline-flex items-center justify-center gap-1.5 bg-[#25D366] text-white text-sm font-bold py-2 rounded-lg hover:opacity-90 transition-opacity"
-            >
-              <MessageSquare size={14} /> WhatsApp
-            </a>
+          <div className="flex items-center gap-1.5 mt-auto text-brand-navy">
+            <Phone size={14} className="text-primary-green flex-shrink-0" />
+            <span className="text-sm font-bold tracking-wide">+91 {shop.mobile}</span>
           </div>
         )}
       </div>
