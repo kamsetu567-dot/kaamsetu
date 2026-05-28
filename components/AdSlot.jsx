@@ -82,47 +82,57 @@ function SponsoredLabel({ className = "" }) {
 
 function WideBanner({ ad }) {
   const shop = ad.shop;
+  const tel = shop?.mobile ? `tel:+91${shop.mobile}` : "#";
+  const wa = shop?.mobile ? `https://wa.me/91${shop.mobile}` : "#";
   return (
-    <a
-      href={shop?.mobile ? `tel:+91${shop.mobile}` : "#"}
-      className="block bg-white rounded-2xl border-2 border-brand-yellow overflow-hidden hover:shadow-lg transition-shadow h-full"
-    >
-      <div className="flex items-stretch h-full">
+    <div className="bg-white rounded-2xl border-2 border-brand-yellow overflow-hidden hover:shadow-lg transition-shadow h-full flex flex-col">
+      {/* Hero creative — fills the card width, badge overlaid top-right */}
+      <div className="relative w-full aspect-[16/7] bg-brand-navy">
         {ad.creative ? (
           <img
             src={ad.creative}
             alt={shop?.shopName || "Sponsored"}
-            className="w-24 h-24 sm:w-28 sm:h-28 object-cover flex-shrink-0"
+            className="absolute inset-0 w-full h-full object-cover"
           />
         ) : (
-          <div className="w-24 h-24 sm:w-28 sm:h-28 bg-brand-navy flex items-center justify-center flex-shrink-0">
-            <Store size={28} className="text-brand-yellow" />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <Store size={40} className="text-brand-yellow" />
           </div>
         )}
-        <div className="flex-1 min-w-0 p-3 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center gap-2 mb-1 flex-wrap">
-              <SponsoredLabel />
-              {shop?.city && <span className="text-[10px] text-gray-500 truncate">📍 {shop.city}</span>}
-            </div>
-            <p className="font-black text-brand-navy text-sm sm:text-base leading-tight truncate">
+        <SponsoredLabel className="absolute top-2 right-2 shadow-sm" />
+      </div>
+
+      {/* Info + actions strip */}
+      <div className="p-3 flex flex-col gap-2 flex-1">
+        <div className="min-w-0">
+          <div className="flex items-center justify-between gap-2">
+            <p className="font-black text-brand-navy text-base leading-tight truncate">
               {shop?.shopName || "Local Business"}
             </p>
-            <p className="text-[11px] text-gray-500 mt-0.5 truncate">{ad.category}</p>
+            {shop?.city && <span className="text-[11px] text-gray-500 flex-shrink-0">📍 {shop.city}</span>}
           </div>
-          {shop?.mobile && (
-            <div className="flex gap-1.5 mt-2">
-              <span className="inline-flex items-center gap-1 bg-primary-green text-white text-[10px] font-bold px-2 py-1 rounded-md">
-                <Phone size={10} /> Call
-              </span>
-              <span className="inline-flex items-center gap-1 bg-[#25D366] text-white text-[10px] font-bold px-2 py-1 rounded-md">
-                <MessageSquare size={10} /> WhatsApp
-              </span>
-            </div>
-          )}
+          <p className="text-xs text-gray-500 mt-0.5 truncate">{ad.category}</p>
         </div>
+        {shop?.mobile && (
+          <div className="flex gap-2 mt-auto">
+            <a
+              href={tel}
+              className="flex-1 inline-flex items-center justify-center gap-1.5 bg-primary-green text-white text-sm font-bold py-2 rounded-lg hover:bg-green-700 transition-colors"
+            >
+              <Phone size={14} /> Call
+            </a>
+            <a
+              href={wa}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 inline-flex items-center justify-center gap-1.5 bg-[#25D366] text-white text-sm font-bold py-2 rounded-lg hover:opacity-90 transition-opacity"
+            >
+              <MessageSquare size={14} /> WhatsApp
+            </a>
+          </div>
+        )}
       </div>
-    </a>
+    </div>
   );
 }
 
