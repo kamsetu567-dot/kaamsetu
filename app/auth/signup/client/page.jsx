@@ -1,8 +1,8 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ChevronLeft, UserCheck } from 'lucide-react';
+import { ChevronLeft, UserCheck, MapPin, Loader2, CheckCircle } from 'lucide-react';
 import { useToast } from '@/components/Toast';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -20,17 +20,40 @@ export default function ClientSignupPage() {
   const [loading, setLoading] = useState(false);
   const [lat, setLat] = useState(null);
   const [lng, setLng] = useState(null);
+  const [locating, setLocating] = useState(false);
   const submitRef = useRef(false);
 
-  // Capture GPS in the background — best-effort, never blocks signup.
-  useEffect(() => {
-    if (typeof navigator !== 'undefined' && navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => { setLat(pos.coords.latitude); setLng(pos.coords.longitude); },
-        () => {}
-      );
+  const located = lat != null && lng != null;
+
+  // Explicit, high-accuracy location capture on button tap. maximumAge:0 forces a
+  // fresh fix so we don't save a stale/coarse cached position — accurate "nearby"
+  // distance depends on this being precise.
+  function detectLocation() {
+    if (locating) return;
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      toast.error('आपका browser location support नहीं करता / Browser does not support location');
+      return;
     }
-  }, []);
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setLat(pos.coords.latitude);
+        setLng(pos.coords.longitude);
+        setLocating(false);
+        toast.success('लोकेशन मिल गई! / Location added — nearby workers will be accurate');
+      },
+      (err) => {
+        setLocating(false);
+        const msg = err.code === 1
+          ? 'Location permission denied / Browser में location allow करें'
+          : err.code === 3
+          ? 'Location request timed out / दोबारा try करें'
+          : 'लोकेशन नहीं मिली / Could not get your location';
+        toast.error(msg);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  }
 
   async function handleSignup(e) {
     e.preventDefault();
@@ -115,6 +138,28 @@ export default function ClientSignupPage() {
               <label className="block text-sm font-semibold text-gray-700 mb-1.5 font-hindi">एरिया / Mohalla *</label>
               <input type="text" value={area} onChange={e => setArea(e.target.value)} placeholder="Area / Mohalla"
                 className="w-full px-4 py-3.5 border border-gray-200 rounded-xl focus:outline-none focus:border-brand-navy text-base" />
+            </div>
+
+            <div>
+              <button type="button" onClick={detectLocation} disabled={locating}
+                className={`w-full flex items-center justify-center gap-2 py-3.5 rounded-xl border font-semibold text-sm transition-colors disabled:opacity-60 ${
+                  located
+                    ? 'bg-green-50 border-green-300 text-green-700'
+                    : 'bg-white border-gray-200 text-brand-navy hover:border-brand-navy'
+                }`}>
+                {locating ? (
+                  <><Loader2 size={16} className="animate-spin" /> <span className="font-hindi">लोकेशन ले रहे हैं... / Getting location...</span></>
+                ) : located ? (
+                  <><CheckCircle size={16} /> <span className="font-hindi">लोकेशन मिल गई — दोबारा लेने के लिए tap करें / Location added (tap to refresh)</span></>
+                ) : (
+                  <><MapPin size={16} /> <span className="font-hindi">मेरी लोकेशन / Use My Location</span></>
+                )}
+              </button>
+              <p className="text-xs text-gray-400 mt-1 font-hindi">
+                {located
+                  ? '✅ अब आस-पास के workers की दूरी सही दिखेगी / Nearby worker distance will be accurate'
+                  : 'सही "nearby" matching के लिए लोकेशन दें — शहर/एरिया fallback है / Add location for accurate nearby matching (city/area is fallback)'}
+              </p>
             </div>
 
             <div>

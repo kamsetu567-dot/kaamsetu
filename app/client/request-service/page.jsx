@@ -36,7 +36,8 @@ function RequestForm() {
     if (typeof navigator === 'undefined' || !navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
       (pos) => { setLat(pos.coords.latitude); setLng(pos.coords.longitude); },
-      () => {} // silent fail — city text match is the fallback
+      () => {}, // silent fail — city text match is the fallback
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
   }, []);
 
