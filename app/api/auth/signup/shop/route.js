@@ -89,7 +89,6 @@ export async function POST(request) {
       const fields = Object.keys(err.errors || {}).join(", ");
       return error(`Missing or invalid: ${fields}`, 400);
     }
-    // Temporarily expose error message so we can see what's actually failing
-    return error(`Server error: ${err.message}`, 500);
+    return error("Shop registration failed. Please try again.", 500);
   }
 }

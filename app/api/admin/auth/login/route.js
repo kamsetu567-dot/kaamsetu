@@ -31,7 +31,12 @@ export async function POST(request) {
     const validUsername = process.env.ADMIN_USERNAME;
     const validPassword = process.env.ADMIN_SECRET_PASSWORD;
 
-    if (!safeCompare(username, validUsername || "") || !safeCompare(password, validPassword || "")) {
+    if (!validUsername || !validPassword) {
+      logger.error("Admin credentials not configured");
+      return error("Admin login not configured. Contact server admin.", 500);
+    }
+
+    if (!safeCompare(username, validUsername) || !safeCompare(password, validPassword)) {
       return unauthorized("Invalid username or password");
     }
 

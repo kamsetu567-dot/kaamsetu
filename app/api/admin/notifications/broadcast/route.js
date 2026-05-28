@@ -12,21 +12,26 @@ function adminGuard(request) {
   return payload?.role === "admin" ? payload : null;
 }
 
+function cleanEmails(arr) {
+  return (arr || []).filter(e => typeof e === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e));
+}
+
 async function getTargetEmails(audience) {
+  const baseFilter = { email: { $type: "string", $ne: "" } };
   switch (audience) {
     case "workers":
-      return User.find({ role: "worker", email: { $ne: "" } }).distinct("email");
+      return cleanEmails(await User.find({ role: "worker", ...baseFilter }).distinct("email"));
     case "clients":
-      return User.find({ role: "client", email: { $ne: "" } }).distinct("email");
+      return cleanEmails(await User.find({ role: "client", ...baseFilter }).distinct("email"));
     case "free":
     case "working": {
       const workers = await Worker.find({ workStatus: audience === "free" ? "free" : "working" })
         .populate({ path: "user", select: "email" })
         .lean();
-      return workers.map(w => w.user?.email).filter(Boolean);
+      return cleanEmails(workers.map(w => w.user?.email));
     }
     default: // "all"
-      return User.find({ role: { $in: ["worker", "client"] }, email: { $ne: "" } }).distinct("email");
+      return cleanEmails(await User.find({ role: { $in: ["worker", "client"] }, ...baseFilter }).distinct("email"));
   }
 }
 
@@ -40,8 +45,13 @@ export async function POST(request) {
     const emails = await getTargetEmails(audience);
     if (!emails.length) return ok({ message: "No users found for this audience", sent: 0 });
 
-    await sendBroadcastEmail(emails, message.trim());
-    return ok({ message: `Notification sent to ${emails.length} user(s)`, sent: emails.length });
+    const result = await sendBroadcastEmail(emails, message.trim());
+    return ok({
+      message: `Notification sent to ${result.sent}/${result.total} user(s)`,
+      sent: result.sent,
+      total: result.total,
+      failures: result.failures?.length || 0,
+    });
   } catch (err) {
     console.error("POST /api/admin/notifications/broadcast error:", err);
     return error("Failed to send notification", 500);

@@ -50,9 +50,12 @@ export async function PATCH(request) {
 
     await connectDB();
 
+    // "resolved" on a never-accepted request means the admin handled it offline.
+    // Mark it cancelled (terminal, not a real completed job) so it doesn't pollute
+    // completed-job analytics or the client's job history.
     const update = action === "called"
       ? { calledAt: new Date() }
-      : { status: "completed", resolvedAt: new Date() };
+      : { status: "cancelled", resolvedAt: new Date() };
 
     await JobRequest.findByIdAndUpdate(requestId, update);
 

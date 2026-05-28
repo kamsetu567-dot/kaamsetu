@@ -359,7 +359,6 @@ export default function AdminWorkersPage() {
                         )}
                         <ActionBtn label="Aadhar"  icon={IdCard}        color="blue" onClick={() => setAadharWorker(w)} disabled={!!actionInProgress} />
                         <ActionBtn label="Block"   icon={Ban}          color="gray" onClick={() => handleBlock(w.id)}  disabled={!!actionInProgress} />
-                        <ActionBtn label="Boost ⭐" icon={Star}         color="blue" onClick={() => handleBoost(w.id)}  disabled={!!actionInProgress} />
                         <ActionBtn label="Extend"  icon={CalendarCheck} color="blue" onClick={() => setExtendWorker(w)} disabled={!!actionInProgress} />
                       </div>
                     </td>

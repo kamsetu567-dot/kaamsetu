@@ -31,7 +31,14 @@ export async function GET(request) {
       JobRequest.countDocuments({ createdAt: { $gte: today } }),
       Worker.countDocuments({ workStatus: "working", status: "approved" }),
       Worker.countDocuments({ workStatus: "free", status: "approved" }),
-      Worker.countDocuments({ status: "approved", subscriptionExpiry: { $lt: now } }),
+      Worker.countDocuments({
+        status: "approved",
+        $or: [
+          { subscriptionExpiry: { $lt: now } },
+          { subscriptionExpiry: null },
+          { subscriptionExpiry: { $exists: false } },
+        ],
+      }),
     ]);
 
     return ok({

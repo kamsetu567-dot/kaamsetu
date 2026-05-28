@@ -22,20 +22,23 @@ export async function PATCH(request, { params }) {
     if (action === "block") {
       client.status = "blocked";
       await client.save();
-      await User.findOneAndUpdate({ mobile: client.mobile }, { status: "blocked" });
+      if (client.user) await User.findByIdAndUpdate(client.user, { status: "blocked" });
       return ok({ message: "Client blocked", status: "blocked" });
     }
 
     if (action === "unblock") {
       client.status = "active";
       await client.save();
-      await User.findOneAndUpdate({ mobile: client.mobile }, { status: "active" });
+      if (client.user) await User.findByIdAndUpdate(client.user, { status: "active" });
       return ok({ message: "Client unblocked", status: "active" });
     }
 
     if (action === "delete") {
       await Client.findByIdAndDelete(id);
-      await User.findOneAndDelete({ mobile: client.mobile, role: "client" });
+      if (client.user) {
+        // Only remove the User if they are actually a client — protect against shared-mobile collisions
+        await User.findOneAndDelete({ _id: client.user, role: "client" });
+      }
       return ok({ message: "Client deleted" });
     }
 

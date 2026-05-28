@@ -46,7 +46,12 @@ export async function PATCH(request, { params }) {
     }
 
     const body = await request.json();
-    const allowed = ["name", "photo", "bio", "experience", "serviceType", "location", "languages", "skills", "biodata", "employmentType", "category", "subcategory", "gender", "aadharNumber", "aadharFrontUrl", "aadharBackUrl", "workPhotos", "workStatus"];
+    // Worker self-update allow-list. workStatus deliberately excluded — must go through
+    // /api/workers/status which enforces the "no active job" guard, otherwise a worker could
+    // self-flip to "free" and accept multiple jobs in parallel.
+    // Admins can still flip workStatus via the admin worker patch endpoint.
+    const baseAllowed = ["name", "photo", "bio", "experience", "serviceType", "location", "languages", "skills", "biodata", "employmentType", "category", "subcategory", "gender", "aadharNumber", "aadharFrontUrl", "aadharBackUrl", "workPhotos"];
+    const allowed = payload.role === "admin" ? [...baseAllowed, "workStatus", "status"] : baseAllowed;
     const updates = {};
     for (const key of allowed) {
       if (body[key] !== undefined) updates[key] = body[key];

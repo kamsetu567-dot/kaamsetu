@@ -54,6 +54,15 @@ export async function GET(request) {
     const hasGeo = Number.isFinite(lat) && Number.isFinite(lng) && distance > 0;
     const now = new Date();
 
+    // Self-heal: clear boosted flags whose boostedUntil has passed, so the
+    // `boosted: -1` sort doesn't keep floating stale boosts to the top.
+    // Non-blocking — if it fails the response formatter still recomputes the
+    // boosted badge correctly via (boosted && boostedUntil > now).
+    await Worker.updateMany(
+      { boosted: true, boostedUntil: { $lte: now } },
+      { $set: { boosted: false } }
+    ).catch(() => {});
+
     let workers;
     if (hasGeo) {
       const pipeline = [
