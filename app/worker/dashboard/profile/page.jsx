@@ -147,8 +147,8 @@ export default function WorkerProfileEditPage() {
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } catch (err) {
-      if (err.message === "IMAGE_DECODE_FAILED" || err.message === "IMAGE_TIMEOUT") {
-        toast.error("इस फोटो को process नहीं कर पाए — कोई और फोटो (JPG/PNG) चुनें / Couldn't process this image, pick a different one.");
+      if (err.message === "IMAGE_TOO_BIG") {
+        toast.error("फोटो का size बहुत बड़ा है / Image size is too big");
       } else {
         toast.error("Save failed. Please try again.");
       }

@@ -180,8 +180,8 @@ export default function WorkerSignupPage() {
       toast.success('Registration हो गई! / Registration successful!');
       setTimeout(() => router.push('/worker/dashboard'), 800);
     } catch (err) {
-      if (err.message === 'IMAGE_DECODE_FAILED' || err.message === 'IMAGE_TIMEOUT') {
-        toast.error('इस फोटो को process नहीं कर पाए — कोई और फोटो (JPG/PNG) चुनें / Couldn\'t process this image, please pick a different one.');
+      if (err.message === 'IMAGE_TOO_BIG') {
+        toast.error('फोटो का size बहुत बड़ा है / Image size is too big');
       } else {
         toast.error(err.message || 'Image upload failed. Check internet and try again.');
       }
