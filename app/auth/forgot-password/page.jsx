@@ -2,26 +2,20 @@
 import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ChevronLeft, UserCheck, RefreshCw } from 'lucide-react';
+import { ChevronLeft, Lock, RefreshCw } from 'lucide-react';
 import { useToast } from '@/components/Toast';
 
-export default function ClientSignupPage() {
+export default function ForgotPasswordPage() {
   const router = useRouter();
   const toast = useToast();
   const [step, setStep] = useState(1);
   const [mobile, setMobile] = useState('');
-  const [email, setEmail] = useState('');
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
-  const [tempToken, setTempToken] = useState('');
-  const [name, setName] = useState('');
-  const [city, setCity] = useState('');
-  const [area, setArea] = useState('');
+  const [resetToken, setResetToken] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [resendTimer, setResendTimer] = useState(0);
-  const [lat, setLat] = useState(null);
-  const [lng, setLng] = useState(null);
   const otpRefs = [useRef(), useRef(), useRef(), useRef(), useRef(), useRef()];
   const submitRef = useRef(false);
 
@@ -32,18 +26,26 @@ export default function ClientSignupPage() {
     }, 1000);
   }
 
-  async function handleSendOTP(e) {
-    e.preventDefault();
-    if (!/^[6-9]\d{9}$/.test(mobile)) { toast.error('10 अंकों का सही नंबर डालें'); return; }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { toast.error('Valid email address required'); return; }
+  async function handleSendCode(e) {
+    e?.preventDefault();
+    if (!/^[6-9]\d{9}$/.test(mobile)) { toast.error('10 अंकों का सही नंबर डालें / Enter valid 10-digit number'); return; }
     setLoading(true);
     try {
-      const res = await fetch('/api/auth/send-otp', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mobile, email }) });
+      const res = await fetch('/api/auth/forgot-password/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mobile }),
+      });
       const data = await res.json();
-      if (!res.ok) { toast.error(data.message || 'OTP भेजने में error'); return; }
-      setOtp(['', '', '', '', '', '']); setStep(2); startResendTimer();
+      if (!res.ok) { toast.error(data.message || 'कोड भेजने में error / Failed to send code'); return; }
+      setOtp(['', '', '', '', '', '']);
+      setStep(2);
+      startResendTimer();
+      toast.success('Reset code भेजा गया / Reset code sent to your email');
       setTimeout(() => otpRefs[0].current?.focus(), 100);
-    } catch { toast.error('इंटरनेट कनेक्शन चेक करें'); } finally { setLoading(false); }
+    } catch {
+      toast.error('इंटरनेट कनेक्शन चेक करें / Check internet connection');
+    } finally { setLoading(false); }
   }
 
   function handleOtpChange(index, value) {
@@ -60,59 +62,65 @@ export default function ClientSignupPage() {
     if (p.length === 6) { setOtp(p.split('')); otpRefs[5].current?.focus(); }
   }
 
-  async function handleVerifyOTP(e) {
+  async function handleVerifyCode(e) {
     e?.preventDefault();
     if (submitRef.current) return;
     const otpValue = otp.join('');
-    if (otpValue.length !== 6) { toast.error('6 अंकों का OTP डालें'); return; }
+    if (otpValue.length !== 6) { toast.error('6 अंकों का कोड डालें / Enter 6-digit code'); return; }
     submitRef.current = true; setLoading(true);
     try {
-      const res = await fetch('/api/auth/verify-otp', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mobile, otp: otpValue, mode: 'signup' }) });
+      const res = await fetch('/api/auth/forgot-password/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mobile, otp: otpValue }),
+      });
       const data = await res.json();
-      if (!res.ok) { toast.error(data.message || 'OTP गलत है'); setOtp(['','','','','','']); otpRefs[0].current?.focus(); return; }
-      setTempToken(data.token); setStep(3);
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          (pos) => { setLat(pos.coords.latitude); setLng(pos.coords.longitude); },
-          () => {}
-        );
-      }
-    } catch { toast.error('कुछ गड़बड़ हुई'); } finally { setLoading(false); submitRef.current = false; }
+      if (!res.ok) { toast.error(data.message || 'गलत कोड / Wrong code'); setOtp(['', '', '', '', '', '']); otpRefs[0].current?.focus(); return; }
+      setResetToken(data.token);
+      setStep(3);
+    } catch {
+      toast.error('कुछ गड़बड़ हुई / Something went wrong');
+    } finally { setLoading(false); submitRef.current = false; }
   }
 
-  async function handleSignup(e) {
+  async function handleReset(e) {
     e.preventDefault();
-    if (!name.trim()) { toast.error('नाम डालें / Enter name'); return; }
-    if (!city.trim()) { toast.error('शहर डालें / Enter city'); return; }
-    if (!area.trim()) { toast.error('एरिया डालें / Enter area'); return; }
     if (password.length < 6) { toast.error('पासवर्ड कम से कम 6 अक्षर का हो / Password must be at least 6 characters'); return; }
     if (password !== confirmPassword) { toast.error('पासवर्ड मेल नहीं खाते / Passwords do not match'); return; }
     if (submitRef.current) return;
     submitRef.current = true; setLoading(true);
     try {
-      const res = await fetch('/api/auth/signup/client', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mobile, email, name, city, area, password, token: tempToken, ...(lat && lng ? { lat, lng } : {}) }) });
+      const res = await fetch('/api/auth/forgot-password/reset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mobile, token: resetToken, password }),
+      });
       const data = await res.json();
-      if (!res.ok) { toast.error(data.message || 'Signup failed'); return; }
+      if (!res.ok) { toast.error(data.message || 'Reset failed'); return; }
       const token = data.token || data.data?.token;
-      const user = data.user || data.data?.user || { mobile, name, role: 'client' };
-      localStorage.setItem('kaamsetu_token', token);
-      localStorage.setItem('kaamsetu_user', JSON.stringify(user));
-      toast.success('Account बन गया! / Account created!');
+      const user = data.user || data.data?.user;
+      if (token && user) {
+        localStorage.setItem('kaamsetu_token', token);
+        localStorage.setItem('kaamsetu_user', JSON.stringify(user));
+      }
+      toast.success('पासवर्ड बदल गया! / Password updated!');
       setTimeout(() => router.push('/client/dashboard'), 800);
-    } catch { toast.error('कुछ गड़बड़ हुई'); } finally { setLoading(false); submitRef.current = false; }
+    } catch {
+      toast.error('कुछ गड़बड़ हुई / Something went wrong');
+    } finally { setLoading(false); submitRef.current = false; }
   }
 
   return (
     <div className="min-h-screen bg-brand-bg flex flex-col">
       <div className="bg-brand-navy px-4 py-4 flex items-center gap-3">
-        <button onClick={() => step > 1 ? setStep(step - 1) : router.push('/auth/select-role')}
+        <button onClick={() => step > 1 ? setStep(step - 1) : router.push('/auth/login')}
           className="text-white/70 hover:text-white min-h-0"><ChevronLeft size={24} /></button>
         <span className="font-black text-white">KAAM<span className="text-brand-yellow">SETU</span></span>
       </div>
 
       <div className="bg-white border-b border-gray-100 px-4 py-3">
         <div className="max-w-sm mx-auto flex gap-2">
-          {[1,2,3].map(i => <div key={i} className={`flex-1 h-1.5 rounded-full ${i <= step ? 'bg-brand-navy' : 'bg-gray-200'}`} />)}
+          {[1, 2, 3].map(i => <div key={i} className={`flex-1 h-1.5 rounded-full ${i <= step ? 'bg-brand-navy' : 'bg-gray-200'}`} />)}
         </div>
         <p className="text-center text-xs text-gray-400 mt-1">Step {step} of 3</p>
       </div>
@@ -120,13 +128,13 @@ export default function ClientSignupPage() {
       <div className="flex-1 flex items-center justify-center px-4 py-10">
         <div className="w-full max-w-sm bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
           <div className="flex items-center justify-center w-14 h-14 bg-blue-100 rounded-2xl mx-auto mb-5">
-            <UserCheck size={28} className="text-brand-navy" />
+            <Lock size={28} className="text-brand-navy" />
           </div>
-          <h1 className="text-xl font-black text-brand-navy text-center font-hindi mb-1">Client Sign Up</h1>
-          <p className="text-gray-400 text-sm text-center mb-6">काम करवाने के लिए register करें</p>
+          <h1 className="text-xl font-black text-brand-navy text-center font-hindi mb-1">पासवर्ड भूल गए?</h1>
+          <p className="text-gray-400 text-sm text-center mb-6">Reset your password / नया पासवर्ड सेट करें</p>
 
           {step === 1 && (
-            <form onSubmit={handleSendOTP} className="space-y-4">
+            <form onSubmit={handleSendCode} className="space-y-4">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1.5 font-hindi">मोबाइल नंबर</label>
                 <div className="flex gap-2">
@@ -136,25 +144,18 @@ export default function ClientSignupPage() {
                     placeholder="10-digit mobile"
                     className="flex-1 px-4 py-3.5 border border-gray-200 rounded-xl focus:outline-none focus:border-brand-navy text-base" autoFocus />
                 </div>
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Email Address</label>
-                <input type="email" inputMode="email" value={email}
-                  onChange={e => setEmail(e.target.value.trim())}
-                  placeholder="your@email.com"
-                  className="w-full px-4 py-3.5 border border-gray-200 rounded-xl focus:outline-none focus:border-brand-navy text-base" />
-                <p className="text-xs text-gray-400 mt-1">OTP will be sent to this email</p>
+                <p className="text-xs text-gray-400 mt-1">Reset code आपके registered email पर भेजा जाएगा</p>
               </div>
               <button type="submit" disabled={loading}
                 className="w-full bg-brand-navy text-white font-bold py-4 rounded-xl hover:bg-brand-navy-dark disabled:opacity-50 font-hindi">
-                {loading ? '⏳ भेज रहे हैं...' : 'OTP भेजें / Send OTP'}
+                {loading ? '⏳ भेज रहे हैं...' : 'कोड भेजें / Send Code'}
               </button>
             </form>
           )}
 
           {step === 2 && (
-            <form onSubmit={handleVerifyOTP} className="space-y-5">
-              <p className="text-gray-500 text-sm text-center">OTP sent to <strong>{email}</strong></p>
+            <form onSubmit={handleVerifyCode} className="space-y-5">
+              <p className="text-gray-500 text-sm text-center">Email पर भेजा गया code डालें / Enter the code sent to your email</p>
               <div className="flex gap-2 justify-center">
                 {otp.map((d, i) => (
                   <input key={i} ref={otpRefs[i]} type="tel" inputMode="numeric" maxLength={1} value={d}
@@ -171,43 +172,32 @@ export default function ClientSignupPage() {
               <div className="text-center">
                 {resendTimer > 0
                   ? <p className="text-gray-400 text-xs font-hindi">{resendTimer}s में Resend</p>
-                  : <button type="button" onClick={handleSendOTP} className="flex items-center gap-1 text-brand-navy text-sm font-semibold mx-auto min-h-0"><RefreshCw size={13} /> Resend OTP</button>}
+                  : <button type="button" onClick={handleSendCode} className="flex items-center gap-1 text-brand-navy text-sm font-semibold mx-auto min-h-0"><RefreshCw size={13} /> Resend Code</button>}
               </div>
             </form>
           )}
 
           {step === 3 && (
-            <form onSubmit={handleSignup} className="space-y-4">
-              {[
-                { label: 'पूरा नाम *', ph: 'Full Name', val: name, set: setName },
-                { label: 'शहर *', ph: 'City', val: city, set: setCity },
-                { label: 'एरिया / Mohalla *', ph: 'Area / Mohalla', val: area, set: setArea },
-              ].map(f => (
-                <div key={f.label}>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5 font-hindi">{f.label}</label>
-                  <input type="text" value={f.val} onChange={e => f.set(e.target.value)} placeholder={f.ph}
-                    className="w-full px-4 py-3.5 border border-gray-200 rounded-xl focus:outline-none focus:border-brand-navy text-base" />
-                </div>
-              ))}
+            <form onSubmit={handleReset} className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5 font-hindi">पासवर्ड * / Password</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5 font-hindi">नया पासवर्ड / New Password</label>
                 <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="कम से कम 6 अक्षर / Min 6 characters"
-                  className="w-full px-4 py-3.5 border border-gray-200 rounded-xl focus:outline-none focus:border-brand-navy text-base" autoComplete="new-password" />
+                  className="w-full px-4 py-3.5 border border-gray-200 rounded-xl focus:outline-none focus:border-brand-navy text-base" autoComplete="new-password" autoFocus />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5 font-hindi">पासवर्ड दोबारा * / Confirm Password</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5 font-hindi">पासवर्ड दोबारा / Confirm Password</label>
                 <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="फिर से डालें / Re-enter password"
                   className="w-full px-4 py-3.5 border border-gray-200 rounded-xl focus:outline-none focus:border-brand-navy text-base" autoComplete="new-password" />
               </div>
               <button type="submit" disabled={loading}
                 className="w-full bg-brand-navy text-white font-bold py-4 rounded-xl hover:bg-brand-navy-dark disabled:opacity-50 font-hindi">
-                {loading ? '⏳ बन रहा है...' : 'Account बनाएँ / Create Account'}
+                {loading ? '⏳ Save हो रहा है...' : 'पासवर्ड बदलें / Reset Password'}
               </button>
             </form>
           )}
 
           <p className="text-center text-sm text-gray-400 mt-4">
-            <Link href="/auth/login" className="text-brand-navy font-semibold hover:underline">पहले से account है? Login</Link>
+            <Link href="/auth/login" className="text-brand-navy font-semibold hover:underline font-hindi">Login पर वापस जाएँ / Back to Login</Link>
           </p>
         </div>
       </div>

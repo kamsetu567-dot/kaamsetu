@@ -5,14 +5,18 @@ import OTP from "@/lib/models/OTP";
 import { signToken, verifyToken } from "@/lib/utils/jwt";
 import { ok, error, created } from "@/lib/utils/apiResponse";
 import { logger } from "@/lib/utils/logger";
+import { hashPassword, validatePasswordStrength } from "@/lib/utils/password";
 
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { mobile, name, email, city, area, location, lat, lng, otpToken, token: otpProofToken } = body;
+    const { mobile, name, email, city, area, location, lat, lng, password, otpToken, token: otpProofToken } = body;
     const verifyTokenStr = otpToken || otpProofToken;
 
     if (!mobile || !name) return error("mobile and name are required");
+
+    const pwError = validatePasswordStrength(password);
+    if (pwError) return error(pwError);
 
     if (!verifyTokenStr) return error("OTP verification required before signup");
     const tokenPayload = verifyToken(verifyTokenStr);
@@ -31,16 +35,19 @@ export async function POST(request) {
       return error("OTP proof already used or expired. Please verify your OTP again.");
     }
 
+    const passwordHash = await hashPassword(password);
+
     let user = await User.findOne({ mobile });
     if (user && user.role !== "client") return error("Mobile already registered with a different role");
 
     let userCreatedHere = false;
     if (!user) {
-      user = await User.create({ mobile, name, email: email || "", role: "client" });
+      user = await User.create({ mobile, name, email: email || "", role: "client", password: passwordHash });
       userCreatedHere = true;
     } else {
       user.name = name;
       if (email) user.email = email;
+      user.password = passwordHash;
       await user.save();
     }
 

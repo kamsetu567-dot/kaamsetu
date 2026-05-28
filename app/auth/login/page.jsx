@@ -2,43 +2,83 @@
 import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Phone, ArrowRight, ChevronLeft, Wrench, RefreshCw } from 'lucide-react';
+import { Phone, ArrowRight, ChevronLeft, Wrench, RefreshCw, Lock } from 'lucide-react';
 import { useToast } from '@/components/Toast';
 import { useT } from '@/lib/i18n/useT';
+
+function redirectByRole(router, role) {
+  if (role === 'worker') router.push('/worker/dashboard');
+  else if (role === 'client') router.push('/client/dashboard');
+  else if (role === 'shop') router.push('/shop/dashboard');
+  else if (role === 'admin') router.push('/admin');
+  else router.push('/');
+}
 
 export default function LoginPage() {
   const router = useRouter();
   const toast = useToast();
   const t = useT();
-  const [step, setStep] = useState(1);
+
+  // "password" = client mobile+password login (default). "otp" = worker/shop email-OTP login.
+  const [method, setMethod] = useState('password');
+
+  // shared
   const [mobile, setMobile] = useState('');
+  const [loading, setLoading] = useState(false);
+  const submitRef = useRef(false);
+
+  // password mode
+  const [password, setPassword] = useState('');
+
+  // otp mode
+  const [step, setStep] = useState(1);
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
-  const [loading, setLoading] = useState(false);
   const [resendTimer, setResendTimer] = useState(0);
   const otpRefs = [useRef(), useRef(), useRef(), useRef(), useRef(), useRef()];
-  const submitRef = useRef(false);
 
   function startResendTimer() {
     setResendTimer(30);
     const interval = setInterval(() => {
-      setResendTimer(prev => {
-        if (prev <= 1) { clearInterval(interval); return 0; }
-        return prev - 1;
-      });
+      setResendTimer(prev => { if (prev <= 1) { clearInterval(interval); return 0; } return prev - 1; });
     }, 1000);
   }
 
-  async function handleSendOTP(e) {
+  function storeAndRedirect(token, user) {
+    localStorage.setItem('kaamsetu_token', token);
+    localStorage.setItem('kaamsetu_user', JSON.stringify(user));
+    toast.success('Login सफल! / Login successful!');
+    setTimeout(() => redirectByRole(router, user?.role), 500);
+  }
+
+  // ── Password login (clients) ──────────────────────────────────────
+  async function handlePasswordLogin(e) {
     e.preventDefault();
-    if (!/^[6-9]\d{9}$/.test(mobile)) {
-      toast.error('10 अंकों का सही नंबर डालें / Enter valid 10-digit number');
-      return;
-    }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      toast.error('Valid email address required');
-      return;
-    }
+    if (submitRef.current) return;
+    if (!/^[6-9]\d{9}$/.test(mobile)) { toast.error('10 अंकों का सही नंबर डालें / Enter valid 10-digit number'); return; }
+    if (!password) { toast.error('पासवर्ड डालें / Enter password'); return; }
+    submitRef.current = true; setLoading(true);
+    try {
+      const res = await fetch('/api/auth/login/client', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mobile, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) { toast.error(data.message || 'गलत जानकारी / Invalid credentials'); return; }
+      const token = data.token || data.data?.token;
+      const user = data.user || data.data?.user;
+      storeAndRedirect(token, user);
+    } catch {
+      toast.error('कुछ गड़बड़ हुई / Something went wrong');
+    } finally { setLoading(false); submitRef.current = false; }
+  }
+
+  // ── OTP login (workers / shops) ───────────────────────────────────
+  async function handleSendOTP(e) {
+    e?.preventDefault();
+    if (!/^[6-9]\d{9}$/.test(mobile)) { toast.error('10 अंकों का सही नंबर डालें / Enter valid 10-digit number'); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { toast.error('Valid email address required'); return; }
     setLoading(true);
     try {
       const res = await fetch('/api/auth/send-otp', {
@@ -52,19 +92,14 @@ export default function LoginPage() {
         setTimeout(() => router.push('/auth/select-role'), 1500);
         return;
       }
-      if (!res.ok) {
-        toast.error(data.message || 'OTP भेजने में error हुई');
-        return;
-      }
+      if (!res.ok) { toast.error(data.message || 'OTP भेजने में error हुई'); return; }
       setOtp(['', '', '', '', '', '']);
       setStep(2);
       startResendTimer();
       setTimeout(() => otpRefs[0].current?.focus(), 100);
     } catch {
       toast.error('इंटरनेट कनेक्शन चेक करें / Check internet connection');
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   }
 
   function handleOtpChange(index, value) {
@@ -74,32 +109,21 @@ export default function LoginPage() {
     setOtp(newOtp);
     if (value && index < 5) otpRefs[index + 1].current?.focus();
   }
-
   function handleOtpKeyDown(index, e) {
-    if (e.key === 'Backspace' && !otp[index] && index > 0) {
-      otpRefs[index - 1].current?.focus();
-    }
+    if (e.key === 'Backspace' && !otp[index] && index > 0) otpRefs[index - 1].current?.focus();
   }
-
   function handleOtpPaste(e) {
     e.preventDefault();
     const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
-    if (pasted.length === 6) {
-      setOtp(pasted.split(''));
-      otpRefs[5].current?.focus();
-    }
+    if (pasted.length === 6) { setOtp(pasted.split('')); otpRefs[5].current?.focus(); }
   }
 
   async function handleVerifyOTP(e) {
     e?.preventDefault();
     if (submitRef.current) return;
     const otpValue = otp.join('');
-    if (otpValue.length !== 6) {
-      toast.error('6 अंकों का OTP डालें / Enter 6-digit OTP');
-      return;
-    }
-    submitRef.current = true;
-    setLoading(true);
+    if (otpValue.length !== 6) { toast.error('6 अंकों का OTP डालें / Enter 6-digit OTP'); return; }
+    submitRef.current = true; setLoading(true);
     try {
       const res = await fetch('/api/auth/verify-otp', {
         method: 'POST',
@@ -120,23 +144,23 @@ export default function LoginPage() {
       }
       const token = data.token || data.data?.token;
       const user = data.user || data.data?.user;
-      localStorage.setItem('kaamsetu_token', token);
-      localStorage.setItem('kaamsetu_user', JSON.stringify(user));
-      toast.success('Login सफल! / Login successful!');
-      const role = user?.role;
-      setTimeout(() => {
-        if (role === 'worker') router.push('/worker/dashboard');
-        else if (role === 'client') router.push('/client/dashboard');
-        else if (role === 'shop') router.push('/shop/dashboard');
-        else if (role === 'admin') router.push('/admin');
-        else router.push('/');
-      }, 500);
+      storeAndRedirect(token, user);
     } catch {
       toast.error('कुछ गड़बड़ हुई / Something went wrong');
-    } finally {
-      setLoading(false);
-      submitRef.current = false;
-    }
+    } finally { setLoading(false); submitRef.current = false; }
+  }
+
+  function switchToOtp() {
+    setMethod('otp');
+    setStep(1);
+    setPassword('');
+    setOtp(['', '', '', '', '', '']);
+  }
+  function switchToPassword() {
+    setMethod('password');
+    setStep(1);
+    setEmail('');
+    setOtp(['', '', '', '', '', '']);
   }
 
   return (
@@ -150,9 +174,9 @@ export default function LoginPage() {
         <p className="text-white/80 font-hindi text-lg mb-2">{t({ hi: 'हर काम, हर जगह', en: 'Every Work, Everywhere' })}</p>
         <p className="text-white/60 text-sm">India's #1 Local Service Platform</p>
         <div className="mt-10 space-y-3 text-left">
-          {['1000+ Verified Workers', '50+ Service Categories', '100+ Cities covered'].map(t => (
-            <div key={t} className="flex items-center gap-2 text-white/80 text-sm">
-              <span className="text-brand-yellow">✓</span> {t}
+          {['1000+ Verified Workers', '50+ Service Categories', '100+ Cities covered'].map(item => (
+            <div key={item} className="flex items-center gap-2 text-white/80 text-sm">
+              <span className="text-brand-yellow">✓</span> {item}
             </div>
           ))}
         </div>
@@ -172,63 +196,95 @@ export default function LoginPage() {
           <div className="w-full max-w-sm">
             <div className="mb-8">
               <h2 className="text-2xl font-black text-brand-navy font-hindi mb-1">
-                {step === 1 ? t({ hi: 'लॉगिन करें', en: 'Login' }) : t({ hi: 'OTP Verify करें', en: 'Verify OTP' })}
+                {method === 'otp' && step === 2 ? t({ hi: 'OTP Verify करें', en: 'Verify OTP' }) : t({ hi: 'लॉगिन करें', en: 'Login' })}
               </h2>
               <p className="text-gray-500 text-sm">
-                {step === 1 ? t({ hi: 'KaamSetu पर लॉगिन करें', en: 'Login to KaamSetu' }) : `OTP sent to ${email}`}
+                {method === 'otp' && step === 2 ? `OTP sent to ${email}` : t({ hi: 'KaamSetu पर लॉगिन करें', en: 'Login to KaamSetu' })}
               </p>
             </div>
 
-            {step === 1 ? (
+            {/* ── PASSWORD MODE (clients) ── */}
+            {method === 'password' && (
+              <form onSubmit={handlePasswordLogin} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5 font-hindi">{t({ hi: 'मोबाइल नंबर', en: 'Mobile Number' })}</label>
+                  <div className="flex gap-2">
+                    <span className="flex items-center justify-center bg-gray-100 border border-gray-200 rounded-xl px-3 text-gray-600 font-medium text-sm flex-shrink-0">+91</span>
+                    <input type="tel" inputMode="numeric" maxLength={10} value={mobile}
+                      onChange={e => setMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                      placeholder="10-digit mobile number"
+                      className="flex-1 px-4 py-3.5 border border-gray-200 rounded-xl focus:outline-none focus:border-brand-navy text-base" autoFocus />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5 font-hindi">{t({ hi: 'पासवर्ड', en: 'Password' })}</label>
+                  <input type="password" value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    placeholder={t({ hi: 'पासवर्ड डालें', en: 'Enter password' })}
+                    className="w-full px-4 py-3.5 border border-gray-200 rounded-xl focus:outline-none focus:border-brand-navy text-base"
+                    autoComplete="current-password" />
+                  <div className="text-right mt-1.5">
+                    <Link href="/auth/forgot-password" className="text-brand-navy text-xs font-semibold hover:underline font-hindi">
+                      {t({ hi: 'पासवर्ड भूल गए?', en: 'Forgot password?' })}
+                    </Link>
+                  </div>
+                </div>
+                <button type="submit" disabled={loading}
+                  className="w-full bg-brand-navy text-white font-bold py-4 rounded-xl hover:bg-brand-navy-dark transition-colors disabled:opacity-50 flex items-center justify-center gap-2 font-hindi">
+                  {loading ? <><span className="animate-spin">⏳</span> {t({ hi: 'लॉगिन हो रहा है...', en: 'Logging in...' })}</> : <><Lock size={18} /> {t({ hi: 'लॉगिन करें', en: 'Login' })}</>}
+                </button>
+
+                <button type="button" onClick={switchToOtp}
+                  className="w-full text-gray-500 text-sm hover:text-brand-navy mt-2 font-hindi">
+                  {t({ hi: 'Worker / Shop लॉगिन (OTP)', en: 'Worker / Shop login (OTP)' })}
+                </button>
+              </form>
+            )}
+
+            {/* ── OTP MODE (workers / shops) ── */}
+            {method === 'otp' && step === 1 && (
               <form onSubmit={handleSendOTP} className="space-y-4">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1.5 font-hindi">{t({ hi: 'मोबाइल नंबर', en: 'Mobile Number' })}</label>
                   <div className="flex gap-2">
-                    <span className="flex items-center justify-center bg-gray-100 border border-gray-200 rounded-xl px-3 text-gray-600 font-medium text-sm flex-shrink-0">
-                      +91
-                    </span>
-                    <input
-                      type="tel" inputMode="numeric" maxLength={10}
-                      value={mobile}
+                    <span className="flex items-center justify-center bg-gray-100 border border-gray-200 rounded-xl px-3 text-gray-600 font-medium text-sm flex-shrink-0">+91</span>
+                    <input type="tel" inputMode="numeric" maxLength={10} value={mobile}
                       onChange={e => setMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
                       placeholder="10-digit mobile number"
-                      className="flex-1 px-4 py-3.5 border border-gray-200 rounded-xl focus:outline-none focus:border-brand-navy text-base"
-                      autoFocus
-                    />
+                      className="flex-1 px-4 py-3.5 border border-gray-200 rounded-xl focus:outline-none focus:border-brand-navy text-base" autoFocus />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t({ hi: 'Email Address', en: 'Email Address' })}</label>
-                  <input
-                    type="email" inputMode="email"
-                    value={email}
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Email Address</label>
+                  <input type="email" inputMode="email" value={email}
                     onChange={e => setEmail(e.target.value.trim())}
                     placeholder="your@email.com"
-                    className="w-full px-4 py-3.5 border border-gray-200 rounded-xl focus:outline-none focus:border-brand-navy text-base"
-                  />
+                    className="w-full px-4 py-3.5 border border-gray-200 rounded-xl focus:outline-none focus:border-brand-navy text-base" />
                   <p className="text-xs text-gray-400 mt-1">OTP will be sent to this email</p>
                 </div>
                 <button type="submit" disabled={loading}
                   className="w-full bg-brand-navy text-white font-bold py-4 rounded-xl hover:bg-brand-navy-dark transition-colors disabled:opacity-50 flex items-center justify-center gap-2 font-hindi">
                   {loading ? <><span className="animate-spin">⏳</span> {t({ hi: 'भेज रहे हैं...', en: 'Sending...' })}</> : <><Phone size={18} /> {t({ hi: 'OTP भेजें', en: 'Send OTP' })}</>}
                 </button>
+
+                <button type="button" onClick={switchToPassword}
+                  className="w-full text-gray-500 text-sm hover:text-brand-navy mt-2 font-hindi">
+                  {t({ hi: 'Client लॉगिन (पासवर्ड)', en: 'Client login (password)' })}
+                </button>
               </form>
-            ) : (
+            )}
+
+            {method === 'otp' && step === 2 && (
               <form onSubmit={handleVerifyOTP} className="space-y-5">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-3 font-hindi">{t({ hi: 'OTP डालें', en: 'Enter OTP' })}</label>
                   <div className="flex gap-2 justify-center">
                     {otp.map((digit, i) => (
-                      <input
-                        key={i}
-                        ref={otpRefs[i]}
-                        type="tel" inputMode="numeric" maxLength={1}
-                        value={digit}
+                      <input key={i} ref={otpRefs[i]} type="tel" inputMode="numeric" maxLength={1} value={digit}
                         onChange={e => handleOtpChange(i, e.target.value)}
                         onKeyDown={e => handleOtpKeyDown(i, e)}
                         onPaste={i === 0 ? handleOtpPaste : undefined}
-                        className="w-11 h-14 text-center text-xl font-bold border-2 border-gray-200 rounded-xl focus:outline-none focus:border-brand-navy"
-                      />
+                        className="w-11 h-14 text-center text-xl font-bold border-2 border-gray-200 rounded-xl focus:outline-none focus:border-brand-navy" />
                     ))}
                   </div>
                 </div>
@@ -246,7 +302,7 @@ export default function LoginPage() {
                     </button>
                   )}
                 </div>
-                <button type="button" onClick={() => { setStep(1); setOtp(['','','','','','']); }}
+                <button type="button" onClick={() => { setStep(1); setOtp(['', '', '', '', '', '']); }}
                   className="flex items-center gap-1 text-gray-400 text-sm hover:text-gray-600 mx-auto min-h-0">
                   <ChevronLeft size={14} /> {t({ hi: 'नंबर बदलें', en: 'Change number' })}
                 </button>
