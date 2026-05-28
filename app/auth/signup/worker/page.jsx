@@ -135,6 +135,12 @@ export default function WorkerSignupPage() {
     }
     if (submitRef.current) return;
     submitRef.current = true; setLoading(true);
+
+    // Whole-flow watchdog: if compression + upload together take longer than
+    // 30s (slow phone, weak network), abort and tell the user to retry.
+    const controller = new AbortController();
+    const slowTimer = setTimeout(() => controller.abort(), 30000);
+
     try {
       const aadharFrontUrl = await compressImage(aadharFrontFile, { maxPx: 1200, quality: 0.7 });
 
@@ -145,13 +151,13 @@ export default function WorkerSignupPage() {
 
       let profilePhotoUrl = '';
       if (profilePhotoFile) {
-        setUploadProgress('Profile photo compress हो रही है...');
+        setUploadProgress('Profile photo ready हो रही है...');
         profilePhotoUrl = await compressImage(profilePhotoFile, { maxPx: 500, quality: 0.75 });
       }
 
       let uploadedWorkPhotos = [];
       if (workPhotoFiles.length > 0) {
-        setUploadProgress('Work photos compress हो रही हैं...');
+        setUploadProgress('Work photos ready हो रही हैं...');
         uploadedWorkPhotos = await Promise.all(
           workPhotoFiles.map(f => compressImage(f, { maxPx: 800, quality: 0.65 }))
         );
@@ -161,6 +167,7 @@ export default function WorkerSignupPage() {
       const res = await fetch('/api/auth/signup/worker', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
         body: JSON.stringify({
           mobile, email, name, city, area,
           experience: Number(experience) || 0,
@@ -182,10 +189,12 @@ export default function WorkerSignupPage() {
     } catch (err) {
       if (err.message === 'IMAGE_TOO_BIG') {
         toast.error('फोटो का size बहुत बड़ा है / Image size is too big');
+      } else if (err.name === 'AbortError') {
+        toast.error('आपका internet slow है, थोड़ी देर बाद retry करें / Your internet is slow, please retry later');
       } else {
-        toast.error(err.message || 'Image upload failed. Check internet and try again.');
+        toast.error('Registration नहीं हो पाई, फिर से try करें / Couldn\'t register, please try again');
       }
-    } finally { setLoading(false); submitRef.current = false; setUploadProgress(''); }
+    } finally { clearTimeout(slowTimer); setLoading(false); submitRef.current = false; setUploadProgress(''); }
   }
 
   const selectedCategoryData = CATEGORIES.find(c => c.id === category);
