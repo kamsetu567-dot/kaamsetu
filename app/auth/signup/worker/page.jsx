@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ChevronLeft, Wrench, RefreshCw, Upload, X } from 'lucide-react';
 import { useToast } from '@/components/Toast';
 import { CATEGORIES } from '@/lib/data/categories';
+import { compressImage } from '@/lib/utils/compressImage';
 
 const ICONS = { Hammer: '🔨', Home: '🏠', PartyPopper: '🎉', GraduationCap: '🎓', Sparkles: '✨', Car: '🚗', Store: '🏪', Settings: '⚙️', Heart: '❤️', Shield: '🛡️', Package: '📦' };
 
@@ -123,22 +124,6 @@ export default function WorkerSignupPage() {
     setStep(4);
   }
 
-  // Compress image to JPEG base64 using canvas — no external service needed
-  function compressImage(file, maxPx = 1000, quality = 0.7) {
-    return new Promise((resolve) => {
-      const img = new window.Image();
-      img.onload = () => {
-        const scale = Math.min(1, maxPx / Math.max(img.width, img.height));
-        const canvas = document.createElement('canvas');
-        canvas.width = Math.round(img.width * scale);
-        canvas.height = Math.round(img.height * scale);
-        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-        resolve(canvas.toDataURL('image/jpeg', quality));
-      };
-      img.src = URL.createObjectURL(file);
-    });
-  }
-
   async function handleSignup() {
     if (!aadharNumber || aadharNumber.length !== 12) {
       toast.error('12 अंकों का आधार नंबर डालें');
@@ -151,24 +136,24 @@ export default function WorkerSignupPage() {
     if (submitRef.current) return;
     submitRef.current = true; setLoading(true);
     try {
-      const aadharFrontUrl = await compressImage(aadharFrontFile, 1200, 0.7);
+      const aadharFrontUrl = await compressImage(aadharFrontFile, { maxPx: 1200, quality: 0.7 });
 
       let aadharBackUrl = '';
       if (aadharBackFile) {
-        aadharBackUrl = await compressImage(aadharBackFile, 1200, 0.7);
+        aadharBackUrl = await compressImage(aadharBackFile, { maxPx: 1200, quality: 0.7 });
       }
 
       let profilePhotoUrl = '';
       if (profilePhotoFile) {
         setUploadProgress('Profile photo compress हो रही है...');
-        profilePhotoUrl = await compressImage(profilePhotoFile, 500, 0.75);
+        profilePhotoUrl = await compressImage(profilePhotoFile, { maxPx: 500, quality: 0.75 });
       }
 
       let uploadedWorkPhotos = [];
       if (workPhotoFiles.length > 0) {
         setUploadProgress('Work photos compress हो रही हैं...');
         uploadedWorkPhotos = await Promise.all(
-          workPhotoFiles.map(f => compressImage(f, 800, 0.65))
+          workPhotoFiles.map(f => compressImage(f, { maxPx: 800, quality: 0.65 }))
         );
       }
 
@@ -195,7 +180,11 @@ export default function WorkerSignupPage() {
       toast.success('Registration हो गई! / Registration successful!');
       setTimeout(() => router.push('/worker/dashboard'), 800);
     } catch (err) {
-      toast.error(err.message || 'Image upload failed. Check internet and try again.');
+      if (err.message === 'IMAGE_DECODE_FAILED' || err.message === 'IMAGE_TIMEOUT') {
+        toast.error('इस फोटो को process नहीं कर पाए — कोई और फोटो (JPG/PNG) चुनें / Couldn\'t process this image, please pick a different one.');
+      } else {
+        toast.error(err.message || 'Image upload failed. Check internet and try again.');
+      }
     } finally { setLoading(false); submitRef.current = false; setUploadProgress(''); }
   }
 

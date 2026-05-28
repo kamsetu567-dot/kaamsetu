@@ -11,6 +11,7 @@ import EmptyState from "@/components/EmptyState";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 import { useRoleGuard } from "@/lib/auth/useRoleGuard";
 import { useToast } from "@/components/Toast";
+import { compressImage } from "@/lib/utils/compressImage";
 
 const AD_TYPES = [
   { value: "banner",   hi: "Banner Ad",        en: "Full-width banner on category page", icon: Megaphone, tag: "Most Popular" },
@@ -20,21 +21,6 @@ const AD_TYPES = [
 const PRICE_PER_DAY = 100; // ₹100 / day flat
 const MIN_DAYS = 1;
 const MAX_DAYS = 90;
-
-function compressImage(file, maxPx = 1000, quality = 0.7) {
-  return new Promise(resolve => {
-    const img = new window.Image();
-    img.onload = () => {
-      const scale = Math.min(1, maxPx / Math.max(img.width, img.height));
-      const canvas = document.createElement("canvas");
-      canvas.width  = Math.round(img.width  * scale);
-      canvas.height = Math.round(img.height * scale);
-      canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
-      resolve(canvas.toDataURL("image/jpeg", quality));
-    };
-    img.src = URL.createObjectURL(file);
-  });
-}
 
 function CreateAdForm({ onCreated, onCancel }) {
   const toast = useToast();
@@ -54,9 +40,19 @@ function CreateAdForm({ onCreated, onCancel }) {
   async function handleCreativeUpload(e) {
     const file = e.target.files?.[0];
     if (!file) return;
-    setPreview(URL.createObjectURL(file));
-    const b64 = await compressImage(file, 1200, 0.75);
-    setCreative(b64);
+    try {
+      const b64 = await compressImage(file, { maxPx: 1200, quality: 0.75 });
+      setPreview(URL.createObjectURL(file));
+      setCreative(b64);
+    } catch (err) {
+      setPreview(null);
+      setCreative(null);
+      if (err.message === "IMAGE_DECODE_FAILED" || err.message === "IMAGE_TIMEOUT") {
+        toast.error("इस फोटो को process नहीं कर पाए — कोई और फोटो (JPG/PNG) चुनें / Couldn't process this image, pick a different one.");
+      } else {
+        toast.error("Image upload failed. Try again.");
+      }
+    }
   }
 
   function onSubmit(e) {

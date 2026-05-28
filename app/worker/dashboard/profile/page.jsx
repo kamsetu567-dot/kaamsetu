@@ -9,6 +9,7 @@ import { useWorkerStatus } from "@/lib/context/WorkerStatusContext";
 import { updateWorker, updateWorkerStatus } from "@/lib/api/workers";
 import { useToast } from "@/components/Toast";
 import { useRoleGuard } from "@/lib/auth/useRoleGuard";
+import { compressImage } from "@/lib/utils/compressImage";
 
 export default function WorkerProfileEditPage() {
   useRoleGuard("worker");
@@ -80,22 +81,6 @@ export default function WorkerProfileEditPage() {
     loadProfile();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Compress image using canvas → base64 JPEG
-  function compressImage(file, maxPx = 1000, quality = 0.7) {
-    return new Promise((resolve) => {
-      const img = new window.Image();
-      img.onload = () => {
-        const scale = Math.min(1, maxPx / Math.max(img.width, img.height));
-        const canvas = document.createElement("canvas");
-        canvas.width = Math.round(img.width * scale);
-        canvas.height = Math.round(img.height * scale);
-        canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
-        resolve(canvas.toDataURL("image/jpeg", quality));
-      };
-      img.src = URL.createObjectURL(file);
-    });
-  }
-
   function handlePhotoSelect(e) {
     const file = e.target.files?.[0];
     if (file) {
@@ -124,20 +109,20 @@ export default function WorkerProfileEditPage() {
 
       // Compress any new images
       const photo = profilePhotoFile
-        ? await compressImage(profilePhotoFile, 500, 0.75)
+        ? await compressImage(profilePhotoFile, { maxPx: 500, quality: 0.75 })
         : profilePhoto;
 
       const finalAadharFront = aadharFrontFile
-        ? await compressImage(aadharFrontFile, 1200, 0.7)
+        ? await compressImage(aadharFrontFile, { maxPx: 1200, quality: 0.7 })
         : aadharFront;
 
       const finalAadharBack = aadharBackFile
-        ? await compressImage(aadharBackFile, 1200, 0.7)
+        ? await compressImage(aadharBackFile, { maxPx: 1200, quality: 0.7 })
         : aadharBack;
 
       const finalWorkPhotos = await Promise.all(
         workPhotos.map((url, i) =>
-          workPhotoFiles[i] ? compressImage(workPhotoFiles[i], 800, 0.65) : url
+          workPhotoFiles[i] ? compressImage(workPhotoFiles[i], { maxPx: 800, quality: 0.65 }) : url
         )
       );
 
@@ -162,7 +147,11 @@ export default function WorkerProfileEditPage() {
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } catch (err) {
-      toast.error("Save failed. Please try again.");
+      if (err.message === "IMAGE_DECODE_FAILED" || err.message === "IMAGE_TIMEOUT") {
+        toast.error("इस फोटो को process नहीं कर पाए — कोई और फोटो (JPG/PNG) चुनें / Couldn't process this image, pick a different one.");
+      } else {
+        toast.error("Save failed. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
