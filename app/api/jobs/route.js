@@ -29,6 +29,11 @@ export async function GET(request) {
         if (!workerProfile.subscriptionExpiry || workerProfile.subscriptionExpiry < new Date()) {
           return ok({ jobs: [] });
         }
+        // Busy workers (manually toggled, or mid-job) get no new job
+        // notifications. Flipping back to "free" resumes the feed.
+        if (workerProfile.workStatus === "working") {
+          return ok({ jobs: [] });
+        }
 
         const workerCoords = workerProfile.location?.coordinates?.coordinates;
         const radiusKm = parseInt(searchParams.get("radius") || "50");
@@ -174,6 +179,10 @@ export async function POST(request) {
         jobData.worker = body.workerId;
       } else if (worker && worker.status !== "approved") {
         return error("Worker is not available for assignment", 400);
+      } else if (worker) {
+        // Approved but subscription lapsed — don't silently dump into the open
+        // pool; tell the client this specific worker isn't currently available.
+        return error("This worker is not currently available. Please choose another.", 400);
       }
     }
 
