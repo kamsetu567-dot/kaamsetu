@@ -1,52 +1,45 @@
 import { connectDB } from "@/lib/db/mongoose";
 import User from "@/lib/models/User";
 import Client from "@/lib/models/Client";
-import OTP from "@/lib/models/OTP";
-import { signToken, verifyToken } from "@/lib/utils/jwt";
+import { signToken } from "@/lib/utils/jwt";
 import { ok, error, created } from "@/lib/utils/apiResponse";
 import { logger } from "@/lib/utils/logger";
 import { hashPassword, validatePasswordStrength } from "@/lib/utils/password";
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { mobile, name, email, city, area, location, lat, lng, password, otpToken, token: otpProofToken } = body;
-    const verifyTokenStr = otpToken || otpProofToken;
+    const { mobile, name, email, city, area, location, lat, lng, password } = body;
 
-    if (!mobile || !name) return error("mobile and name are required");
+    if (!mobile || !/^\d{10}$/.test(mobile)) return error("Valid 10-digit mobile number is required");
+    if (!name || !name.trim()) return error("Name is required");
+
+    // Email is required but not OTP-verified — it's the only password-recovery path.
+    if (!email || !EMAIL_RE.test(email)) return error("Valid email address is required");
 
     const pwError = validatePasswordStrength(password);
     if (pwError) return error(pwError);
 
-    if (!verifyTokenStr) return error("OTP verification required before signup");
-    const tokenPayload = verifyToken(verifyTokenStr);
-    if (!tokenPayload || !tokenPayload.otpId || tokenPayload.mobile !== mobile) {
-      return error("OTP proof invalid or expired. Please verify your OTP again.");
-    }
-
     await connectDB();
-
-    // Atomically burn the OTP proof — second use of the same token gets null
-    const claimedOtp = await OTP.findOneAndUpdate(
-      { _id: tokenPayload.otpId, mobile, verified: true, consumed: false },
-      { $set: { consumed: true } }
-    );
-    if (!claimedOtp) {
-      return error("OTP proof already used or expired. Please verify your OTP again.");
-    }
 
     const passwordHash = await hashPassword(password);
 
     let user = await User.findOne({ mobile });
     if (user && user.role !== "client") return error("Mobile already registered with a different role");
+    // Block re-registering an existing client — they should log in instead.
+    if (user && user.role === "client") {
+      return error("An account already exists with this number. Please login instead.", 409);
+    }
 
     let userCreatedHere = false;
     if (!user) {
-      user = await User.create({ mobile, name, email: email || "", role: "client", password: passwordHash });
+      user = await User.create({ mobile, name, email, role: "client", password: passwordHash });
       userCreatedHere = true;
     } else {
       user.name = name;
-      if (email) user.email = email;
+      user.email = email;
       user.password = passwordHash;
       await user.save();
     }
