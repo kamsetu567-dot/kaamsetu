@@ -58,6 +58,95 @@ body {
   background: linear-gradient(135deg, #1B2D6B 0%, #2438A0 50%, #7C3AED 100%);
 }
 
+/* ── Decorative hero background ──────────────────────────────────────
+   Layered on top of .gradient-hero via .hero-decor. Pure CSS: soft glowing
+   colour blobs + a faint dotted grid. Sits behind the content (pointer-events
+   off, low z). */
+.hero-decor {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+.hero-decor::before,
+.hero-decor::after {
+  content: "";
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(70px);
+  opacity: 0.55;
+}
+/* warm yellow glow, top-right */
+.hero-decor::before {
+  width: 420px; height: 420px;
+  top: -120px; right: -80px;
+  background: radial-gradient(circle at center, rgba(245,166,35,0.55), transparent 70%);
+  animation: heroFloat 14s ease-in-out infinite;
+}
+/* violet glow, bottom-left */
+.hero-decor::after {
+  width: 480px; height: 480px;
+  bottom: -160px; left: -120px;
+  background: radial-gradient(circle at center, rgba(124,58,237,0.6), transparent 70%);
+  animation: heroFloat 18s ease-in-out infinite reverse;
+}
+/* faint dotted grid overlay */
+.hero-dots {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(255,255,255,0.10) 1px, transparent 1px);
+  background-size: 26px 26px;
+  mask-image: radial-gradient(ellipse 90% 70% at 50% 40%, #000 40%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 40%, #000 40%, transparent 100%);
+}
+
+/* Glowing spotlight disc that the transparent hero PNGs sit on */
+.hero-spotlight {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: 360px;
+  height: 360px;
+  border-radius: 9999px;
+  background: radial-gradient(circle at center, rgba(255,255,255,0.22), rgba(245,166,35,0.12) 45%, transparent 70%);
+  filter: blur(2px);
+  z-index: 0;
+}
+
+@keyframes heroFloat {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50%      { transform: translate(20px, -24px) scale(1.08); }
+}
+
+/* Crossfading hero illustration stack */
+.hero-rotator {
+  position: relative;
+  width: 460px;
+  max-width: 100%;
+  height: 520px;
+}
+.hero-rotator img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 0;
+  transition: opacity 1.1s ease-in-out;
+  filter: drop-shadow(0 18px 30px rgba(0,0,0,0.35));
+}
+.hero-rotator img.is-active {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-decor::before,
+  .hero-decor::after { animation: none; }
+  .hero-rotator img { transition: none; }
+}
+
 .card-hover {
   transition: all 0.2s ease;
 }

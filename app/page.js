@@ -33,6 +33,16 @@ const SEARCH_SUGGESTIONS = [
 ].filter((item, i, arr) => arr.findIndex(x => x.query === item.query) === i); // deduplicate by query
 
 
+// Hero illustrations that crossfade in the hero spotlight (transparent PNGs)
+const HERO_ILLUSTRATIONS = [
+  '/illustrations/worker-hero-2.png',
+  '/illustrations/hero-carpenter.png',
+  '/illustrations/hero-electrician.png',
+  '/illustrations/hero-plumber.png',
+  '/illustrations/hero-caterer.png',
+  '/illustrations/hero-computer-operator.png',
+];
+
 const ACTION_CARDS = [
   {
     illustration: '/illustrations/worker-hero.png',
@@ -84,6 +94,7 @@ export default function HomePage() {
   const [activeIdx, setActiveIdx] = useState(-1);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [showAllCategories, setShowAllCategories] = useState(false);
+  const [heroIdx, setHeroIdx] = useState(0);
   const suggestionsRef = useRef(null);
 
   useEffect(() => {
@@ -91,6 +102,19 @@ export default function HomePage() {
       const user = JSON.parse(localStorage.getItem('kaamsetu_user') || '{}');
       setRole(user.role || null);
     } catch {}
+  }, []);
+
+  // Crossfade through the hero illustrations every 4s. Skips animation if the
+  // user prefers reduced motion.
+  useEffect(() => {
+    if (typeof window !== 'undefined' &&
+        window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+      return;
+    }
+    const id = setInterval(() => {
+      setHeroIdx(i => (i + 1) % HERO_ILLUSTRATIONS.length);
+    }, 4000);
+    return () => clearInterval(id);
   }, []);
 
   // Close dropdown when clicking outside
@@ -164,8 +188,13 @@ export default function HomePage() {
       <Header />
 
       {/* ── HERO ─────────────────────────────────────────────────── */}
-      <section className="gradient-hero overflow-x-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-14 md:pt-20 pb-0">
+      <section className="gradient-hero overflow-x-hidden relative">
+        {/* Decorative background — soft glows + dotted grid */}
+        <div className="hero-decor" aria-hidden="true">
+          <div className="hero-dots" />
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-14 md:pt-20 pb-0 relative z-10">
           <div className="grid md:grid-cols-2 gap-6 md:min-h-[520px]">
 
             {/* left */}
@@ -281,17 +310,21 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* right — hero illustration anchored to bottom */}
-            <div className="hidden md:flex justify-center self-end">
-              <Image
-                src="/illustrations/worker-hero.png"
-                alt="KaamSetu verified worker"
-                width={460}
-                height={520}
-                className="object-contain drop-shadow-2xl"
-                priority
-                unoptimized
-              />
+            {/* right — crossfading hero illustrations on a glowing spotlight */}
+            <div className="hidden md:flex justify-center items-end relative self-end">
+              <div className="hero-spotlight" aria-hidden="true" />
+              <div className="hero-rotator self-end">
+                {HERO_ILLUSTRATIONS.map((src, i) => (
+                  <img
+                    key={src}
+                    src={src}
+                    alt={i === heroIdx ? 'KaamSetu verified worker' : ''}
+                    aria-hidden={i === heroIdx ? undefined : 'true'}
+                    className={i === heroIdx ? 'is-active' : ''}
+                    loading={i === 0 ? 'eager' : 'lazy'}
+                  />
+                ))}
+              </div>
             </div>
           </div>
         </div>
