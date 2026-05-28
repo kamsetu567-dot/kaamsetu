@@ -1,3 +1,4 @@
+import { randomInt } from "crypto";
 import { connectDB } from "@/lib/db/mongoose";
 import JobRequest from "@/lib/models/JobRequest";
 import Worker from "@/lib/models/Worker";
@@ -45,10 +46,12 @@ export async function POST(request, { params }) {
     }
 
     // Step 2 — Atomically claim the job: only succeeds if still pending AND
-    // either unassigned or pre-assigned to this specific worker
+    // either unassigned or pre-assigned to this specific worker. Also mint a
+    // 4-digit start code the client will give the worker in person.
+    const startCode = String(randomInt(1000, 10000));
     const job = await JobRequest.findOneAndUpdate(
       { _id: id, status: "pending", worker: { $in: [null, worker._id] } },
-      { $set: { status: "accepted", worker: worker._id } },
+      { $set: { status: "accepted", worker: worker._id, startCode } },
       { new: true }
     );
     if (!job) {

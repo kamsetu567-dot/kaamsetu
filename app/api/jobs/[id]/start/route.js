@@ -12,6 +12,7 @@ export async function POST(request, { params }) {
     if (!payload || payload.role !== "worker") return unauthorized();
 
     const { id } = await params;
+    const { code } = await request.json().catch(() => ({}));
     await connectDB();
 
     const job = await JobRequest.findById(id);
@@ -21,6 +22,11 @@ export async function POST(request, { params }) {
     const worker = await Worker.findOne({ user: payload.id }).lean();
     if (!worker) return error("Worker profile not found");
     if (String(job.worker) !== String(worker._id)) return forbidden("Not your job");
+
+    // The client gives this 4-digit code in person — proof the worker showed up.
+    if (!code || String(code) !== String(job.startCode)) {
+      return error("गलत code / Wrong code", 400);
+    }
 
     job.status = "in_progress";
     await job.save();

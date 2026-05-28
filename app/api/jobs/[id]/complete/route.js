@@ -26,6 +26,7 @@ export async function POST(request, { params }) {
 
     job.status = "completed";
     job.resolvedAt = new Date();
+    job.startCode = undefined; // code no longer needed
     await job.save();
 
     // Free up worker and increment their total jobs count

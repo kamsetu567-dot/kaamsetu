@@ -17,6 +17,7 @@ export default function WorkerDashboardOverview() {
   const [statusLoading, setStatusLoading] = useState(false);
   const [activeJob, setActiveJob] = useState(null);
   const [jobActionLoading, setJobActionLoading] = useState(null); // "start" | "complete"
+  const [startCodeInput, setStartCodeInput] = useState("");
 
   async function loadActiveJob(userId) {
     if (!userId) return;
@@ -66,16 +67,22 @@ export default function WorkerDashboardOverview() {
 
   async function handleStartJob() {
     if (!activeJob || jobActionLoading) return;
+    if (startCodeInput.length !== 4) {
+      toast.error("Client से मिला 4-अंकों का code डालें / Enter the 4-digit code from the client");
+      return;
+    }
     setJobActionLoading("start");
     try {
       const token = localStorage.getItem("kaamsetu_token");
       const res = await fetch(`/api/jobs/${activeJob.id}/start`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ code: startCodeInput }),
       });
       const data = await res.json();
       if (data.success) {
         setActiveJob({ ...activeJob, status: "in_progress" });
+        setStartCodeInput("");
         toast.success("काम शुरू हुआ / Work started");
       } else {
         toast.error(data.message || "Could not start job");
@@ -193,11 +200,25 @@ export default function WorkerDashboardOverview() {
             )}
           </div>
           {activeJob.status === "accepted" ? (
-            <button onClick={handleStartJob} disabled={!!jobActionLoading}
-              className="w-full flex items-center justify-center gap-2 bg-orange-500 text-white font-bold py-3 rounded-2xl hover:bg-orange-600 transition-colors disabled:opacity-50">
-              <Play size={18} />
-              <span className="font-hindi">{jobActionLoading === "start" ? "Starting..." : "काम शुरू करें / Start Work"}</span>
-            </button>
+            <div className="space-y-2">
+              <p className="text-xs text-gray-600 font-hindi">
+                Client से 4-अंकों का code लेकर डालें / Enter the 4-digit code the client gives you
+              </p>
+              <input
+                type="tel"
+                inputMode="numeric"
+                maxLength={4}
+                value={startCodeInput}
+                onChange={e => setStartCodeInput(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                placeholder="• • • •"
+                className="w-full text-center text-2xl font-black tracking-[0.5em] border-2 border-orange-300 rounded-2xl py-3 focus:outline-none focus:border-orange-500"
+              />
+              <button onClick={handleStartJob} disabled={!!jobActionLoading || startCodeInput.length !== 4}
+                className="w-full flex items-center justify-center gap-2 bg-orange-500 text-white font-bold py-3 rounded-2xl hover:bg-orange-600 transition-colors disabled:opacity-50">
+                <Play size={18} />
+                <span className="font-hindi">{jobActionLoading === "start" ? "Starting..." : "काम शुरू करें / Start Work"}</span>
+              </button>
+            </div>
           ) : (
             <button onClick={handleCompleteJob} disabled={!!jobActionLoading}
               className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white font-bold py-3 rounded-2xl hover:bg-blue-700 transition-colors disabled:opacity-50">

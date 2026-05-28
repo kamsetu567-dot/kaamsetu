@@ -121,6 +121,25 @@ export default function ClientDashboardPage() {
     ));
   }
 
+  async function handleCancelJob(jobId) {
+    if (!confirm("Worker नहीं आया? इस job को cancel करें / Cancel this job?")) return;
+    try {
+      const token = localStorage.getItem("kaamsetu_token");
+      const res = await fetch(`/api/jobs/${jobId}/client-cancel`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (data.success) {
+        setRequests(prev => prev.map(r =>
+          String(r._id) === String(jobId) ? { ...r, status: "cancelled" } : r
+        ));
+      } else {
+        alert(data.message || "Could not cancel.");
+      }
+    } catch { alert("Network error. Please try again."); }
+  }
+
   function handleLogout() {
     localStorage.removeItem("kaamsetu_token");
     localStorage.removeItem("kaamsetu_user");
@@ -226,6 +245,25 @@ export default function ClientDashboardPage() {
                   >
                     <ExternalLink size={14} /> View Profile
                   </Link>
+                </div>
+              )}
+
+              {/* Start code — worker enters this to prove they reached you */}
+              {(req.status === "accepted" || req.status === "in_progress") && req.startCode && (
+                <div className="mt-3 pt-3 border-t border-gray-100 space-y-2">
+                  <div className="bg-blue-50 border-2 border-blue-200 rounded-2xl p-3 text-center">
+                    <p className="text-xs text-blue-700 font-semibold font-hindi">
+                      Worker को यह code बताएं / Tell the worker this code
+                    </p>
+                    <p className="text-3xl font-black text-blue-700 tracking-[0.4em] mt-1">{req.startCode}</p>
+                    <p className="text-[11px] text-blue-600/70 mt-1 font-hindi">
+                      {req.status === "in_progress" ? "काम चालू है / Work in progress" : "Worker के आने पर बताएं / Give it when the worker arrives"}
+                    </p>
+                  </div>
+                  <button onClick={() => handleCancelJob(req._id)}
+                    className="w-full text-xs font-semibold text-red-500 hover:text-red-700 py-1 font-hindi">
+                    Worker नहीं आया? Cancel करें / Worker didn't come? Cancel
+                  </button>
                 </div>
               )}
 
