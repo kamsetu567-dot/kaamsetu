@@ -456,6 +456,8 @@ export default function ShopAdsPage() {
   const [ads,      setAds]      = useState([]);
   const [loading,  setLoading]  = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [shopStatus, setShopStatus] = useState(null); // "approved" | "pending" | ...
+  const isApproved = shopStatus === "approved";
 
   async function loadAds() {
     try {
@@ -467,7 +469,16 @@ export default function ShopAdsPage() {
     setLoading(false);
   }
 
-  useEffect(() => { loadAds(); }, []);
+  async function loadShopStatus() {
+    try {
+      const token = localStorage.getItem("kaamsetu_token");
+      const res = await fetch("/api/shop/me", { headers: { Authorization: `Bearer ${token}` } });
+      const data = await res.json();
+      if (data.success && data.shop) setShopStatus(data.shop.status);
+    } catch {}
+  }
+
+  useEffect(() => { loadAds(); loadShopStatus(); }, []);
 
   async function handleCreated() {
     setShowForm(false);
@@ -500,13 +511,24 @@ export default function ShopAdsPage() {
           <p className="text-gray-500 text-sm mt-0.5">Manage Advertisements · {ads.length} total</p>
         </div>
         {!showForm && (
-          <button onClick={() => setShowForm(true)}
-            className="flex items-center gap-2 bg-brand-navy text-white font-bold px-5 py-3 rounded-xl hover:bg-blue-900 transition-colors">
+          <button onClick={() => setShowForm(true)} disabled={!isApproved}
+            className="flex items-center gap-2 bg-brand-navy text-white font-bold px-5 py-3 rounded-xl hover:bg-blue-900 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
             <PlusCircle size={20} />
             <span className="font-hindi">नया Ad बनाएं / Create Ad</span>
           </button>
         )}
       </div>
+
+      {shopStatus && !isApproved && (
+        <div className="bg-yellow-50 border-2 border-yellow-200 rounded-2xl px-4 py-3">
+          <p className="text-sm font-semibold text-yellow-800 font-hindi">
+            आपकी shop अभी admin approval का इंतज़ार कर रही है
+          </p>
+          <p className="text-xs text-yellow-700 mt-0.5">
+            Your shop is pending admin approval. You can create ads once it's approved.
+          </p>
+        </div>
+      )}
 
       {showForm && (
         <CreateAdForm onCreated={handleCreated} onCancel={() => setShowForm(false)} />

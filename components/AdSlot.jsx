@@ -84,8 +84,8 @@ function WideBanner({ ad }) {
   const shop = ad.shop;
   return (
     <div className="bg-white rounded-2xl border-2 border-brand-yellow overflow-hidden hover:shadow-lg transition-shadow h-full flex flex-col">
-      {/* Hero creative — fills the card width, badge overlaid top-right */}
-      <div className="relative w-full aspect-[16/7] bg-brand-navy">
+      {/* Hero creative — compact, fills card width, badge overlaid top-right */}
+      <div className="relative w-full aspect-[16/6] bg-brand-navy">
         {ad.creative ? (
           <img
             src={ad.creative}
@@ -94,28 +94,30 @@ function WideBanner({ ad }) {
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
-            <Store size={40} className="text-brand-yellow" />
+            <Store size={36} className="text-brand-yellow" />
           </div>
         )}
         <SponsoredLabel className="absolute top-2 right-2 shadow-sm" />
       </div>
 
-      {/* Info + actions strip */}
-      <div className="p-3 flex flex-col gap-2 flex-1">
-        <div className="min-w-0">
-          <div className="flex items-center justify-between gap-2">
-            <p className="font-black text-brand-navy text-base leading-tight truncate">
-              {shop?.shopName || "Local Business"}
-            </p>
-            {shop?.city && <span className="text-[11px] text-gray-500 flex-shrink-0">📍 {shop.city}</span>}
-          </div>
-          <p className="text-xs text-gray-500 mt-0.5 truncate">{ad.category}</p>
+      {/* Info on the left + Call button on the right */}
+      <div className="px-3 py-2.5 flex items-center gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="font-black text-brand-navy text-sm leading-tight truncate">
+            {shop?.shopName || "Local Business"}
+          </p>
+          <p className="text-[11px] text-gray-500 mt-0.5 truncate">
+            {ad.category}{shop?.city ? ` · 📍 ${shop.city}` : ""}
+          </p>
         </div>
         {shop?.mobile && (
-          <div className="flex items-center gap-1.5 mt-auto text-brand-navy">
-            <Phone size={14} className="text-primary-green flex-shrink-0" />
-            <span className="text-sm font-bold tracking-wide">+91 {shop.mobile}</span>
-          </div>
+          <a
+            href={`tel:+91${shop.mobile}`}
+            className="flex items-center gap-1.5 bg-primary-green text-white text-sm font-bold px-4 py-2 rounded-xl hover:bg-green-700 transition-colors flex-shrink-0"
+            aria-label={`Call ${shop.shopName || "shop"}`}
+          >
+            <Phone size={15} /> Call
+          </a>
         )}
       </div>
     </div>

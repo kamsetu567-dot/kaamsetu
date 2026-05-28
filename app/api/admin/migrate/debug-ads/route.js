@@ -80,6 +80,25 @@ export async function POST(request) {
           userRole: user?.role,
         };
       }),
+      // ALL shops (not just those with ads) + per-shop ad count, so we can
+      // see which shops have adActive=true but zero Ad documents.
+      allShops: await (async () => {
+        const everyShop = await Shop.find({}).lean();
+        const adCounts = {};
+        const everyAd = await Ad.find({}).select("shop status").lean();
+        everyAd.forEach(a => {
+          const k = String(a.shop);
+          adCounts[k] = (adCounts[k] || 0) + 1;
+        });
+        return everyShop.map(s => ({
+          id: String(s._id),
+          shopName: s.shopName,
+          status: s.status,
+          adActive: s.adActive,
+          adExpiry: s.adExpiry,
+          adCount: adCounts[String(s._id)] || 0,
+        }));
+      })(),
       totalShops: shops.length,
       shops: shops.map(s => ({
         id: String(s._id),
