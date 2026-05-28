@@ -137,31 +137,22 @@ export default function WorkerSignupPage() {
     submitRef.current = true; setLoading(true);
 
     // Whole-flow watchdog: if compression + upload together take longer than
-    // 30s (slow phone, weak network), abort and tell the user to retry.
+    // 60s (slow phone, weak network), abort and tell the user to retry.
     const controller = new AbortController();
-    const slowTimer = setTimeout(() => controller.abort(), 30000);
+    const slowTimer = setTimeout(() => controller.abort(), 60000);
 
     try {
-      const aadharFrontUrl = await compressImage(aadharFrontFile, { maxPx: 1200, quality: 0.7 });
-
-      let aadharBackUrl = '';
-      if (aadharBackFile) {
-        aadharBackUrl = await compressImage(aadharBackFile, { maxPx: 1200, quality: 0.7 });
-      }
-
-      let profilePhotoUrl = '';
-      if (profilePhotoFile) {
-        setUploadProgress('Profile photo ready हो रही है...');
-        profilePhotoUrl = await compressImage(profilePhotoFile, { maxPx: 500, quality: 0.75 });
-      }
-
-      let uploadedWorkPhotos = [];
-      if (workPhotoFiles.length > 0) {
-        setUploadProgress('Work photos ready हो रही हैं...');
-        uploadedWorkPhotos = await Promise.all(
-          workPhotoFiles.map(f => compressImage(f, { maxPx: 800, quality: 0.65 }))
-        );
-      }
+      // Compress everything in parallel and small — the dominant cost on a
+      // weak connection is the base64 payload size, so we shrink hard.
+      setUploadProgress('Photos ready हो रही हैं...');
+      const [aadharFrontUrl, aadharBackUrl, profilePhotoUrl, uploadedWorkPhotos] = await Promise.all([
+        compressImage(aadharFrontFile, { maxPx: 900, quality: 0.55 }),
+        aadharBackFile ? compressImage(aadharBackFile, { maxPx: 900, quality: 0.55 }) : Promise.resolve(''),
+        profilePhotoFile ? compressImage(profilePhotoFile, { maxPx: 400, quality: 0.6 }) : Promise.resolve(''),
+        workPhotoFiles.length > 0
+          ? Promise.all(workPhotoFiles.map(f => compressImage(f, { maxPx: 700, quality: 0.5 })))
+          : Promise.resolve([]),
+      ]);
 
       setUploadProgress('Registration हो रही है...');
       const res = await fetch('/api/auth/signup/worker', {
@@ -399,7 +390,7 @@ export default function WorkerSignupPage() {
 
               {/* Work Photos */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2 font-hindi">काम की फ़ोटो (up to 5)</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2 font-hindi">काम की फ़ोटो (up to 3)</label>
                 <div className="grid grid-cols-3 gap-2">
                   {workPhotos.map((url, i) => (
                     <div key={i} className="relative">
@@ -408,19 +399,20 @@ export default function WorkerSignupPage() {
                         className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 min-h-0"><X size={11} /></button>
                     </div>
                   ))}
-                  {workPhotos.length < 5 && (
+                  {workPhotos.length < 3 && (
                     <label className="cursor-pointer border-2 border-dashed border-gray-200 rounded-xl aspect-square flex items-center justify-center hover:border-brand-navy transition-colors">
                       <Upload size={20} className="text-gray-400" />
                       <input type="file" accept="image/*" multiple className="hidden"
                         onChange={e => {
-                          const files = Array.from(e.target.files || []).slice(0, 5 - workPhotos.length);
+                          const files = Array.from(e.target.files || []).slice(0, 3 - workPhotos.length);
                           const urls = files.map(f => URL.createObjectURL(f));
-                          setWorkPhotos(p => [...p, ...urls].slice(0, 5));
-                          setWorkPhotoFiles(p => [...p, ...files].slice(0, 5));
+                          setWorkPhotos(p => [...p, ...urls].slice(0, 3));
+                          setWorkPhotoFiles(p => [...p, ...files].slice(0, 3));
                         }} />
                     </label>
                   )}
                 </div>
+                <p className="text-xs text-gray-400 mt-1 font-hindi">बाद में और फ़ोटो add कर सकते हैं / You can add more later from your profile</p>
               </div>
 
               {/* Aadhar Number */}
