@@ -155,8 +155,11 @@ export default function AdminShopsPage() {
                             <MegaphoneOff size={11} /> Stop Ad
                           </button>
                         ) : (
-                          <button onClick={() => handleAction(s.id, "enable_ad")} disabled={!!actionInProgress}
-                            className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-1.5 rounded-lg bg-yellow-50 text-yellow-700 hover:bg-yellow-100 disabled:opacity-40">
+                          <button
+                            onClick={() => handleAction(s.id, "enable_ad")}
+                            disabled={!!actionInProgress || !s.adCount}
+                            title={!s.adCount ? "This shop hasn't submitted an ad yet" : "Run this shop's ad"}
+                            className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-1.5 rounded-lg bg-yellow-50 text-yellow-700 hover:bg-yellow-100 disabled:opacity-40 disabled:cursor-not-allowed">
                             <Megaphone size={11} /> Run Ad
                           </button>
                         )}

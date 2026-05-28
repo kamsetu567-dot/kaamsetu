@@ -47,19 +47,35 @@ export async function PATCH(request, { params }) {
     }
 
     if (action === "enable_ad") {
+      // Reactivate the shop's real ad(s). Only meaningful if the shop has
+      // submitted an Ad — find its most recent non-active ad and turn it on.
       const days = adDays || 30;
       const now = new Date();
-      const base = shop.adExpiry && shop.adExpiry > now ? shop.adExpiry : now;
+      const expiresAt = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
+
+      const adRes = await Ad.updateMany(
+        { shop: id, status: { $in: ["expired", "pending", "rejected"] } },
+        { $set: { status: "active", startsAt: now, expiresAt, reviewNote: null } }
+      );
+      if (adRes.modifiedCount === 0) {
+        // No ad to run — don't fake a LIVE state
+        return error("This shop has no ad to run. The shop must submit an ad first.", 400);
+      }
       shop.adActive = true;
-      shop.adExpiry = new Date(base.getTime() + days * 24 * 60 * 60 * 1000);
+      shop.adExpiry = expiresAt;
       await shop.save();
-      return ok({ message: `Ad enabled for ${days} days`, adExpiry: shop.adExpiry });
+      return ok({ message: `Ad running for ${days} days`, adExpiry: expiresAt });
     }
 
     if (action === "disable_ad") {
+      // Stop the shop's live ad(s) so they vanish from the public site.
+      await Ad.updateMany(
+        { shop: id, status: "active" },
+        { $set: { status: "expired" } }
+      );
       shop.adActive = false;
       await shop.save();
-      return ok({ message: "Ad disabled" });
+      return ok({ message: "Ad stopped" });
     }
 
     if (action === "delete") {

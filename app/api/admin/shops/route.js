@@ -1,5 +1,6 @@
 import { connectDB } from "@/lib/db/mongoose";
 import Shop from "@/lib/models/Shop";
+import Ad from "@/lib/models/Ad";
 import { verifyToken, getTokenFromRequest } from "@/lib/utils/jwt";
 import { ok, error, unauthorized } from "@/lib/utils/apiResponse";
 
@@ -34,19 +35,39 @@ export async function GET(request) {
       Shop.countDocuments(filter),
     ]);
 
-    const formatted = shops.map(s => ({
-      id: s._id,
-      shopName: s.shopName,
-      ownerName: s.ownerName,
-      mobile: s.mobile,
-      category: s.category,
-      location: s.location,
-      status: s.status,
-      adActive: s.adActive,
-      adExpiry: s.adExpiry,
-      rating: s.rating,
-      createdAt: s.createdAt,
-    }));
+    // Count each shop's real active/total ads so the LIVE badge reflects an
+    // actual running Ad, not just a stale shop flag.
+    const now = new Date();
+    const shopIds = shops.map(s => s._id);
+    const ads = await Ad.find({ shop: { $in: shopIds } }).select("shop status expiresAt").lean();
+    const activeByShop = {};
+    const totalByShop = {};
+    ads.forEach(a => {
+      const k = String(a.shop);
+      totalByShop[k] = (totalByShop[k] || 0) + 1;
+      if (a.status === "active" && (!a.expiresAt || new Date(a.expiresAt) > now)) {
+        activeByShop[k] = (activeByShop[k] || 0) + 1;
+      }
+    });
+
+    const formatted = shops.map(s => {
+      const k = String(s._id);
+      const hasActiveAd = (activeByShop[k] || 0) > 0;
+      return {
+        id: s._id,
+        shopName: s.shopName,
+        ownerName: s.ownerName,
+        mobile: s.mobile,
+        category: s.category,
+        location: s.location,
+        status: s.status,
+        adActive: hasActiveAd,          // real state, not the bare flag
+        adCount: totalByShop[k] || 0,    // total ads this shop has submitted
+        adExpiry: s.adExpiry,
+        rating: s.rating,
+        createdAt: s.createdAt,
+      };
+    });
 
     const pages = Math.ceil(total / limit);
     return ok({

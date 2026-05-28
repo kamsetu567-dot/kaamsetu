@@ -42,6 +42,22 @@ export async function POST(request) {
       orphansDeleted = result.deletedCount || 0;
     }
 
+    // If caller passes { clearStaleAdFlags: true }, set adActive=false on any
+    // shop that has adActive=true but no actual active Ad document. Fixes the
+    // misleading "LIVE" badge on shops that never ran a real ad.
+    let staleFlagsCleared = 0;
+    if (body.clearStaleAdFlags) {
+      const now2 = new Date();
+      const activeAds = await Ad.find({ status: "active", expiresAt: { $gt: now2 } }).select("shop").lean();
+      const shopsWithActiveAd = new Set(activeAds.map(a => String(a.shop)));
+      const flaggedShops = await Shop.find({ adActive: true }).select("_id").lean();
+      const toClear = flaggedShops.filter(s => !shopsWithActiveAd.has(String(s._id))).map(s => s._id);
+      if (toClear.length) {
+        const r = await Shop.updateMany({ _id: { $in: toClear } }, { $set: { adActive: false } });
+        staleFlagsCleared = r.modifiedCount || 0;
+      }
+    }
+
     const ads = await Ad.find({}).sort({ createdAt: -1 }).lean();
     const shopIds = [...new Set(ads.map(a => String(a.shop)))];
     const shops = await Shop.find({ _id: { $in: shopIds } }).lean();
@@ -55,6 +71,7 @@ export async function POST(request) {
 
     return ok({
       orphansDeleted,
+      staleFlagsCleared,
       totalAds: ads.length,
       adsByStatus: ads.reduce((acc, a) => {
         acc[a.status] = (acc[a.status] || 0) + 1;
