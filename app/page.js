@@ -43,6 +43,26 @@ const HERO_ILLUSTRATIONS = [
   '/illustrations/hero-computer-operator.png',
 ];
 
+// Quick-access service icon tiles (all shown at once — no "show more")
+const SERVICE_TILES = [
+  { icon: '/icons/mistri.png',       hi: 'मिस्त्री',         en: 'Mistri',          count: '200+', bg: 'bg-orange-50',  href: '/workers?q=mistri' },
+  { icon: '/icons/plumber.png',      hi: 'प्लंबर',           en: 'Plumber',         count: '150+', bg: 'bg-blue-50',    href: '/workers?q=plumber' },
+  { icon: '/icons/electrician.png',  hi: 'इलेक्ट्रीशियन',    en: 'Electrician',     count: '180+', bg: 'bg-yellow-50',  href: '/workers?q=electrician' },
+  { icon: '/icons/painter.png',      hi: 'पेंटर',            en: 'Painter',         count: '120+', bg: 'bg-pink-50',    href: '/workers?q=painter' },
+  { icon: '/icons/carpenter.png',    hi: 'कारपेंटर',         en: 'Carpenter',       count: '100+', bg: 'bg-amber-50',   href: '/workers?q=carpenter' },
+  { icon: '/icons/driver.png',       hi: 'ड्राइवर',          en: 'Driver',          count: '250+', bg: 'bg-cyan-50',    href: '/workers?category=vehicle-travel' },
+  { icon: '/icons/caterer.png',      hi: 'कैटरर',            en: 'Caterer',         count: '80+',  bg: 'bg-green-50',   href: '/workers?q=caterer' },
+  { icon: '/icons/dj.png',           hi: 'DJ',               en: 'DJ',              count: '60+',  bg: 'bg-purple-50',  href: '/workers?q=dj' },
+  { icon: '/icons/dancer.png',       hi: 'डांसर',            en: 'Dancer',          count: '50+',  bg: 'bg-rose-50',    href: '/workers?q=dancer' },
+  { icon: '/icons/singer.png',       hi: 'सिंगर',            en: 'Singer',          count: '40+',  bg: 'bg-indigo-50',  href: '/workers?q=singer' },
+  { icon: '/icons/tutor.png',        hi: 'ट्यूटर',           en: 'Tutor',           count: '90+',  bg: 'bg-teal-50',    href: '/workers?category=talent-training' },
+  { icon: '/icons/caretaker.png',    hi: 'होम केयरटेकर',     en: 'Home Caretaker',  count: '70+',  bg: 'bg-sky-50',     href: '/workers?category=home-care-living' },
+  { icon: '/icons/security.png',     hi: 'सिक्योरिटी',       en: 'Security',        count: '60+',  bg: 'bg-slate-50',   href: '/workers?category=security-event-safety' },
+  { icon: '/icons/logistics.png',    hi: 'होम लॉजिस्टिक',    en: 'Logistics',       count: '50+',  bg: 'bg-lime-50',    href: '/workers?category=packing-logistics' },
+  { icon: '/icons/packing.png',      hi: 'पैकिंग सर्विस',    en: 'Packing',         count: '40+',  bg: 'bg-orange-50',  href: '/workers?q=packing' },
+  { icon: '/icons/more.png',         hi: 'और भी बहुत कुछ',   en: '& Many More',     count: '...',  bg: 'bg-gray-50',    href: '/categories' },
+];
+
 const ACTION_CARDS = [
   {
     illustration: '/illustrations/worker-hero.png',
@@ -320,6 +340,35 @@ export default function HomePage() {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── SERVICE ICONS ────────────────────────────────────────── */}
+      <section className="bg-white pt-14 pb-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="text-center mb-8">
+            <div className="flex items-center justify-center gap-3 mb-2">
+              <div className="h-px w-16 bg-brand-navy/25" />
+              <h2 className="text-2xl md:text-3xl font-black text-brand-navy font-hindi">{t({ hi: 'सेवाएं', en: 'Services' })}</h2>
+              <div className="h-px w-16 bg-brand-navy/25" />
+            </div>
+            <p className="text-gray-500 text-sm font-hindi">{t({ hi: 'अपनी ज़रूरत की सेवा चुनें', en: 'Pick the service you need' })}</p>
+          </div>
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3 sm:gap-4">
+            {SERVICE_TILES.map(tile => (
+              <Link
+                key={tile.en}
+                href={tile.href}
+                className={`${tile.bg} rounded-2xl p-3 sm:p-4 flex flex-col items-center text-center hover:shadow-md hover:-translate-y-0.5 transition-all border border-transparent hover:border-gray-200`}
+              >
+                <div className="relative w-12 h-12 sm:w-14 sm:h-14 mb-2">
+                  <Image src={tile.icon} alt={t(tile)} fill className="object-contain" sizes="56px" unoptimized />
+                </div>
+                <p className="text-xs sm:text-sm font-bold text-brand-navy font-hindi leading-tight">{t(tile)}</p>
+                <p className="text-[10px] text-gray-400 mt-0.5">{tile.count}</p>
+              </Link>
+            ))}
           </div>
         </div>
       </section>
