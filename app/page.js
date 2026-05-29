@@ -194,10 +194,10 @@ export default function HomePage() {
                 <span className="text-brand-yellow text-xs">⭐</span>
                 <span className="text-white/90 text-xs font-medium font-hindi">{t({ hi: 'भारत का #1 लोकल सर्विस प्लेटफ़ॉर्म', en: "India's #1 Local Service Platform" })}</span>
               </div>
-              <h1 className="text-4xl md:text-5xl font-black text-white mb-2 font-hindi leading-tight">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-white mb-2 font-hindi leading-tight break-words">
                 {t({ hi: 'हर काम, हर जगह', en: 'Every Work, Everywhere' })}
               </h1>
-              <p className="text-2xl font-bold text-brand-yellow mb-4 font-hindi">
+              <p className="text-xl sm:text-2xl font-bold text-brand-yellow mb-4 font-hindi break-words">
                 {t({ hi: 'सही वर्कर अब एक क्लिक पर!', en: 'The right worker — one click away!' })}
               </p>
               <p className="text-white/70 mb-8 font-hindi text-sm">
@@ -301,24 +301,23 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* right — crossfading hero illustrations with moving yellow motion behind */}
-            <div className="hidden md:flex justify-center items-end relative self-end">
-              {/* Moving yellow animation behind the worker */}
-              <div className="hero-glow-rings" aria-hidden="true">
-                <span className="hero-beams" />
-                <span className="hero-glow-disc" />
-              </div>
-              <div className="hero-spotlight" aria-hidden="true" />
-              <div className="hero-rotator self-end">
-                {HERO_ILLUSTRATIONS.map((src, i) => (
-                  <img
-                    key={src}
-                    src={src}
-                    alt={i === heroIdx ? 'KaamSetu verified worker' : ''}
-                    aria-hidden={i === heroIdx ? undefined : 'true'}
-                    className={i === heroIdx ? 'is-active' : ''}
-                  />
-                ))}
+            {/* right — crossfading hero illustrations with moving yellow glow behind */}
+            <div className="flex justify-center items-end self-end">
+              <div className="hero-stage">
+                {/* Moving yellow glow behind the worker */}
+                <span className="hero-glow-disc" aria-hidden="true" />
+                {/* Single image whose src swaps every 5s. key forces a remount so
+                    the change is always visible (no opacity-stacking issues). */}
+                <img
+                  key={heroIdx}
+                  src={HERO_ILLUSTRATIONS[heroIdx]}
+                  alt="KaamSetu verified worker"
+                  className="hero-stage-img is-active hero-stage-fade"
+                />
+                {/* Preload the rest so swaps are instant */}
+                <div style={{ display: 'none' }} aria-hidden="true">
+                  {HERO_ILLUSTRATIONS.map(src => <img key={src} src={src} alt="" />)}
+                </div>
               </div>
             </div>
           </div>

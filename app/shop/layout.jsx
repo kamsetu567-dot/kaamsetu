@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, Megaphone, Wrench } from "lucide-react";
 import Header from "@/components/Header";
+import { useLang } from "@/lib/context/LanguageContext";
 
 const TABS = [
   { href: "/shop/dashboard", hi: "डैशबोर्ड", en: "Dashboard", icon: LayoutDashboard, exact: true },
@@ -12,6 +13,8 @@ const TABS = [
 
 export default function ShopLayout({ children }) {
   const pathname = usePathname();
+  const { lang } = useLang();
+  const isHi = lang === "hi";
 
   function isActive(tab) {
     if (tab.exact) return pathname === tab.href;
@@ -33,9 +36,9 @@ export default function ShopLayout({ children }) {
               className="text-xl font-black text-white"
               style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
             >
-              Shop Dashboard
+              {isHi ? "दुकान डैशबोर्ड" : "Shop Dashboard"}
             </h1>
-            <p className="text-white/70 text-sm">दुकान डैशबोर्ड</p>
+            <p className="text-white/70 text-sm">{isHi ? "Shop Dashboard" : "दुकान डैशबोर्ड"}</p>
           </div>
         </div>
       </div>
@@ -65,7 +68,7 @@ export default function ShopLayout({ children }) {
                   className="text-xs font-semibold"
                   style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
                 >
-                  {tab.hi}
+                  {isHi ? tab.hi : tab.en}
                 </span>
               </Link>
             );

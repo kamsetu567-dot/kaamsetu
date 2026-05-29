@@ -99,6 +99,11 @@ export default function WorkerProfilePage() {
   const [reportSubmitted, setReportSubmitted] = useState(false);
 
   useEffect(() => {
+    // Guests can't view worker profiles — push them to choose a role / sign up
+    if (!localStorage.getItem("kaamsetu_token")) {
+      router.replace("/auth/select-role");
+      return;
+    }
     try {
       const u = JSON.parse(localStorage.getItem("kaamsetu_user") || "{}");
       if (u.role === "worker") router.replace("/worker/dashboard");

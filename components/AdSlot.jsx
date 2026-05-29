@@ -85,12 +85,26 @@ function NarrowCarousel({ ads, className }) {
   );
 }
 
-// Wide banner row. ≤3 ads share a single row; >3 ads paginate 3-at-a-time
-// and auto-advance every 5s with clickable page dots.
+// Wide banner carousel. Shows one ad at a time on mobile, `perPage` (default 3)
+// per page on desktop — both auto-advance every 5s with clickable page dots.
 function WideCarousel({ ads, className, perPage = 3 }) {
-  const PER_PAGE = perPage;
+  // Responsive page size: 1 on mobile (<640px), `perPage` from sm up.
+  const [pageSize, setPageSize] = useState(1);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(min-width: 640px)");
+    const sync = () => setPageSize(mq.matches ? perPage : 1);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, [perPage]);
+
+  const PER_PAGE = pageSize;
   const pages = Math.ceil(ads.length / PER_PAGE);
   const [page, setPage] = useState(0);
+
+  // Keep page in range if pageSize changes (e.g. rotate device / resize).
+  useEffect(() => { setPage(p => (p >= pages ? 0 : p)); }, [pages]);
 
   useEffect(() => {
     if (pages <= 1) return;
