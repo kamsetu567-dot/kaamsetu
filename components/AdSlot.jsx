@@ -47,27 +47,81 @@ export default function AdSlot({
   }
 
   if (variant === "banner-narrow") {
-    return (
-      <div className={className}>
-        {ads.map(ad => <NarrowBanner key={String(ad.id)} ad={ad} />)}
-      </div>
-    );
+    // One ad at a time, auto-rotating through all of them every 4s.
+    return <NarrowCarousel ads={ads} className={className} />;
   }
 
-  // banner-wide: 1/2/3-up flex row. Single ad sits centered with a
-  // max-w-md cap so it doesn't stretch the full content column; two ads
-  // share half-and-half within max-w-3xl; three ads fill the full row.
-  // Below 640px they stack vertically.
-  const rowMaxW = ads.length === 1 ? "max-w-md" : ads.length === 2 ? "max-w-3xl" : "max-w-full";
+  // banner-wide: up to 3 ads share a row; >3 paginates 3-at-a-time.
+  return <WideCarousel ads={ads} className={className} />;
+}
+
+// Single-ad rotating carousel for the compact (client dashboard) slot.
+function NarrowCarousel({ ads, className }) {
+  const [idx, setIdx] = useState(0);
+  useEffect(() => {
+    if (ads.length <= 1) return;
+    const id = setInterval(() => setIdx(i => (i + 1) % ads.length), 4000);
+    return () => clearInterval(id);
+  }, [ads.length]);
+
+  const ad = ads[idx % ads.length];
+  return (
+    <div className={className}>
+      <NarrowBanner ad={ad} />
+      {ads.length > 1 && (
+        <div className="flex justify-center gap-1.5 mt-2">
+          {ads.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setIdx(i)}
+              aria-label={`Ad ${i + 1}`}
+              className={`h-1.5 rounded-full transition-all ${i === idx ? "w-4 bg-brand-navy" : "w-1.5 bg-gray-300"}`}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Wide banner row. ≤3 ads share a single row; >3 ads paginate 3-at-a-time
+// and auto-advance every 5s with clickable page dots.
+function WideCarousel({ ads, className }) {
+  const PER_PAGE = 3;
+  const pages = Math.ceil(ads.length / PER_PAGE);
+  const [page, setPage] = useState(0);
+
+  useEffect(() => {
+    if (pages <= 1) return;
+    const id = setInterval(() => setPage(p => (p + 1) % pages), 5000);
+    return () => clearInterval(id);
+  }, [pages]);
+
+  const visible = pages > 1 ? ads.slice(page * PER_PAGE, page * PER_PAGE + PER_PAGE) : ads;
+  const count = visible.length;
+  const rowMaxW = count === 1 ? "max-w-md" : count === 2 ? "max-w-3xl" : "max-w-full";
+
   return (
     <div className={`mx-auto ${rowMaxW} ${className}`}>
       <div className="flex flex-col sm:flex-row gap-3">
-        {ads.map(ad => (
+        {visible.map(ad => (
           <div key={String(ad.id)} className="flex-1 min-w-0">
             <WideBanner ad={ad} />
           </div>
         ))}
       </div>
+      {pages > 1 && (
+        <div className="flex justify-center gap-1.5 mt-3">
+          {Array.from({ length: pages }).map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setPage(i)}
+              aria-label={`Ad page ${i + 1}`}
+              className={`h-2 rounded-full transition-all ${i === page ? "w-5 bg-brand-navy" : "w-2 bg-gray-300"}`}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -127,10 +181,7 @@ function WideBanner({ ad }) {
 function NarrowBanner({ ad }) {
   const shop = ad.shop;
   return (
-    <a
-      href={shop?.mobile ? `tel:+91${shop.mobile}` : "#"}
-      className="block bg-white rounded-2xl border-2 border-brand-yellow p-3 hover:shadow-md transition-shadow"
-    >
+    <div className="bg-white rounded-2xl border-2 border-brand-yellow p-3 hover:shadow-md transition-shadow">
       <div className="flex items-center gap-3">
         {ad.creative ? (
           <img src={ad.creative} alt={shop?.shopName || "Sponsored"} className="w-14 h-14 rounded-xl object-cover flex-shrink-0" />
@@ -142,10 +193,18 @@ function NarrowBanner({ ad }) {
         <div className="flex-1 min-w-0">
           <SponsoredLabel className="mb-1" />
           <p className="font-bold text-brand-navy text-sm truncate">{shop?.shopName || "Local Business"}</p>
-          <p className="text-xs text-gray-500 truncate">{ad.category}{shop?.city ? ` · ${shop.city}` : ""}</p>
         </div>
+        {shop?.mobile && (
+          <a
+            href={`tel:+91${shop.mobile}`}
+            className="flex items-center gap-1.5 bg-primary-green text-white text-sm font-bold px-4 py-2 rounded-xl hover:bg-green-700 transition-colors flex-shrink-0"
+            aria-label={`Call ${shop.shopName || "shop"}`}
+          >
+            <Phone size={15} /> Call
+          </a>
+        )}
       </div>
-    </a>
+    </div>
   );
 }
 

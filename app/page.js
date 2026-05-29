@@ -310,8 +310,15 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* right — crossfading hero illustrations on a glowing spotlight */}
+            {/* right — crossfading hero illustrations with moving yellow motion behind */}
             <div className="hidden md:flex justify-center items-end relative self-end">
+              {/* Moving yellow animation behind the worker */}
+              <div className="hero-glow-rings" aria-hidden="true">
+                <span className="ring ring-1" />
+                <span className="ring ring-2" />
+                <span className="ring ring-3" />
+                <span className="hero-orbit" />
+              </div>
               <div className="hero-spotlight" aria-hidden="true" />
               <div className="hero-rotator self-end">
                 {HERO_ILLUSTRATIONS.map((src, i) => (
@@ -321,7 +328,6 @@ export default function HomePage() {
                     alt={i === heroIdx ? 'KaamSetu verified worker' : ''}
                     aria-hidden={i === heroIdx ? undefined : 'true'}
                     className={i === heroIdx ? 'is-active' : ''}
-                    loading={i === 0 ? 'eager' : 'lazy'}
                   />
                 ))}
               </div>
@@ -333,7 +339,7 @@ export default function HomePage() {
       {/* ── POPULAR SERVICES ─────────────────────────────────────── */}
       <section className="bg-white py-14">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <AdSlot variant="banner-wide" limit={3} className="mb-8" />
+          <AdSlot variant="banner-wide" limit={9} className="mb-8" />
           <div className="text-center mb-10">
             <div className="flex items-center justify-center gap-3 mb-2">
               <div className="h-px w-16 bg-brand-navy/25" />
