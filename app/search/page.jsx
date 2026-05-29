@@ -73,6 +73,21 @@ function SearchResults() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("workers");
   const [showModal, setShowModal] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
+
+  // Guests can't search workers — push them to choose a role / sign up first.
+  // Workers don't hire, so send them to their dashboard.
+  useEffect(() => {
+    if (!localStorage.getItem("kaamsetu_token")) {
+      router.replace("/auth/select-role");
+      return;
+    }
+    try {
+      const u = JSON.parse(localStorage.getItem("kaamsetu_user") || "{}");
+      if (u.role === "worker") { router.replace("/worker/dashboard"); return; }
+    } catch {}
+    setAuthChecked(true);
+  }, [router]);
 
   // Update URL in real-time while typing (replace, not push, to avoid history flood)
   const handleQueryChange = useCallback((q) => {
@@ -83,11 +98,14 @@ function SearchResults() {
   }, [router]);
 
   useEffect(() => {
+    if (!authChecked) return;
     setLoading(true);
     Promise.all([search(query, filters), getWorkers({ ...filters, query })])
       .then(([, w]) => setWorkers(w))
       .finally(() => setLoading(false));
-  }, [query, filters]);
+  }, [query, filters, authChecked]);
+
+  if (!authChecked) return null;
 
   return (
     <>

@@ -107,9 +107,9 @@ function WorkerList() {
 
   // Read role from localStorage + fetch client coordinates (for distance filter)
   useEffect(() => {
-    // Guests can't browse the hire page — push them to sign up first
+    // Guests can't browse the hire page — push them to choose a role / sign up
     if (!localStorage.getItem("kaamsetu_token")) {
-      router.replace("/auth/signup");
+      router.replace("/auth/select-role");
       return;
     }
 

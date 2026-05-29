@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import {
   Menu, X, ChevronDown, LogOut, User, LayoutDashboard,
-  Briefcase, Settings, Store, Globe, Bell,
+  Briefcase, Settings, Store, Globe,
 } from 'lucide-react';
 import { useLang } from '@/lib/context/LanguageContext';
 
@@ -147,11 +147,6 @@ export default function Header() {
 
             {user ? (
               <>
-                {/* Notifications bell */}
-                <button className="relative p-2 text-white/70 hover:text-brand-yellow transition-colors min-h-0">
-                  <Bell size={18} />
-                </button>
-
                 {/* Profile dropdown */}
                 <div className="relative" ref={dropdownRef}>
                   <button
