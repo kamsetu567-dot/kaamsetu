@@ -18,18 +18,18 @@ const SEARCH_SUGGESTIONS = [
     ...c.subcategories.map(sub => ({ label: sub, query: sub })),
   ]),
   // Extra popular standalone terms
-  { label: 'Mistri / मिस्त्री',          query: 'Mistri' },
-  { label: 'Plumber / प्लंबर',          query: 'Plumber' },
+  { label: 'Mistri / मिस्त्री', query: 'Mistri' },
+  { label: 'Plumber / प्लंबर', query: 'Plumber' },
   { label: 'Electrician / इलेक्ट्रीशियन', query: 'Electrician' },
-  { label: 'Painter / पेंटर',           query: 'Painter' },
-  { label: 'Driver / ड्राइवर',           query: 'Driver' },
-  { label: 'Cook / रसोइया',             query: 'Cook' },
-  { label: 'Maid / कामवाली',            query: 'Maid' },
-  { label: 'Tutor / ट्यूटर',             query: 'Tutor' },
-  { label: 'Security Guard',            query: 'Security Guard' },
-  { label: 'Delivery Boy',              query: 'Delivery Boy' },
-  { label: 'Data Entry',               query: 'Data Entry' },
-  { label: 'Accountant / अकाउंटेंट',     query: 'Accountant' },
+  { label: 'Painter / पेंटर', query: 'Painter' },
+  { label: 'Driver / ड्राइवर', query: 'Driver' },
+  { label: 'Cook / रसोइया', query: 'Cook' },
+  { label: 'Maid / कामवाली', query: 'Maid' },
+  { label: 'Tutor / ट्यूटर', query: 'Tutor' },
+  { label: 'Security Guard', query: 'Security Guard' },
+  { label: 'Delivery Boy', query: 'Delivery Boy' },
+  { label: 'Data Entry', query: 'Data Entry' },
+  { label: 'Accountant / अकाउंटेंट', query: 'Accountant' },
 ].filter((item, i, arr) => arr.findIndex(x => x.query === item.query) === i); // deduplicate by query
 
 
@@ -45,47 +45,47 @@ const HERO_ILLUSTRATIONS = [
 
 // Quick-access service icon tiles (all shown at once — no "show more")
 const SERVICE_TILES = [
-  { icon: '/icons/mistri.png',       hi: 'मिस्त्री',         en: 'Mistri',          count: '200+', bg: 'bg-orange-50',  href: '/workers?q=mistri' },
-  { icon: '/icons/plumber.png',      hi: 'प्लंबर',           en: 'Plumber',         count: '150+', bg: 'bg-blue-50',    href: '/workers?q=plumber' },
-  { icon: '/icons/electrician.png',  hi: 'इलेक्ट्रीशियन',    en: 'Electrician',     count: '180+', bg: 'bg-yellow-50',  href: '/workers?q=electrician' },
-  { icon: '/icons/painter.png',      hi: 'पेंटर',            en: 'Painter',         count: '120+', bg: 'bg-pink-50',    href: '/workers?q=painter' },
-  { icon: '/icons/carpenter.png',    hi: 'कारपेंटर',         en: 'Carpenter',       count: '100+', bg: 'bg-amber-50',   href: '/workers?q=carpenter' },
-  { icon: '/icons/driver.png',       hi: 'ड्राइवर',          en: 'Driver',          count: '250+', bg: 'bg-cyan-50',    href: '/workers?category=vehicle-travel' },
-  { icon: '/icons/caterer.png',      hi: 'कैटरर',            en: 'Caterer',         count: '80+',  bg: 'bg-green-50',   href: '/workers?q=caterer' },
-  { icon: '/icons/dj.png',           hi: 'DJ',               en: 'DJ',              count: '60+',  bg: 'bg-purple-50',  href: '/workers?q=dj' },
-  { icon: '/icons/dancer.png',       hi: 'डांसर',            en: 'Dancer',          count: '50+',  bg: 'bg-rose-50',    href: '/workers?q=dancer' },
-  { icon: '/icons/singer.png',       hi: 'सिंगर',            en: 'Singer',          count: '40+',  bg: 'bg-indigo-50',  href: '/workers?q=singer' },
-  { icon: '/icons/tutor.png',        hi: 'ट्यूटर',           en: 'Tutor',           count: '90+',  bg: 'bg-teal-50',    href: '/workers?category=talent-training' },
-  { icon: '/icons/caretaker.png',    hi: 'होम केयरटेकर',     en: 'Home Caretaker',  count: '70+',  bg: 'bg-sky-50',     href: '/workers?category=home-care-living' },
-  { icon: '/icons/security.png',     hi: 'सिक्योरिटी',       en: 'Security',        count: '60+',  bg: 'bg-slate-50',   href: '/workers?category=security-event-safety' },
-  { icon: '/icons/logistics.png',    hi: 'होम लॉजिस्टिक',    en: 'Logistics',       count: '50+',  bg: 'bg-lime-50',    href: '/workers?category=packing-logistics' },
-  { icon: '/icons/packing.png',      hi: 'पैकिंग सर्विस',    en: 'Packing',         count: '40+',  bg: 'bg-orange-50',  href: '/workers?q=packing' },
+  { icon: '/icons/mistri.png', hi: 'मिस्त्री', en: 'Mistri', count: '200+', bg: 'bg-orange-50', href: '/workers?q=mistri' },
+  { icon: '/icons/plumber.png', hi: 'प्लंबर', en: 'Plumber', count: '150+', bg: 'bg-blue-50', href: '/workers?q=plumber' },
+  { icon: '/icons/electrician.png', hi: 'इलेक्ट्रीशियन', en: 'Electrician', count: '180+', bg: 'bg-yellow-50', href: '/workers?q=electrician' },
+  { icon: '/icons/painter.png', hi: 'पेंटर', en: 'Painter', count: '120+', bg: 'bg-pink-50', href: '/workers?q=painter' },
+  { icon: '/icons/carpenter.png', hi: 'कारपेंटर', en: 'Carpenter', count: '100+', bg: 'bg-amber-50', href: '/workers?q=carpenter' },
+  { icon: '/icons/driver.png', hi: 'ड्राइवर', en: 'Driver', count: '250+', bg: 'bg-cyan-50', href: '/workers?category=vehicle-travel' },
+  { icon: '/icons/caterer.png', hi: 'कैटरर', en: 'Caterer', count: '80+', bg: 'bg-green-50', href: '/workers?q=caterer' },
+  { icon: '/icons/dj.png', hi: 'DJ', en: 'DJ', count: '60+', bg: 'bg-purple-50', href: '/workers?q=dj' },
+  { icon: '/icons/dancer.png', hi: 'डांसर', en: 'Dancer', count: '50+', bg: 'bg-rose-50', href: '/workers?q=dancer' },
+  { icon: '/icons/singer.png', hi: 'सिंगर', en: 'Singer', count: '40+', bg: 'bg-indigo-50', href: '/workers?q=singer' },
+  { icon: '/icons/tutor.png', hi: 'ट्यूटर', en: 'Tutor', count: '90+', bg: 'bg-teal-50', href: '/workers?category=talent-training' },
+  { icon: '/icons/caretaker.png', hi: 'होम केयरटेकर', en: 'Home Caretaker', count: '70+', bg: 'bg-sky-50', href: '/workers?category=home-care-living' },
+  { icon: '/icons/security.png', hi: 'सिक्योरिटी', en: 'Security', count: '60+', bg: 'bg-slate-50', href: '/workers?category=security-event-safety' },
+  { icon: '/icons/logistics.png', hi: 'होम लॉजिस्टिक', en: 'Logistics', count: '50+', bg: 'bg-lime-50', href: '/workers?category=packing-logistics' },
+  { icon: '/icons/packing.png', hi: 'पैकिंग सर्विस', en: 'Packing', count: '40+', bg: 'bg-orange-50', href: '/workers?q=packing' },
 ];
 
 const ACTION_CARDS = [
   {
     illustration: '/illustrations/worker-hero.png',
-    title: { hi: 'वर्कर ढूंढें',  en: 'Find a Worker' },
-    desc:  { hi: 'अपने काम के लिए सही वर्कर ढूंढें', en: 'Find the right worker for your job' },
-    btn:   { hi: 'अभी खोजें',     en: 'Search Now' },
+    title: { hi: 'वर्कर ढूंढें', en: 'Find a Worker' },
+    desc: { hi: 'अपने काम के लिए सही वर्कर ढूंढें', en: 'Find the right worker for your job' },
+    btn: { hi: 'अभी खोजें', en: 'Search Now' },
     btnColor: 'bg-brand-navy text-white',
     href: '/workers',
     imgW: 180, imgH: 200,
   },
   {
     illustration: '/illustrations/team-illustration.png',
-    title: { hi: 'टीम बनाएं',   en: 'Build a Team' },
-    desc:  { hi: 'अपनी टीम बनाएं और ज्यादा काम पाएं', en: 'Build your team and get more work' },
-    btn:   { hi: 'टीम बनाएं',   en: 'Build Team' },
+    title: { hi: 'टीम बनाएं', en: 'Build a Team' },
+    desc: { hi: 'अपनी टीम बनाएं और ज्यादा काम पाएं', en: 'Build your team and get more work' },
+    btn: { hi: 'टीम बनाएं', en: 'Build Team' },
     btnColor: 'bg-green-600 text-white',
     href: '/auth/select-role',
     imgW: 180, imgH: 200,
   },
   {
     illustration: '/illustrations/shop-illustration.png',
-    title: { hi: 'दुकान जोड़ें',  en: 'Add Your Shop' },
-    desc:  { hi: 'अपनी दुकान रजिस्टर करें और ग्राहकों तक पहुंचाएं', en: 'Register your shop and reach customers' },
-    btn:   { hi: 'दुकान जोड़ें',  en: 'Add Shop' },
+    title: { hi: 'दुकान जोड़ें', en: 'Add Your Shop' },
+    desc: { hi: 'अपनी दुकान रजिस्टर करें और ग्राहकों तक पहुंचाएं', en: 'Register your shop and reach customers' },
+    btn: { hi: 'दुकान जोड़ें', en: 'Add Shop' },
     btnColor: 'bg-orange-500 text-white',
     href: '/auth/signup/shop',
     imgW: 180, imgH: 200,
@@ -111,7 +111,7 @@ export default function HomePage() {
     try {
       const user = JSON.parse(localStorage.getItem('kaamsetu_user') || '{}');
       setRole(user.role || null);
-    } catch {}
+    } catch { }
   }, []);
 
   // Cycle the hero illustration every 4s. The image always rotates; the
@@ -253,9 +253,8 @@ export default function HomePage() {
                         <li
                           key={item.query}
                           onMouseDown={() => selectSuggestion(item)}
-                          className={`flex items-center gap-2.5 px-4 py-2.5 cursor-pointer text-sm transition-colors ${
-                            i === activeIdx ? 'bg-brand-navy text-white' : 'text-gray-700 hover:bg-gray-50'
-                          }`}
+                          className={`flex items-center gap-2.5 px-4 py-2.5 cursor-pointer text-sm transition-colors ${i === activeIdx ? 'bg-brand-navy text-white' : 'text-gray-700 hover:bg-gray-50'
+                            }`}
                         >
                           <Search size={13} className={i === activeIdx ? 'text-white/70' : 'text-gray-400'} />
                           <span className="font-hindi">{item.label}</span>
@@ -282,10 +281,10 @@ export default function HomePage() {
               {/* Stats */}
               <div className="flex flex-wrap gap-x-6 gap-y-2">
                 {[
-                  { icon: Users,     val: '1000+', label: { hi: 'वर्कर्स',       en: 'Workers' } },
-                  { icon: Briefcase, val: '500+',  label: { hi: 'दैनिक जॉब्स',   en: 'Daily Jobs' } },
-                  { icon: Shield,    val: '50+',   label: { hi: 'कैटेगरी',        en: 'Categories' } },
-                  { icon: MapPin,    val: '100+',  label: { hi: 'शहरों में सेवा', en: 'Cities' } },
+                  { icon: Users, val: '1000+', label: { hi: 'वर्कर्स', en: 'Workers' } },
+                  { icon: Briefcase, val: '500+', label: { hi: 'दैनिक जॉब्स', en: 'Daily Jobs' } },
+                  { icon: Shield, val: '50+', label: { hi: 'कैटेगरी', en: 'Categories' } },
+                  { icon: MapPin, val: '100+', label: { hi: 'शहरों में सेवा', en: 'Cities' } },
                 ].map(s => (
                   <div key={s.label.en} className="flex items-center gap-2">
                     <s.icon size={15} className="text-brand-yellow flex-shrink-0" />
@@ -303,16 +302,16 @@ export default function HomePage() {
                   className="bg-brand-yellow text-brand-navy font-bold px-6 py-3 rounded-xl hover:bg-amber-400 transition-colors font-hindi leading-none flex items-center justify-center">
                   {role === 'client' ? t({ hi: 'काम करवाएँ', en: 'Request Service' })
                     : role === 'worker' ? t({ hi: 'मेरा डैशबोर्ड', en: 'My Dashboard' })
-                    : role === 'shop' ? t({ hi: 'Shop Dashboard', en: 'Shop Dashboard' })
-                    : t({ hi: 'काम करवाएँ', en: 'Hire a Worker' })}
+                      : role === 'shop' ? t({ hi: 'Shop Dashboard', en: 'Shop Dashboard' })
+                        : t({ hi: 'काम करवाएँ', en: 'Hire a Worker' })}
                 </Link>
                 <Link
                   href={role === 'worker' ? '/worker/dashboard/jobs' : role === 'client' ? '/workers' : role === 'shop' ? '/shop/ads' : '/auth/select-role'}
                   className="border-2 border-white text-white font-bold px-6 py-3 rounded-xl hover:bg-white/10 transition-colors font-hindi leading-none flex items-center justify-center">
                   {role === 'worker' ? t({ hi: 'मेरी Jobs', en: 'My Jobs' })
                     : role === 'client' ? t({ hi: 'Workers ढूंढें', en: 'Find Workers' })
-                    : role === 'shop' ? t({ hi: 'मेरे ऐड्स', en: 'My Ads' })
-                    : t({ hi: 'काम ढूंढें', en: 'Find Work' })}
+                      : role === 'shop' ? t({ hi: 'मेरे ऐड्स', en: 'My Ads' })
+                        : t({ hi: 'काम ढूंढें', en: 'Find Work' })}
                 </Link>
               </div>
             </div>
@@ -429,10 +428,10 @@ export default function HomePage() {
             {/* Left half — 4 step cards: how to upload an ad */}
             <div className="grid grid-cols-2 gap-3 sm:gap-4">
               {[
-                { icon: Store,       title: { hi: 'शॉप रजिस्टर करें', en: 'Register Shop' },  desc: { hi: 'दुकान/बिज़नेस के तौर पर साइन अप करें', en: 'Sign up as a Shop / Business' },        card: 'bg-gradient-to-br from-blue-50 to-blue-100/60 border-blue-200',     num: 'bg-brand-navy' },
-                { icon: Megaphone,   title: { hi: 'ऐड बनाएं',         en: 'Create Ad' },      desc: { hi: 'कैटेगरी, फोटो और दिन चुनें', en: 'Pick category, image & days' },                  card: 'bg-gradient-to-br from-purple-50 to-purple-100/60 border-purple-200', num: 'bg-purple-600' },
-                { icon: CheckCircle, title: { hi: 'पेमेंट करें',      en: 'Make Payment' },   desc: { hi: 'सिर्फ ₹100/दिन — UPI से', en: 'Just ₹100/day — via UPI' },                          card: 'bg-gradient-to-br from-green-50 to-green-100/60 border-green-200',   num: 'bg-green-600' },
-                { icon: Zap,         title: { hi: 'लाइव हो जाएं',      en: 'Go Live' },        desc: { hi: 'Admin approval के बाद ऐड live', en: 'Live after admin approval' },                  card: 'bg-gradient-to-br from-amber-50 to-amber-100/60 border-amber-200',   num: 'bg-amber-500' },
+                { icon: Store, title: { hi: 'शॉप रजिस्टर करें', en: 'Register Shop' }, desc: { hi: 'दुकान/बिज़नेस के तौर पर साइन अप करें', en: 'Sign up as a Shop / Business' }, card: 'bg-gradient-to-br from-blue-50 to-blue-100/60 border-blue-200', num: 'bg-brand-navy' },
+                { icon: Megaphone, title: { hi: 'ऐड बनाएं', en: 'Create Ad' }, desc: { hi: 'कैटेगरी, फोटो और दिन चुनें', en: 'Pick category, image & days' }, card: 'bg-gradient-to-br from-purple-50 to-purple-100/60 border-purple-200', num: 'bg-purple-600' },
+                { icon: CheckCircle, title: { hi: 'पेमेंट करें', en: 'Make Payment' }, desc: { hi: 'सिर्फ ₹100/दिन — UPI से', en: 'Just ₹100/day — via UPI' }, card: 'bg-gradient-to-br from-green-50 to-green-100/60 border-green-200', num: 'bg-green-600' },
+                { icon: Zap, title: { hi: 'लाइव हो जाएं', en: 'Go Live' }, desc: { hi: 'Admin approval के बाद ऐड live', en: 'Live after admin approval' }, card: 'bg-gradient-to-br from-amber-50 to-amber-100/60 border-amber-200', num: 'bg-amber-500' },
               ].map((step, i) => (
                 <div key={step.title.en} className={`relative rounded-2xl border-2 p-4 ${step.card}`}>
                   <span className={`absolute top-2.5 left-2.5 w-6 h-6 rounded-full ${step.num} text-white text-xs font-black flex items-center justify-center shadow-sm`}>
@@ -489,11 +488,11 @@ export default function HomePage() {
             {ACTION_CARDS.map(card => {
               let resolvedHref = card.href;
               if (role === 'worker') {
-                if (card.href === '/workers')          resolvedHref = '/worker/dashboard';
+                if (card.href === '/workers') resolvedHref = '/worker/dashboard';
                 if (card.href === '/auth/select-role') resolvedHref = '/worker/dashboard';
                 if (card.href === '/auth/signup/shop') resolvedHref = '/worker/dashboard';
               } else if (role === 'client') {
-                if (card.href === '/workers')          resolvedHref = '/workers';
+                if (card.href === '/workers') resolvedHref = '/workers';
                 if (card.href === '/auth/select-role') resolvedHref = '/client/request-service';
                 if (card.href === '/auth/signup/shop') resolvedHref = '/client/dashboard';
               } else if (role === 'shop') {
@@ -533,15 +532,21 @@ export default function HomePage() {
           </div>
           <div className="grid md:grid-cols-3 gap-8">
             {[
-              { icon: Search,        step: '1',
-                title: { hi: 'सेवा चुनें',      en: 'Choose Service' },
-                desc:  { hi: 'अपनी जरूरत के अनुसार category और service चुनें', en: 'Choose a category and service according to your need' } },
-              { icon: Briefcase,     step: '2',
-                title: { hi: 'Request भेजें',   en: 'Send Request' },
-                desc:  { hi: 'अपना नाम, मोबाइल और काम की जानकारी भरें', en: 'Fill in your name, mobile, and work details' } },
-              { icon: MessageCircle, step: '3',
+              {
+                icon: Search, step: '1',
+                title: { hi: 'सेवा चुनें', en: 'Choose Service' },
+                desc: { hi: 'अपनी जरूरत के अनुसार category और service चुनें', en: 'Choose a category and service according to your need' }
+              },
+              {
+                icon: Briefcase, step: '2',
+                title: { hi: 'Request भेजें', en: 'Send Request' },
+                desc: { hi: 'अपना नाम, मोबाइल और काम की जानकारी भरें', en: 'Fill in your name, mobile, and work details' }
+              },
+              {
+                icon: MessageCircle, step: '3',
                 title: { hi: 'Worker से मिलें', en: 'Meet Your Worker' },
-                desc:  { hi: 'हम आपको verified worker से तुरंत connect करेंगे', en: "We'll instantly connect you with a verified worker" } },
+                desc: { hi: 'हम आपको verified worker से तुरंत connect करेंगे', en: "We'll instantly connect you with a verified worker" }
+              },
             ].map((s, i) => (
               <div key={i} className="text-center">
                 <div className="relative inline-block mb-4">
@@ -575,10 +580,10 @@ export default function HomePage() {
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { icon: BadgeCheck,    title: { hi: 'वेरिफाइड वर्कर',       en: 'Verified Workers' }, iconBg: 'bg-white', color: 'text-brand-navy',  card: 'bg-gradient-to-br from-blue-50 to-blue-100/60 border-blue-200',     num: 'bg-brand-navy' },
-              { icon: MessageCircle, title: { hi: 'सीधी बातचीत',          en: 'Direct Contact'   }, iconBg: 'bg-white', color: 'text-green-600',   card: 'bg-gradient-to-br from-green-50 to-green-100/60 border-green-200',   num: 'bg-green-600' },
-              { icon: Shield,        title: { hi: 'सुरक्षित और भरोसेमंद', en: 'Safe & Trusted'   }, iconBg: 'bg-white', color: 'text-purple-600',  card: 'bg-gradient-to-br from-purple-50 to-purple-100/60 border-purple-200', num: 'bg-purple-600' },
-              { icon: Zap,           title: { hi: 'तेज़ और आसान',          en: 'Fast & Easy'      }, iconBg: 'bg-white', color: 'text-amber-500',   card: 'bg-gradient-to-br from-amber-50 to-amber-100/60 border-amber-200',   num: 'bg-amber-500' },
+              { icon: BadgeCheck, title: { hi: 'वेरिफाइड वर्कर', en: 'Verified Workers' }, iconBg: 'bg-white', color: 'text-brand-navy', card: 'bg-gradient-to-br from-blue-50 to-blue-100/60 border-blue-200', num: 'bg-brand-navy' },
+              { icon: MessageCircle, title: { hi: 'सीधी बातचीत', en: 'Direct Contact' }, iconBg: 'bg-white', color: 'text-green-600', card: 'bg-gradient-to-br from-green-50 to-green-100/60 border-green-200', num: 'bg-green-600' },
+              { icon: Shield, title: { hi: 'सुरक्षित और भरोसेमंद', en: 'Safe & Trusted' }, iconBg: 'bg-white', color: 'text-purple-600', card: 'bg-gradient-to-br from-purple-50 to-purple-100/60 border-purple-200', num: 'bg-purple-600' },
+              { icon: Zap, title: { hi: 'तेज़ और आसान', en: 'Fast & Easy' }, iconBg: 'bg-white', color: 'text-amber-500', card: 'bg-gradient-to-br from-amber-50 to-amber-100/60 border-amber-200', num: 'bg-amber-500' },
             ].map((f, i) => (
               <div key={f.title.en} className={`relative text-center p-6 rounded-2xl border-2 card-hover ${f.card}`}>
                 <span className={`absolute top-3 left-3 w-7 h-7 rounded-full ${f.num} text-white text-sm font-black flex items-center justify-center shadow-sm`}>
@@ -604,9 +609,9 @@ export default function HomePage() {
               <p className="text-brand-navy font-bold text-lg mb-5 font-hindi">{t({ hi: 'सिर्फ ₹199 में पूरा महीना', en: 'Full month for just ₹199' })}</p>
               <ul className="space-y-2 mb-6">
                 {[
-                  { hi: 'रोज नए काम पाएँ',              en: 'Get new work every day' },
+                  { hi: 'रोज नए काम पाएँ', en: 'Get new work every day' },
                   { hi: 'अपने प्रोफाइल से क्लाइंट पाएँ', en: 'Get clients from your profile' },
-                  { hi: 'सीधे संपर्क करें',               en: 'Direct contact with clients' },
+                  { hi: 'सीधे संपर्क करें', en: 'Direct contact with clients' },
                 ].map(item => (
                   <li key={item.en} className="flex items-center gap-2 text-brand-navy font-hindi text-sm">
                     <CheckCircle size={16} className="flex-shrink-0" />
@@ -620,13 +625,15 @@ export default function HomePage() {
               </Link>
             </div>
             <div className="hidden md:flex justify-center items-end">
-              <Image
-                src="/illustrations/First_workers_drill_subtle_vibrationmiddle.gif"
-                alt="Become a KaamSetu worker"
+              <video
+                src="/illustrations/worker-hero-full.mp4"
                 width={640}
                 height={358}
-                className="object-contain drop-shadow-xl w-full max-w-xl"
-                unoptimized
+                className="object-contain drop-shadow-xl w-full max-w-xl rounded-xl"
+                autoPlay
+                loop
+                muted
+                playsInline
               />
             </div>
           </div>
