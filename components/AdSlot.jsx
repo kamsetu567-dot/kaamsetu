@@ -78,7 +78,7 @@ function NarrowCarousel({ ads, className }) {
               key={i}
               onClick={() => setIdx(i)}
               aria-label={`Ad ${i + 1}`}
-              className={`w-1.5 h-1.5 rounded-full transition-colors ${i === idx ? "bg-brand-navy" : "bg-gray-300"}`}
+              className={`w-1 h-1 rounded-full transition-colors ${i === idx ? "bg-brand-navy" : "bg-gray-300"}`}
             />
           ))}
         </div>
@@ -134,7 +134,7 @@ function WideCarousel({ ads, className, perPage = 3 }) {
               key={i}
               onClick={() => setPage(i)}
               aria-label={`Ad page ${i + 1}`}
-              className={`w-1.5 h-1.5 rounded-full transition-colors ${i === page ? "bg-brand-navy" : "bg-gray-300"}`}
+              className={`w-1 h-1 rounded-full transition-colors ${i === page ? "bg-brand-navy" : "bg-gray-300"}`}
             />
           ))}
         </div>
