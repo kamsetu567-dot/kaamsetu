@@ -16,9 +16,6 @@ export default function AdminSettingsPage() {
       reset({
         subscriptionPrice: data.subscriptionPrice ?? 199,
         defaultRadius: data.defaultRadius ?? 5,
-        smsJobAlert: data.smsTemplates?.jobAlert ?? "नई job आई है {category} में। KaamSetu app खोलें।",
-        smsWelcome: data.smsTemplates?.welcome ?? "KaamSetu में आपका स्वागत है! आपकी profile अब live है।",
-        smsSubscription: data.smsTemplates?.subscription ?? "आपकी subscription {days} दिनों के लिए active है।",
       });
     });
   }, [reset]);
@@ -28,11 +25,6 @@ export default function AdminSettingsPage() {
     const payload = {
       subscriptionPrice: Number(data.subscriptionPrice),
       defaultRadius: Number(data.defaultRadius),
-      smsTemplates: {
-        jobAlert: data.smsJobAlert,
-        welcome: data.smsWelcome,
-        subscription: data.smsSubscription,
-      },
     };
     await updateSettings(payload);
     setSubmitting(false);
@@ -96,36 +88,6 @@ export default function AdminSettingsPage() {
               />
               {errors.defaultRadius && <p className="text-red-500 text-xs mt-1">{errors.defaultRadius.message}</p>}
             </div>
-          </div>
-        </div>
-
-        {/* SMS templates */}
-        <div className="bg-white rounded-3xl border-2 border-gray-200 p-5">
-          <h2
-            className="font-black text-brand-navy mb-1"
-            style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
-          >
-            SMS Templates
-          </h2>
-          <p className="text-gray-500 text-xs mb-4">Use {"{variable}"} for dynamic values</p>
-          <div className="space-y-4">
-            {[
-              { name: "smsJobAlert",     label: "Job Alert SMS",          hi: "Job Alert SMS" },
-              { name: "smsWelcome",      label: "Welcome / Approval SMS",  hi: "Welcome SMS" },
-              { name: "smsSubscription", label: "Subscription Active SMS", hi: "Subscription SMS" },
-            ].map(f => (
-              <div key={f.name}>
-                <label className="block text-sm font-semibold text-brand-navy mb-1.5">
-                  <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>{f.hi}</span>
-                  {" / "}{f.label}
-                </label>
-                <textarea
-                  {...register(f.name)}
-                  rows={2}
-                  className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-blue-600 transition-colors resize-none"
-                />
-              </div>
-            ))}
           </div>
         </div>
 

@@ -15,6 +15,7 @@ export default function WorkerSubscriptionPage() {
   const [copied, setCopied] = useState(false);
   const [worker, setWorker] = useState(null);
   const [loaded, setLoaded] = useState(false);
+  const [price, setPrice] = useState(199);
 
   useEffect(() => {
     const token = typeof window !== "undefined" ? localStorage.getItem("kaamsetu_token") : null;
@@ -24,6 +25,14 @@ export default function WorkerSubscriptionPage() {
       .then(data => { if (data.success && data.worker) setWorker(data.worker); })
       .catch(() => {})
       .finally(() => setLoaded(true));
+  }, []);
+
+  // Admin-configurable subscription price (from /api/settings/public)
+  useEffect(() => {
+    fetch("/api/settings/public")
+      .then(r => r.json())
+      .then(d => { if (d?.subscriptionPrice) setPrice(d.subscriptionPrice); })
+      .catch(() => {});
   }, []);
 
   function copyUPI() {
@@ -46,7 +55,7 @@ export default function WorkerSubscriptionPage() {
         >
           सब्सक्रिप्शन
         </h2>
-        <p className="text-gray-500 text-sm mt-0.5">Subscription Plan — ₹199/month</p>
+        <p className="text-gray-500 text-sm mt-0.5">Subscription Plan — ₹{price}/month</p>
       </div>
 
       {/* Current status card */}
@@ -106,7 +115,7 @@ export default function WorkerSubscriptionPage() {
             <p className="text-gray-500 text-sm">मासिक प्लान</p>
           </div>
           <div className="text-right">
-            <p className="text-3xl font-black text-green-600">₹199</p>
+            <p className="text-3xl font-black text-green-600">₹{price}</p>
             <p className="text-gray-500 text-xs">/month · प्रति माह</p>
           </div>
         </div>
@@ -171,7 +180,7 @@ export default function WorkerSubscriptionPage() {
         {/* Instructions */}
         <ol className="space-y-2 text-sm text-gray-500 list-decimal list-inside">
           <li>UPI ID copy करें या QR scan करें</li>
-          <li>₹199 pay करें</li>
+          <li>₹{price} pay करें</li>
           <li>
             <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>
               Payment screenshot Admin को WhatsApp करें
@@ -187,7 +196,7 @@ export default function WorkerSubscriptionPage() {
           onClick={() => alert("Payment details ऊपर दिए गए हैं। UPI से pay करें। / Pay via UPI details shown above.")}
         >
           <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>
-            {isActive ? "नवीनीकरण करें / Renew" : "₹199 Pay करें / Pay Now"}
+            {isActive ? "नवीनीकरण करें / Renew" : `₹${price} Pay करें / Pay Now`}
           </span>
         </button>
       </div>
