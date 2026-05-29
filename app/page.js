@@ -60,7 +60,6 @@ const SERVICE_TILES = [
   { icon: '/icons/security.png',     hi: 'सिक्योरिटी',       en: 'Security',        count: '60+',  bg: 'bg-slate-50',   href: '/workers?category=security-event-safety' },
   { icon: '/icons/logistics.png',    hi: 'होम लॉजिस्टिक',    en: 'Logistics',       count: '50+',  bg: 'bg-lime-50',    href: '/workers?category=packing-logistics' },
   { icon: '/icons/packing.png',      hi: 'पैकिंग सर्विस',    en: 'Packing',         count: '40+',  bg: 'bg-orange-50',  href: '/workers?q=packing' },
-  { icon: '/icons/more.png',         hi: 'और भी बहुत कुछ',   en: '& Many More',     count: '...',  bg: 'bg-gray-50',    href: '/categories' },
 ];
 
 const ACTION_CARDS = [
