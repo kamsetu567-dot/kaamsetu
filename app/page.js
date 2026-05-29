@@ -114,13 +114,10 @@ export default function HomePage() {
     } catch {}
   }, []);
 
-  // Crossfade through the hero illustrations every 4s. Skips animation if the
-  // user prefers reduced motion.
+  // Cycle the hero illustration every 4s. The image always rotates; the
+  // fade animation itself is disabled under prefers-reduced-motion via CSS
+  // (.hero-stage-fade), so we don't gate the rotation here.
   useEffect(() => {
-    if (typeof window !== 'undefined' &&
-        window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
-      return;
-    }
     const id = setInterval(() => {
       setHeroIdx(i => (i + 1) % HERO_ILLUSTRATIONS.length);
     }, 4000);
@@ -331,7 +328,7 @@ export default function HomePage() {
                   key={heroIdx}
                   src={HERO_ILLUSTRATIONS[heroIdx]}
                   alt="KaamSetu verified worker"
-                  className="hero-stage-img is-active hero-stage-fade"
+                  className="hero-stage-img hero-stage-fade"
                 />
                 {/* Preload the rest so swaps are instant */}
                 <div style={{ display: 'none' }} aria-hidden="true">
