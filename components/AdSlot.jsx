@@ -72,13 +72,13 @@ function NarrowCarousel({ ads, className }) {
         <NarrowBanner ad={ad} />
       </div>
       {ads.length > 1 && (
-        <div className="flex justify-center gap-1 mt-2">
+        <div className="flex justify-center gap-1.5 mt-2">
           {ads.map((_, i) => (
             <button
               key={i}
               onClick={() => setIdx(i)}
               aria-label={`Ad ${i + 1}`}
-              className={`h-1 rounded-full transition-all ${i === idx ? "w-3 bg-brand-navy" : "w-1 bg-gray-300/70"}`}
+              className={`w-1.5 h-1.5 rounded-full transition-colors ${i === idx ? "bg-brand-navy" : "bg-gray-300"}`}
             />
           ))}
         </div>
@@ -128,13 +128,13 @@ function WideCarousel({ ads, className, perPage = 3 }) {
         ))}
       </div>
       {pages > 1 && (
-        <div className="flex justify-center gap-1 mt-2">
+        <div className="flex justify-center gap-1.5 mt-2">
           {Array.from({ length: pages }).map((_, i) => (
             <button
               key={i}
               onClick={() => setPage(i)}
               aria-label={`Ad page ${i + 1}`}
-              className={`h-1 rounded-full transition-all ${i === page ? "w-3 bg-brand-navy" : "w-1 bg-gray-300/70"}`}
+              className={`w-1.5 h-1.5 rounded-full transition-colors ${i === page ? "bg-brand-navy" : "bg-gray-300"}`}
             />
           ))}
         </div>
