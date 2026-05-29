@@ -3,7 +3,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { MapPin, Users, Briefcase, Shield, Search, MessageCircle, CheckCircle, BadgeCheck, Zap, ArrowRight } from 'lucide-react';
+import { MapPin, Users, Briefcase, Shield, Search, MessageCircle, CheckCircle, BadgeCheck, Zap, ArrowRight, Megaphone } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import AdSlot from '@/components/AdSlot';
@@ -437,9 +437,36 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Right half — content (blank for now) */}
-            <div className="min-h-[200px] md:min-h-full flex items-center">
-              {/* TODO: content goes here */}
+            {/* Right half — grow-your-business pitch + upload-ad CTA */}
+            <div className="flex flex-col justify-center">
+              <h2 className="text-2xl md:text-3xl font-black text-brand-navy font-hindi mb-3">
+                {t({ hi: 'अपने बिज़नेस को बढ़ाएं', en: 'Grow Your Business with Ads' })}
+              </h2>
+              <p className="text-gray-600 text-sm md:text-base mb-5 font-hindi leading-relaxed">
+                {t({
+                  hi: 'KaamSetu पर ऐड चलाएं और हज़ारों लोकल ग्राहकों तक पहुंचें। आपकी दुकान या सर्विस सबसे ऊपर दिखेगी — सिर्फ ₹100/दिन से।',
+                  en: 'Run an ad on KaamSetu and reach thousands of local customers. Your shop or service shows up front and center — from just ₹100/day.',
+                })}
+              </p>
+              <ul className="space-y-2.5 mb-6">
+                {[
+                  { hi: 'हज़ारों लोकल ग्राहकों तक पहुंच', en: 'Reach thousands of local customers' },
+                  { hi: 'होम पेज और कैटेगरी पेज पर दिखें', en: 'Featured on home & category pages' },
+                  { hi: 'सीधे call आपके नंबर पर', en: 'Customers call you directly' },
+                ].map(item => (
+                  <li key={item.en} className="flex items-center gap-2.5 text-sm text-brand-navy font-hindi">
+                    <CheckCircle size={18} className="text-green-600 flex-shrink-0" />
+                    <span>{t(item)}</span>
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href={role === 'shop' ? '/shop/ads' : '/auth/select-role'}
+                className="inline-flex items-center justify-center gap-2 bg-brand-yellow text-brand-navy font-black px-6 py-3.5 rounded-xl hover:bg-amber-400 transition-colors font-hindi w-fit"
+              >
+                <Megaphone size={18} />
+                {t({ hi: 'ऐड अपलोड करें', en: 'Upload an Ad' })}
+              </Link>
             </div>
           </div>
         </div>
