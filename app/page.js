@@ -71,15 +71,6 @@ const ACTION_CARDS = [
     href: '/auth/signup/shop',
     imgW: 180, imgH: 200,
   },
-  {
-    illustration: '/illustrations/ads-illustration.png',
-    title: { hi: 'ऐड चलाएं',   en: 'Run Ads' },
-    desc:  { hi: 'अपने बिजनेस, ऑफर या सर्विस का ऐड चलाएं', en: 'Run ads for your business or service' },
-    btn:   { hi: 'ऐड चलाएं',   en: 'Run Ads' },
-    btnColor: 'bg-purple-600 text-white',
-    href: '/auth/select-role',
-    imgW: 180, imgH: 200,
-  },
 ];
 
 export default function HomePage() {
@@ -389,10 +380,33 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ── INTRO VIDEO ──────────────────────────────────────────── */}
+      <section className="bg-white py-14">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="grid md:grid-cols-2 gap-6 items-center">
+            {/* Left half — video (admin-uploaded; placeholder for now) */}
+            <div className="relative w-full aspect-video bg-brand-navy/5 border-2 border-dashed border-gray-300 rounded-3xl overflow-hidden flex items-center justify-center">
+              {/* TODO: replace with admin-uploaded video player */}
+              <div className="text-center text-gray-400">
+                <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-gray-200 flex items-center justify-center">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3" /></svg>
+                </div>
+                <p className="text-sm font-semibold">Video coming soon</p>
+              </div>
+            </div>
+
+            {/* Right half — content (blank for now) */}
+            <div className="min-h-[200px] md:min-h-full flex items-center">
+              {/* TODO: content goes here */}
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ── ACTION CARDS ─────────────────────────────────────────── */}
       <section className="bg-brand-bg py-14">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-4xl mx-auto">
             {ACTION_CARDS.map(card => {
               let resolvedHref = card.href;
               if (role === 'worker') {
