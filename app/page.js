@@ -305,10 +305,8 @@ export default function HomePage() {
             <div className="hidden md:flex justify-center items-end relative self-end">
               {/* Moving yellow animation behind the worker */}
               <div className="hero-glow-rings" aria-hidden="true">
-                <span className="ring ring-1" />
-                <span className="ring ring-2" />
-                <span className="ring ring-3" />
-                <span className="hero-orbit" />
+                <span className="hero-beams" />
+                <span className="hero-glow-disc" />
               </div>
               <div className="hero-spotlight" aria-hidden="true" />
               <div className="hero-rotator self-end">
@@ -496,13 +494,16 @@ export default function HomePage() {
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { icon: BadgeCheck,    title: { hi: 'वेरिफाइड वर्कर',       en: 'Verified Workers' }, bg: 'bg-blue-50',   color: 'text-brand-navy' },
-              { icon: MessageCircle, title: { hi: 'सीधी बातचीत',          en: 'Direct Contact'   }, bg: 'bg-green-50',  color: 'text-green-600' },
-              { icon: Shield,        title: { hi: 'सुरक्षित और भरोसेमंद', en: 'Safe & Trusted'   }, bg: 'bg-purple-50', color: 'text-purple-600' },
-              { icon: Zap,           title: { hi: 'तेज़ और आसान',          en: 'Fast & Easy'      }, bg: 'bg-yellow-50', color: 'text-amber-500' },
-            ].map(f => (
-              <div key={f.title.en} className="text-center p-6 rounded-2xl border border-gray-100 card-hover">
-                <div className={`w-14 h-14 ${f.bg} rounded-2xl flex items-center justify-center mx-auto mb-4`}>
+              { icon: BadgeCheck,    title: { hi: 'वेरिफाइड वर्कर',       en: 'Verified Workers' }, iconBg: 'bg-white', color: 'text-brand-navy',  card: 'bg-gradient-to-br from-blue-50 to-blue-100/60 border-blue-200',     num: 'bg-brand-navy' },
+              { icon: MessageCircle, title: { hi: 'सीधी बातचीत',          en: 'Direct Contact'   }, iconBg: 'bg-white', color: 'text-green-600',   card: 'bg-gradient-to-br from-green-50 to-green-100/60 border-green-200',   num: 'bg-green-600' },
+              { icon: Shield,        title: { hi: 'सुरक्षित और भरोसेमंद', en: 'Safe & Trusted'   }, iconBg: 'bg-white', color: 'text-purple-600',  card: 'bg-gradient-to-br from-purple-50 to-purple-100/60 border-purple-200', num: 'bg-purple-600' },
+              { icon: Zap,           title: { hi: 'तेज़ और आसान',          en: 'Fast & Easy'      }, iconBg: 'bg-white', color: 'text-amber-500',   card: 'bg-gradient-to-br from-amber-50 to-amber-100/60 border-amber-200',   num: 'bg-amber-500' },
+            ].map((f, i) => (
+              <div key={f.title.en} className={`relative text-center p-6 rounded-2xl border-2 card-hover ${f.card}`}>
+                <span className={`absolute top-3 left-3 w-7 h-7 rounded-full ${f.num} text-white text-sm font-black flex items-center justify-center shadow-sm`}>
+                  {i + 1}
+                </span>
+                <div className={`w-14 h-14 ${f.iconBg} rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm`}>
                   <f.icon size={26} className={f.color} />
                 </div>
                 <h3 className="font-bold text-brand-navy font-hindi mb-1">{t(f.title)}</h3>
