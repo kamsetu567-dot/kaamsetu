@@ -15,6 +15,7 @@ export default function AdSlot({
   category = "",
   type,           // override default: "banner" | "featured" | undefined
   limit = 1,
+  heading,        // optional heading shown above the slot (only when ads exist)
   className = "",
 }) {
   const [ads, setAds] = useState([]);
@@ -46,13 +47,29 @@ export default function AdSlot({
     );
   }
 
+  const headingEl = heading ? (
+    <div className="text-center mb-4">
+      <h2 className="text-2xl md:text-3xl font-black text-brand-navy font-hindi">{heading}</h2>
+    </div>
+  ) : null;
+
   if (variant === "banner-narrow") {
     // One ad at a time, auto-rotating through all of them every 4s.
-    return <NarrowCarousel ads={ads} className={className} />;
+    return (
+      <div>
+        {headingEl}
+        <NarrowCarousel ads={ads} className={className} />
+      </div>
+    );
   }
 
   // banner-wide: continuous R→L marquee of cards with side arrows.
-  return <WideCarousel ads={ads} className={className} />;
+  return (
+    <div>
+      {headingEl}
+      <WideCarousel ads={ads} className={className} />
+    </div>
+  );
 }
 
 // Single-ad rotating carousel for the compact (client dashboard) slot.
