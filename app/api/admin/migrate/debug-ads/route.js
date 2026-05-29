@@ -42,20 +42,26 @@ export async function POST(request) {
       orphansDeleted = result.deletedCount || 0;
     }
 
-    // If caller passes { clearStaleAdFlags: true }, set adActive=false on any
-    // shop that has adActive=true but no actual active Ad document. Fixes the
-    // misleading "LIVE" badge on shops that never ran a real ad.
+    // If caller passes { clearStaleAdFlags: true }, two-way sync every shop's
+    // adActive flag to match whether it actually has a live Ad document:
+    // - shop has a live ad but flag is false -> set true
+    // - shop has no live ad but flag is true -> set false
     let staleFlagsCleared = 0;
     if (body.clearStaleAdFlags) {
       const now2 = new Date();
       const activeAds = await Ad.find({ status: "active", expiresAt: { $gt: now2 } }).select("shop").lean();
       const shopsWithActiveAd = new Set(activeAds.map(a => String(a.shop)));
-      const flaggedShops = await Shop.find({ adActive: true }).select("_id").lean();
-      const toClear = flaggedShops.filter(s => !shopsWithActiveAd.has(String(s._id))).map(s => s._id);
-      if (toClear.length) {
-        const r = await Shop.updateMany({ _id: { $in: toClear } }, { $set: { adActive: false } });
-        staleFlagsCleared = r.modifiedCount || 0;
-      }
+      const allShopsForSync = await Shop.find({}).select("_id adActive").lean();
+      const setTrue = [];
+      const setFalse = [];
+      allShopsForSync.forEach(s => {
+        const live = shopsWithActiveAd.has(String(s._id));
+        if (live && !s.adActive) setTrue.push(s._id);
+        if (!live && s.adActive) setFalse.push(s._id);
+      });
+      if (setTrue.length) await Shop.updateMany({ _id: { $in: setTrue } }, { $set: { adActive: true } });
+      if (setFalse.length) await Shop.updateMany({ _id: { $in: setFalse } }, { $set: { adActive: false } });
+      staleFlagsCleared = setTrue.length + setFalse.length;
     }
 
     const ads = await Ad.find({}).sort({ createdAt: -1 }).lean();
