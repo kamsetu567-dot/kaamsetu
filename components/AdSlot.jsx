@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Megaphone, Phone, Store } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Megaphone, Phone, Store, ChevronLeft, ChevronRight } from "lucide-react";
 
 // Three rendering variants:
 //   banner-wide    — full-width banner (homepage, category page top)
@@ -15,7 +15,6 @@ export default function AdSlot({
   category = "",
   type,           // override default: "banner" | "featured" | undefined
   limit = 1,
-  perPage = 3,    // banner-wide: how many cards share one carousel page
   className = "",
 }) {
   const [ads, setAds] = useState([]);
@@ -52,8 +51,8 @@ export default function AdSlot({
     return <NarrowCarousel ads={ads} className={className} />;
   }
 
-  // banner-wide: `perPage` cards share a row; more paginate with auto-advance.
-  return <WideCarousel ads={ads} className={className} perPage={perPage} />;
+  // banner-wide: continuous R→L marquee of cards with side arrows.
+  return <WideCarousel ads={ads} className={className} />;
 }
 
 // Single-ad rotating carousel for the compact (client dashboard) slot.
@@ -78,7 +77,7 @@ function NarrowCarousel({ ads, className }) {
               key={i}
               onClick={() => setIdx(i)}
               aria-label={`Ad ${i + 1}`}
-              className={`w-1.5 h-1.5 shrink-0 rounded-full transition-colors ${i === idx ? "bg-brand-navy" : "bg-gray-300"}`}
+              className={`w-1.5 h-1.5 min-h-0 shrink-0 rounded-full transition-colors ${i === idx ? "bg-brand-navy" : "bg-gray-300"}`}
             />
           ))}
         </div>
@@ -87,58 +86,119 @@ function NarrowCarousel({ ads, className }) {
   );
 }
 
-// Wide banner carousel. Shows one ad at a time on mobile, `perPage` (default 3)
-// per page on desktop — both auto-advance every 5s with clickable page dots.
-function WideCarousel({ ads, className, perPage = 3 }) {
-  // Responsive page size: 1 on mobile (<640px), `perPage` from sm up.
-  const [pageSize, setPageSize] = useState(1);
+// Wide banner carousel — a continuous marquee that slides the ad cards
+// right-to-left forever. Hover pauses; left/right arrows nudge by one card.
+// Desktop shows ~3 cards across; mobile shows ~1. Single ad just renders
+// static (no marquee). No dots.
+const CARD_GAP = 12; // px, matches the gap-3 below
+
+function WideCarousel({ ads, className }) {
+  const viewportRef = useRef(null);
+  const trackRef = useRef(null);
+  const offsetRef = useRef(0);          // current translateX in px (negative)
+  const pausedRef = useRef(false);
+  const halfWidthRef = useRef(0);       // width of one full set (for seamless wrap)
+  const [cardW, setCardW] = useState(320);
+
+  // A single ad doesn't need a marquee.
+  const single = ads.length <= 1;
+
+  // Responsive card width: ~1 card on mobile, ~3 across on desktop.
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const mq = window.matchMedia("(min-width: 640px)");
-    const sync = () => setPageSize(mq.matches ? perPage : 1);
-    sync();
-    mq.addEventListener("change", sync);
-    return () => mq.removeEventListener("change", sync);
-  }, [perPage]);
+    if (single) return;
+    function measure() {
+      const vw = viewportRef.current?.clientWidth || 0;
+      // <640px: one card fills the viewport; from sm up: 3 across.
+      const perView = vw >= 640 ? 3 : 1;
+      const w = Math.max(200, Math.floor((vw - CARD_GAP * (perView - 1)) / perView));
+      setCardW(w);
+    }
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [single]);
 
-  const PER_PAGE = pageSize;
-  const pages = Math.ceil(ads.length / PER_PAGE);
-  const [page, setPage] = useState(0);
-
-  // Keep page in range if pageSize changes (e.g. rotate device / resize).
-  useEffect(() => { setPage(p => (p >= pages ? 0 : p)); }, [pages]);
-
+  // Continuous RAF-driven scroll. Duplicating the list lets us wrap seamlessly:
+  // once we've scrolled past one full set, reset by that width — invisible jump.
   useEffect(() => {
-    if (pages <= 1) return;
-    const id = setInterval(() => setPage(p => (p + 1) % pages), 6000);
-    return () => clearInterval(id);
-  }, [pages]);
+    if (single) return;
+    let raf;
+    let last = performance.now();
+    const SPEED = 40; // px per second — gentle
 
-  const visible = pages > 1 ? ads.slice(page * PER_PAGE, page * PER_PAGE + PER_PAGE) : ads;
-  const count = visible.length;
-  const rowMaxW = count === 1 ? "max-w-md" : count === 2 ? "max-w-3xl" : "max-w-full";
+    function tick(now) {
+      const dt = (now - last) / 1000;
+      last = now;
+      if (!pausedRef.current && trackRef.current) {
+        // recompute half-width (one set) lazily
+        halfWidthRef.current = trackRef.current.scrollWidth / 2;
+        offsetRef.current -= SPEED * dt;
+        if (-offsetRef.current >= halfWidthRef.current) {
+          offsetRef.current += halfWidthRef.current; // seamless wrap
+        }
+        trackRef.current.style.transform = `translateX(${offsetRef.current}px)`;
+      }
+      raf = requestAnimationFrame(tick);
+    }
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [single, cardW]);
+
+  // Arrows nudge by one card width (with a brief smooth transition).
+  function nudge(dir) {
+    const track = trackRef.current;
+    if (!track) return;
+    const step = (cardW + CARD_GAP) * (dir === "next" ? -1 : 1);
+    offsetRef.current += step;
+    const half = track.scrollWidth / 2;
+    if (-offsetRef.current >= half) offsetRef.current += half;
+    if (offsetRef.current > 0) offsetRef.current -= half;
+    track.style.transition = "transform 0.5s ease";
+    track.style.transform = `translateX(${offsetRef.current}px)`;
+    setTimeout(() => { if (trackRef.current) trackRef.current.style.transition = ""; }, 500);
+  }
+
+  if (single) {
+    return (
+      <div className={`mx-auto max-w-md ${className}`}>
+        <WideBanner ad={ads[0]} />
+      </div>
+    );
+  }
+
+  // Duplicate the list so the loop has no visible seam.
+  const loop = [...ads, ...ads];
 
   return (
-    <div className={`mx-auto ${rowMaxW} ${className}`}>
-      <div key={page} className="ad-fade flex flex-col sm:flex-row gap-3">
-        {visible.map(ad => (
-          <div key={String(ad.id)} className="flex-1 min-w-0">
-            <WideBanner ad={ad} />
-          </div>
-        ))}
-      </div>
-      {pages > 1 && (
-        <div className="flex items-center justify-center gap-1.5 mt-2">
-          {Array.from({ length: pages }).map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setPage(i)}
-              aria-label={`Ad page ${i + 1}`}
-              className={`w-1.5 h-1.5 shrink-0 rounded-full transition-colors ${i === page ? "bg-brand-navy" : "bg-gray-300"}`}
-            />
+    <div className={`relative ${className}`}
+      onMouseEnter={() => { pausedRef.current = true; }}
+      onMouseLeave={() => { pausedRef.current = false; }}
+    >
+      <div ref={viewportRef} className="overflow-hidden">
+        <div ref={trackRef} className="flex gap-3 will-change-transform">
+          {loop.map((ad, i) => (
+            <div key={`${String(ad.id)}-${i}`} style={{ width: cardW }} className="flex-shrink-0">
+              <WideBanner ad={ad} />
+            </div>
           ))}
         </div>
-      )}
+      </div>
+
+      {/* Arrows */}
+      <button
+        onClick={() => nudge("prev")}
+        aria-label="Previous ad"
+        className="absolute left-1 top-1/2 -translate-y-1/2 z-10 w-9 h-9 min-h-0 rounded-full bg-white/90 border border-gray-200 shadow-md flex items-center justify-center text-brand-navy hover:bg-white transition-colors"
+      >
+        <ChevronLeft size={18} />
+      </button>
+      <button
+        onClick={() => nudge("next")}
+        aria-label="Next ad"
+        className="absolute right-1 top-1/2 -translate-y-1/2 z-10 w-9 h-9 min-h-0 rounded-full bg-white/90 border border-gray-200 shadow-md flex items-center justify-center text-brand-navy hover:bg-white transition-colors"
+      >
+        <ChevronRight size={18} />
+      </button>
     </div>
   );
 }
