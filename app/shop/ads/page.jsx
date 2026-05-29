@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import {
   PlusCircle, X, Upload, CheckCircle, Eye,
   MousePointerClick, TrendingUp, Trash2, Megaphone,
-  Tag, Loader2, Copy, Smartphone, ChevronLeft,
+  Loader2, Copy, Smartphone, ChevronLeft,
 } from "lucide-react";
 import CategorySelect from "@/components/CategorySelect";
 import EmptyState from "@/components/EmptyState";
@@ -15,7 +15,6 @@ import { compressImage } from "@/lib/utils/compressImage";
 
 const AD_TYPES = [
   { value: "banner",   hi: "Banner Ad",        en: "Full-width banner on category page", icon: Megaphone, tag: "Most Popular" },
-  { value: "featured", hi: "Featured Listing",  en: "Shop listed at top of search results", icon: Tag, tag: "Best Value" },
 ];
 
 const PRICE_PER_DAY = 100; // ₹100 / day flat
@@ -24,7 +23,8 @@ const MAX_DAYS = 90;
 
 function CreateAdForm({ onCreated, onCancel }) {
   const toast = useToast();
-  const [adType,    setAdType]    = useState("");
+  // Only one ad type now (Banner). Default-selected so the shop doesn't pick from a 1-item list.
+  const [adType,    setAdType]    = useState("banner");
   const [category,  setCategory]  = useState("");
   const [days,      setDays]      = useState("7");      // string so the input is empty-friendly
   const [creative,  setCreative]  = useState(null);     // base64 string
@@ -134,41 +134,19 @@ function CreateAdForm({ onCreated, onCancel }) {
         </button>
       </div>
 
-      {/* Ad type */}
-      <FieldSection labelHi="Ad का प्रकार" labelEn="Ad Type *">
-        <div className="space-y-3">
-          {AD_TYPES.map(type => (
-            <button key={type.value} type="button" onClick={() => setAdType(type.value)}
-              className={`w-full flex items-center gap-4 p-4 rounded-2xl border-2 text-left transition-all ${
-                adType === type.value ? "border-brand-navy bg-blue-50" : "border-gray-200 hover:border-brand-navy"
-              }`}>
-              <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                adType === type.value ? "bg-brand-navy text-white" : "bg-gray-100 text-gray-500"
-              }`}>
-                <type.icon size={20} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <p className="font-bold text-brand-navy font-hindi">{type.hi}</p>
-                  {type.tag && (
-                    <span className="text-xs bg-brand-yellow text-brand-navy font-bold px-2 py-0.5 rounded-full">{type.tag}</span>
-                  )}
-                </div>
-                <p className="text-gray-500 text-sm">{type.en}</p>
-              </div>
-              <div className={`w-5 h-5 rounded-full border-2 flex-shrink-0 ${
-                adType === type.value ? "border-brand-navy bg-brand-navy" : "border-gray-200"
-              }`}>
-                {adType === type.value && (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <div className="w-2 h-2 rounded-full bg-white" />
-                  </div>
-                )}
-              </div>
-            </button>
-          ))}
+      {/* Ad type — only Banner is offered now, shown as a fixed header */}
+      <div className="flex items-center gap-3 p-4 rounded-2xl border-2 border-brand-navy bg-blue-50">
+        <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 bg-brand-navy text-white">
+          <Megaphone size={20} />
         </div>
-      </FieldSection>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <p className="font-bold text-brand-navy font-hindi">Banner Ad</p>
+            <span className="text-xs bg-brand-yellow text-brand-navy font-bold px-2 py-0.5 rounded-full">Most Popular</span>
+          </div>
+          <p className="text-gray-500 text-sm">Full-width banner on category page</p>
+        </div>
+      </div>
 
       {/* Category */}
       <FieldSection labelHi="Target Category" labelEn="Which category should this ad appear in? *">

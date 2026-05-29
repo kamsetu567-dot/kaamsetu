@@ -9,7 +9,6 @@ import Footer from "@/components/Footer";
 import WorkerCard from "@/components/WorkerCard";
 import FilterPanel from "@/components/FilterPanel";
 import EmptyState from "@/components/EmptyState";
-import AdSlot from "@/components/AdSlot";
 import LoadingSkeleton, { WorkerCardSkeleton } from "@/components/LoadingSkeleton";
 import { useFilters } from "@/lib/context/FilterContext";
 import { getWorkers } from "@/lib/api/workers";
@@ -205,8 +204,6 @@ function WorkerList() {
             />
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Featured shop ad slots into the first card when a category is selected */}
-              {filters.category && <AdSlot variant="featured-card" category={filters.category} limit={1} />}
               {workers.map(w => <WorkerCard key={w.id} worker={w} />)}
             </div>
           )}

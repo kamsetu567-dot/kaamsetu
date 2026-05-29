@@ -209,10 +209,10 @@ export default function ShopDashboardPage() {
       <div className="bg-brand-navy rounded-3xl p-5 text-white">
         <h4 className="font-black mb-1">💡 Pro Tip</h4>
         <p className="text-white/80 text-sm font-hindi">
-          Featured Listing ads को category page पर सबसे ऊपर दिखाया जाता है — ज्यादा customers आते हैं!
+          Banner ads आपकी category page पर दिखाए जाते हैं — ज्यादा customers आते हैं!
         </p>
         <p className="text-white/60 text-xs mt-1">
-          Featured Listing ads appear at the top of category pages — more visibility, more customers!
+          Banner ads show on your category page — more visibility, more customers!
         </p>
       </div>
     </div>
