@@ -15,6 +15,7 @@ export default function AdSlot({
   category = "",
   type,           // override default: "banner" | "featured" | undefined
   limit = 1,
+  perPage = 3,    // banner-wide: how many cards share one carousel page
   className = "",
 }) {
   const [ads, setAds] = useState([]);
@@ -51,8 +52,8 @@ export default function AdSlot({
     return <NarrowCarousel ads={ads} className={className} />;
   }
 
-  // banner-wide: up to 3 ads share a row; >3 paginates 3-at-a-time.
-  return <WideCarousel ads={ads} className={className} />;
+  // banner-wide: `perPage` cards share a row; more paginate with auto-advance.
+  return <WideCarousel ads={ads} className={className} perPage={perPage} />;
 }
 
 // Single-ad rotating carousel for the compact (client dashboard) slot.
@@ -86,8 +87,8 @@ function NarrowCarousel({ ads, className }) {
 
 // Wide banner row. ≤3 ads share a single row; >3 ads paginate 3-at-a-time
 // and auto-advance every 5s with clickable page dots.
-function WideCarousel({ ads, className }) {
-  const PER_PAGE = 3;
+function WideCarousel({ ads, className, perPage = 3 }) {
+  const PER_PAGE = perPage;
   const pages = Math.ceil(ads.length / PER_PAGE);
   const [page, setPage] = useState(0);
 
@@ -111,13 +112,13 @@ function WideCarousel({ ads, className }) {
         ))}
       </div>
       {pages > 1 && (
-        <div className="flex justify-center gap-1.5 mt-3">
+        <div className="flex justify-center gap-1 mt-2">
           {Array.from({ length: pages }).map((_, i) => (
             <button
               key={i}
               onClick={() => setPage(i)}
               aria-label={`Ad page ${i + 1}`}
-              className={`h-2 rounded-full transition-all ${i === page ? "w-5 bg-brand-navy" : "w-2 bg-gray-300"}`}
+              className={`h-1.5 rounded-full transition-all ${i === page ? "w-3.5 bg-brand-navy" : "w-1.5 bg-gray-300"}`}
             />
           ))}
         </div>

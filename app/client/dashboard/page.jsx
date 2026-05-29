@@ -163,7 +163,7 @@ export default function ClientDashboardPage() {
         </button>
       </div>
 
-      <AdSlot variant="banner-narrow" limit={3} />
+      <AdSlot variant="banner-wide" limit={5} perPage={1} />
 
       {/* My requests */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
