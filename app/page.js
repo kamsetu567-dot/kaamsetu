@@ -95,11 +95,16 @@ export default function HomePage() {
     } catch {}
   }, []);
 
-  // Rotate the hero illustration every 5s.
+  // Crossfade through the hero illustrations every 4s. Skips animation if the
+  // user prefers reduced motion.
   useEffect(() => {
+    if (typeof window !== 'undefined' &&
+        window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+      return;
+    }
     const id = setInterval(() => {
       setHeroIdx(i => (i + 1) % HERO_ILLUSTRATIONS.length);
-    }, 5000);
+    }, 4000);
     return () => clearInterval(id);
   }, []);
 
@@ -297,22 +302,23 @@ export default function HomePage() {
             </div>
 
             {/* right — crossfading hero illustrations with moving yellow motion behind */}
-            <div className="hidden md:flex justify-center items-end self-end">
-              <div className="hero-stage">
-                {/* Moving yellow glow behind the worker */}
-                <span className="hero-glow-disc" aria-hidden="true" />
-                {/* Single image whose src swaps every 5s. key forces a remount so
-                    the change is always visible (no opacity-stacking issues). */}
-                <img
-                  key={heroIdx}
-                  src={HERO_ILLUSTRATIONS[heroIdx]}
-                  alt="KaamSetu verified worker"
-                  className="hero-stage-img is-active hero-stage-fade"
-                />
-                {/* Preload the rest so swaps are instant */}
-                <div style={{ display: 'none' }} aria-hidden="true">
-                  {HERO_ILLUSTRATIONS.map(src => <img key={src} src={src} alt="" />)}
-                </div>
+            <div className="hidden md:flex justify-center items-end relative self-end">
+              {/* Moving yellow animation behind the worker */}
+              <div className="hero-glow-rings" aria-hidden="true">
+                <span className="hero-beams" />
+                <span className="hero-glow-disc" />
+              </div>
+              <div className="hero-spotlight" aria-hidden="true" />
+              <div className="hero-rotator self-end">
+                {HERO_ILLUSTRATIONS.map((src, i) => (
+                  <img
+                    key={src}
+                    src={src}
+                    alt={i === heroIdx ? 'KaamSetu verified worker' : ''}
+                    aria-hidden={i === heroIdx ? undefined : 'true'}
+                    className={i === heroIdx ? 'is-active' : ''}
+                  />
+                ))}
               </div>
             </div>
           </div>
