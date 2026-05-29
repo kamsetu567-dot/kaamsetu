@@ -3,7 +3,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { MapPin, Users, Briefcase, Shield, Search, MessageCircle, CheckCircle, BadgeCheck, Zap, ArrowRight, Megaphone } from 'lucide-react';
+import { MapPin, Users, Briefcase, Shield, Search, MessageCircle, CheckCircle, BadgeCheck, Zap, ArrowRight, Megaphone, Store } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import AdSlot from '@/components/AdSlot';
@@ -426,15 +426,25 @@ export default function HomePage() {
       <section className="bg-white py-14">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="grid md:grid-cols-2 gap-6 items-center">
-            {/* Left half — video (admin-uploaded; placeholder for now) */}
-            <div className="relative w-full aspect-video bg-brand-navy/5 border-2 border-dashed border-gray-300 rounded-3xl overflow-hidden flex items-center justify-center">
-              {/* TODO: replace with admin-uploaded video player */}
-              <div className="text-center text-gray-400">
-                <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-gray-200 flex items-center justify-center">
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3" /></svg>
+            {/* Left half — 4 step cards: how to upload an ad */}
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
+              {[
+                { icon: Store,       title: { hi: 'शॉप रजिस्टर करें', en: 'Register Shop' },  desc: { hi: 'दुकान/बिज़नेस के तौर पर साइन अप करें', en: 'Sign up as a Shop / Business' },        card: 'bg-gradient-to-br from-blue-50 to-blue-100/60 border-blue-200',     num: 'bg-brand-navy' },
+                { icon: Megaphone,   title: { hi: 'ऐड बनाएं',         en: 'Create Ad' },      desc: { hi: 'कैटेगरी, फोटो और दिन चुनें', en: 'Pick category, image & days' },                  card: 'bg-gradient-to-br from-purple-50 to-purple-100/60 border-purple-200', num: 'bg-purple-600' },
+                { icon: CheckCircle, title: { hi: 'पेमेंट करें',      en: 'Make Payment' },   desc: { hi: 'सिर्फ ₹100/दिन — UPI से', en: 'Just ₹100/day — via UPI' },                          card: 'bg-gradient-to-br from-green-50 to-green-100/60 border-green-200',   num: 'bg-green-600' },
+                { icon: Zap,         title: { hi: 'लाइव हो जाएं',      en: 'Go Live' },        desc: { hi: 'Admin approval के बाद ऐड live', en: 'Live after admin approval' },                  card: 'bg-gradient-to-br from-amber-50 to-amber-100/60 border-amber-200',   num: 'bg-amber-500' },
+              ].map((step, i) => (
+                <div key={step.title.en} className={`relative rounded-2xl border-2 p-4 ${step.card}`}>
+                  <span className={`absolute top-2.5 left-2.5 w-6 h-6 rounded-full ${step.num} text-white text-xs font-black flex items-center justify-center shadow-sm`}>
+                    {i + 1}
+                  </span>
+                  <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center mb-2 ml-auto shadow-sm">
+                    <step.icon size={18} className="text-brand-navy" />
+                  </div>
+                  <h3 className="font-black text-brand-navy text-sm font-hindi leading-tight">{t(step.title)}</h3>
+                  <p className="text-gray-500 text-[11px] font-hindi leading-snug mt-0.5">{t(step.desc)}</p>
                 </div>
-                <p className="text-sm font-semibold">Video coming soon</p>
-              </div>
+              ))}
             </div>
 
             {/* Right half — grow-your-business pitch + upload-ad CTA */}
