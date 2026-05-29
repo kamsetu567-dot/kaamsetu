@@ -584,7 +584,7 @@ export default function HomePage() {
             </div>
             <div className="hidden md:flex justify-center items-end">
               <Image
-                src="/illustrations/worker-hero-full.png"
+                src="/illustrations/First_workers_drill_subtle_vibrationmiddle.gif"
                 alt="Become a KaamSetu worker"
                 width={640}
                 height={358}
