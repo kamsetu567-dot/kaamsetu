@@ -61,22 +61,24 @@ function NarrowCarousel({ ads, className }) {
   const [idx, setIdx] = useState(0);
   useEffect(() => {
     if (ads.length <= 1) return;
-    const id = setInterval(() => setIdx(i => (i + 1) % ads.length), 4000);
+    const id = setInterval(() => setIdx(i => (i + 1) % ads.length), 6000);
     return () => clearInterval(id);
   }, [ads.length]);
 
   const ad = ads[idx % ads.length];
   return (
     <div className={className}>
-      <NarrowBanner ad={ad} />
+      <div key={idx} className="ad-fade">
+        <NarrowBanner ad={ad} />
+      </div>
       {ads.length > 1 && (
-        <div className="flex justify-center gap-1.5 mt-2">
+        <div className="flex justify-center gap-1 mt-2">
           {ads.map((_, i) => (
             <button
               key={i}
               onClick={() => setIdx(i)}
               aria-label={`Ad ${i + 1}`}
-              className={`h-1.5 rounded-full transition-all ${i === idx ? "w-4 bg-brand-navy" : "w-1.5 bg-gray-300"}`}
+              className={`h-1 rounded-full transition-all ${i === idx ? "w-3 bg-brand-navy" : "w-1 bg-gray-300/70"}`}
             />
           ))}
         </div>
@@ -108,7 +110,7 @@ function WideCarousel({ ads, className, perPage = 3 }) {
 
   useEffect(() => {
     if (pages <= 1) return;
-    const id = setInterval(() => setPage(p => (p + 1) % pages), 5000);
+    const id = setInterval(() => setPage(p => (p + 1) % pages), 6000);
     return () => clearInterval(id);
   }, [pages]);
 
@@ -118,7 +120,7 @@ function WideCarousel({ ads, className, perPage = 3 }) {
 
   return (
     <div className={`mx-auto ${rowMaxW} ${className}`}>
-      <div className="flex flex-col sm:flex-row gap-3">
+      <div key={page} className="ad-fade flex flex-col sm:flex-row gap-3">
         {visible.map(ad => (
           <div key={String(ad.id)} className="flex-1 min-w-0">
             <WideBanner ad={ad} />
@@ -132,7 +134,7 @@ function WideCarousel({ ads, className, perPage = 3 }) {
               key={i}
               onClick={() => setPage(i)}
               aria-label={`Ad page ${i + 1}`}
-              className={`h-1.5 rounded-full transition-all ${i === page ? "w-3.5 bg-brand-navy" : "w-1.5 bg-gray-300"}`}
+              className={`h-1 rounded-full transition-all ${i === page ? "w-3 bg-brand-navy" : "w-1 bg-gray-300/70"}`}
             />
           ))}
         </div>

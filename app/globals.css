@@ -332,3 +332,11 @@ button, a, [role="button"] {
   50% { opacity: 0.4; }
 }
 .animate-pulse-dot { animation: pulse-dot 1.5s ease-in-out infinite; }
+
+/* Smooth fade-in for carousel swaps (ad slots). Applied to a keyed wrapper
+   that remounts on each advance so the animation replays. */
+@keyframes adFade { from { opacity: 0; } to { opacity: 1; } }
+.ad-fade { animation: adFade 0.6s ease-in-out; }
+@media (prefers-reduced-motion: reduce) {
+  .ad-fade { animation: none; }
+}
