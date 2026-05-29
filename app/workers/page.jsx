@@ -94,6 +94,7 @@ function WorkerList() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [role, setRole] = useState(null);
+  const [authChecked, setAuthChecked] = useState(false); // true once guard confirms visitor may stay
   const [clientCoords, setClientCoords] = useState(null); // { lat, lng } | null
   const [coordsResolved, setCoordsResolved] = useState(false); // true once we know whether client has GPS
 
@@ -106,6 +107,12 @@ function WorkerList() {
 
   // Read role from localStorage + fetch client coordinates (for distance filter)
   useEffect(() => {
+    // Guests can't browse the hire page — push them to sign up first
+    if (!localStorage.getItem("kaamsetu_token")) {
+      router.replace("/auth/signup");
+      return;
+    }
+
     let userRole = null;
     try {
       const user = JSON.parse(localStorage.getItem("kaamsetu_user") || "{}");
@@ -118,6 +125,7 @@ function WorkerList() {
       return;
     }
     setRole(userRole);
+    setAuthChecked(true);
 
     // Only clients need their saved GPS — workers don't use distance filter
     if (userRole === "client") {
@@ -149,6 +157,15 @@ function WorkerList() {
   // Banner: shown when a logged-in client uses the distance filter without saved GPS
   const showLocationBanner =
     coordsResolved && role === "client" && !clientCoords && filters.distance > 0;
+
+  // Until the auth guard confirms the visitor may stay, show skeletons (no worker data leaks to guests mid-redirect)
+  if (!authChecked) {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {Array.from({ length: 4 }).map((_, i) => <WorkerCardSkeleton key={i} />)}
+      </div>
+    );
+  }
 
   return (
     <>

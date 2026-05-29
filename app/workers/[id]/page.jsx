@@ -91,6 +91,7 @@ export default function WorkerProfilePage() {
 
   const [worker, setWorker] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [authChecked, setAuthChecked] = useState(false); // true once guard confirms visitor may stay
   const [fetchError, setFetchError] = useState(null); // null | "not_found" | "server_error" | "network_error"
 
   const [showReport, setShowReport] = useState(false);
@@ -99,10 +100,16 @@ export default function WorkerProfilePage() {
   const [reportSubmitted, setReportSubmitted] = useState(false);
 
   useEffect(() => {
+    // Guests can't view worker profiles — push them to sign up first
+    if (!localStorage.getItem("kaamsetu_token")) {
+      router.replace("/auth/signup");
+      return;
+    }
     try {
       const u = JSON.parse(localStorage.getItem("kaamsetu_user") || "{}");
-      if (u.role === "worker") router.replace("/worker/dashboard");
+      if (u.role === "worker") { router.replace("/worker/dashboard"); return; }
     } catch {}
+    setAuthChecked(true);
   }, [router]);
 
   const loadWorker = useCallback(() => {
@@ -122,7 +129,7 @@ export default function WorkerProfilePage() {
       .finally(() => setLoading(false));
   }, [id]);
 
-  useEffect(() => { loadWorker(); }, [loadWorker]);
+  useEffect(() => { if (authChecked) loadWorker(); }, [authChecked, loadWorker]);
 
   async function submitReport() {
     if (!reportReason) return;
