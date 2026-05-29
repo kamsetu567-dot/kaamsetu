@@ -60,19 +60,11 @@ function AdCard({ ad }) {
           <span className="font-hindi">{s.hi}</span>
         </span>
       </div>
-      <div className="grid grid-cols-3 gap-2 text-center mb-3">
-        {[
-          { icon: Eye,               val: ad.impressions ?? 0, label: "Views"  },
-          { icon: MousePointerClick, val: ad.clicks      ?? 0, label: "Clicks" },
-          { icon: TrendingUp,        val: ad.ctr         ?? "0%", label: "CTR" },
-        ].map(m => (
-          <div key={m.label} className="bg-brand-bg rounded-xl py-2">
-            <m.icon size={14} className="text-gray-500 mx-auto mb-0.5" />
-            <p className="font-black text-brand-navy text-sm">{m.val}</p>
-            <p className="text-xs text-gray-500">{m.label}</p>
-          </div>
-        ))}
-      </div>
+      {ad.creative && (
+        <div className="mb-3 rounded-xl overflow-hidden bg-gray-100 border border-gray-200">
+          <img src={ad.creative} alt="Ad Creative" className="w-full h-auto object-cover max-h-48" />
+        </div>
+      )}
       <div className="flex items-center justify-between text-xs text-gray-500">
         <span>
           <span className="font-hindi">खत्म होगा</span>{" / Expires: "}
@@ -205,16 +197,7 @@ export default function ShopDashboardPage() {
         )}
       </div>
 
-      {/* Tip */}
-      <div className="bg-brand-navy rounded-3xl p-5 text-white">
-        <h4 className="font-black mb-1">💡 Pro Tip</h4>
-        <p className="text-white/80 text-sm font-hindi">
-          Banner ads आपकी category page पर दिखाए जाते हैं — ज्यादा customers आते हैं!
-        </p>
-        <p className="text-white/60 text-xs mt-1">
-          Banner ads show on your category page — more visibility, more customers!
-        </p>
-      </div>
+
     </div>
   );
 }
