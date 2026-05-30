@@ -43,23 +43,20 @@ const HERO_ILLUSTRATIONS = [
   '/illustrations/hero-computer-operator.png',
 ];
 
-// Quick-access service icon tiles (all shown at once — no "show more")
+// Category icon tiles — one per top-level service category
 const SERVICE_TILES = [
-  { icon: '/icons/mistri.png', hi: 'मिस्त्री', en: 'Mistri', count: '200+', bg: 'bg-orange-50', href: '/workers?q=mistri' },
-  { icon: '/icons/plumber.png', hi: 'प्लंबर', en: 'Plumber', count: '150+', bg: 'bg-blue-50', href: '/workers?q=plumber' },
-  { icon: '/icons/electrician.png', hi: 'इलेक्ट्रीशियन', en: 'Electrician', count: '180+', bg: 'bg-yellow-50', href: '/workers?q=electrician' },
-  { icon: '/icons/painter.png', hi: 'पेंटर', en: 'Painter', count: '120+', bg: 'bg-pink-50', href: '/workers?q=painter' },
-  { icon: '/icons/carpenter.png', hi: 'कारपेंटर', en: 'Carpenter', count: '100+', bg: 'bg-amber-50', href: '/workers?q=carpenter' },
-  { icon: '/icons/driver.png', hi: 'ड्राइवर', en: 'Driver', count: '250+', bg: 'bg-cyan-50', href: '/workers?category=vehicle-travel' },
-  { icon: '/icons/caterer.png', hi: 'कैटरर', en: 'Caterer', count: '80+', bg: 'bg-green-50', href: '/workers?q=caterer' },
-  { icon: '/icons/dj.png', hi: 'DJ', en: 'DJ', count: '60+', bg: 'bg-purple-50', href: '/workers?q=dj' },
-  { icon: '/icons/dancer.png', hi: 'डांसर', en: 'Dancer', count: '50+', bg: 'bg-rose-50', href: '/workers?q=dancer' },
-  { icon: '/icons/singer.png', hi: 'सिंगर', en: 'Singer', count: '40+', bg: 'bg-indigo-50', href: '/workers?q=singer' },
-  { icon: '/icons/tutor.png', hi: 'ट्यूटर', en: 'Tutor', count: '90+', bg: 'bg-teal-50', href: '/workers?category=talent-training' },
-  { icon: '/icons/caretaker.png', hi: 'होम केयरटेकर', en: 'Home Caretaker', count: '70+', bg: 'bg-sky-50', href: '/workers?category=home-care-living' },
-  { icon: '/icons/security.png', hi: 'सिक्योरिटी', en: 'Security', count: '60+', bg: 'bg-slate-50', href: '/workers?category=security-event-safety' },
-  { icon: '/icons/logistics.png', hi: 'होम लॉजिस्टिक', en: 'Logistics', count: '50+', bg: 'bg-lime-50', href: '/workers?category=packing-logistics' },
-  { icon: '/icons/packing.png', hi: 'पैकिंग सर्विस', en: 'Packing', count: '40+', bg: 'bg-orange-50', href: '/workers?q=packing' },
+  { icon: '/icons/construction-repair.png',  hi: 'निर्माण और मरम्मत',     en: 'Construction & Repair',   bg: 'bg-orange-50',  href: '/categories/construction-repair' },
+  { icon: '/icons/home-services.png',        hi: 'घरेलू सेवाएँ',           en: 'Home Services',           bg: 'bg-blue-50',    href: '/categories/home-services' },
+  { icon: '/icons/event-services.png',       hi: 'इवेंट सेवाएँ',           en: 'Event Services',          bg: 'bg-pink-50',    href: '/categories/event-services' },
+  { icon: '/icons/talent-training.png',      hi: 'हुनर और प्रशिक्षण',     en: 'Talent & Training',       bg: 'bg-purple-50',  href: '/categories/talent-training' },
+  { icon: '/icons/beauty-personal-care.png', hi: 'सौंदर्य सेवाएँ',          en: 'Beauty & Personal Care',  bg: 'bg-rose-50',    href: '/categories/beauty-personal-care' },
+  { icon: '/icons/vehicle-travel.png',       hi: 'वाहन और यात्रा',         en: 'Vehicle & Travel',        bg: 'bg-cyan-50',    href: '/categories/vehicle-travel' },
+  { icon: '/icons/shop-retail.png',          hi: 'दुकानें और सामग्री',     en: 'Shops & Materials',       bg: 'bg-yellow-50',  href: '/categories/shops-materials' },
+  { icon: '/icons/repair-technical.png',     hi: 'मरम्मत और तकनीकी',       en: 'Repair & Technical',      bg: 'bg-slate-50',   href: '/categories/repair-technical' },
+  { icon: '/icons/home-care.png',            hi: 'होम केयर',               en: 'Home Care & Living',      bg: 'bg-red-50',     href: '/categories/home-care-living' },
+  { icon: '/icons/security-services.png',    hi: 'सुरक्षा सेवाएँ',         en: 'Security Services',       bg: 'bg-indigo-50',  href: '/categories/security-event-safety' },
+  { icon: '/icons/packing-logistics.png',    hi: 'पैकिंग और लॉजिस्टिक्स',   en: 'Packing & Logistics',     bg: 'bg-teal-50',    href: '/categories/packing-logistics' },
+  { icon: '/icons/office-work.png',          hi: 'जॉब्स / स्टाफ / ऑफिस',   en: 'Jobs / Staff / Office',   bg: 'bg-emerald-50', href: '/categories/jobs-staff-office' },
 ];
 
 const ACTION_CARDS = [
@@ -350,18 +347,17 @@ export default function HomePage() {
             </div>
             <p className="text-gray-500 text-sm font-hindi">{t({ hi: 'अपनी ज़रूरत की सेवा चुनें', en: 'Pick the service you need' })}</p>
           </div>
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3 sm:gap-4">
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 sm:gap-3">
             {SERVICE_TILES.map(tile => (
               <Link
                 key={tile.en}
                 href={tile.href}
-                className={`${tile.bg} rounded-2xl p-3 sm:p-4 flex flex-col items-center text-center hover:shadow-md hover:-translate-y-0.5 transition-all border border-transparent hover:border-gray-200`}
+                className={`${tile.bg} rounded-xl px-2 py-2 flex flex-col items-center text-center hover:shadow-md hover:-translate-y-0.5 transition-all border border-transparent hover:border-gray-200`}
               >
-                <div className="relative w-12 h-12 sm:w-14 sm:h-14 mb-2">
-                  <Image src={tile.icon} alt={t(tile)} fill className="object-contain" sizes="56px" unoptimized />
+                <div className="relative w-16 h-16 sm:w-20 sm:h-20 mb-1">
+                  <Image src={tile.icon} alt={t(tile)} fill className="object-contain" sizes="80px" unoptimized />
                 </div>
-                <p className="text-xs sm:text-sm font-bold text-brand-navy font-hindi leading-tight">{t(tile)}</p>
-                <p className="text-[10px] text-gray-400 mt-0.5">{tile.count}</p>
+                <p className="text-[11px] sm:text-xs font-bold text-brand-navy font-hindi leading-tight">{t(tile)}</p>
               </Link>
             ))}
           </div>
