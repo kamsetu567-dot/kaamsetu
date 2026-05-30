@@ -347,17 +347,17 @@ export default function HomePage() {
             </div>
             <p className="text-gray-500 text-sm font-hindi">{t({ hi: 'अपनी ज़रूरत की सेवा चुनें', en: 'Pick the service you need' })}</p>
           </div>
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 sm:gap-3">
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
             {SERVICE_TILES.map(tile => (
               <Link
                 key={tile.en}
                 href={tile.href}
-                className={`${tile.bg} rounded-xl px-2 py-2 flex flex-col items-center text-center hover:shadow-md hover:-translate-y-0.5 transition-all border border-transparent hover:border-gray-200`}
+                className={`${tile.bg} rounded-xl px-1.5 py-1.5 flex flex-col items-center text-center hover:shadow-md hover:-translate-y-0.5 transition-all border border-transparent hover:border-gray-200`}
               >
-                <div className="relative w-16 h-16 sm:w-20 sm:h-20 mb-1">
-                  <Image src={tile.icon} alt={t(tile)} fill className="object-contain" sizes="80px" unoptimized />
+                <div className="relative w-20 h-20 sm:w-24 sm:h-24">
+                  <Image src={tile.icon} alt={t(tile)} fill className="object-contain" sizes="96px" unoptimized />
                 </div>
-                <p className="text-[11px] sm:text-xs font-bold text-brand-navy font-hindi leading-tight">{t(tile)}</p>
+                <p className="text-[11px] sm:text-xs font-bold text-brand-navy font-hindi leading-tight mt-0.5">{t(tile)}</p>
               </Link>
             ))}
           </div>
