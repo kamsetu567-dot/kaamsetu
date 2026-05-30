@@ -9,6 +9,7 @@ import Footer from "@/components/Footer";
 import { useToast } from "@/components/Toast";
 import { CATEGORIES } from "@/lib/data/categories";
 import { useRoleGuard } from "@/lib/auth/useRoleGuard";
+import AddressAutocomplete from "@/components/AddressAutocomplete";
 
 function RequestForm() {
   useRoleGuard("client");
@@ -21,22 +22,30 @@ function RequestForm() {
   const [name, setName] = useState("");
   const [category, setCategory] = useState(preCategory);
   const [subcategory, setSubcategory] = useState("");
-  const [city, setCity] = useState("");
-  const [area, setArea] = useState("");
+  const [location, setLocation] = useState(null);
   const [description, setDescription] = useState("");
   const [stage, setStage] = useState("form"); // "form" | "searching" | "success"
   const [searchProgress, setSearchProgress] = useState(0);
   const [submitting, setSubmitting] = useState(false);
-  const [lat, setLat] = useState(null);
-  const [lng, setLng] = useState(null);
 
   const selectedCategoryData = CATEGORIES.find(c => c.id === category);
 
   useEffect(() => {
     if (typeof navigator === 'undefined' || !navigator.geolocation) return;
+    // Silent GPS prefetch: reverse-geocode in the background so the autocomplete
+    // is pre-filled. If user picks something else, that overrides this.
     navigator.geolocation.getCurrentPosition(
-      (pos) => { setLat(pos.coords.latitude); setLng(pos.coords.longitude); },
-      () => {}, // silent fail — city text match is the fallback
+      async (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        try {
+          const res = await fetch(`/api/places/reverse?lat=${lat}&lng=${lng}`);
+          const data = await res.json();
+          if (data?.result?.address) setLocation(data.result);
+          // If reverse fails, don't pre-fill the input — let the user type.
+        } catch {}
+      },
+      () => {},
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
   }, []);
@@ -58,7 +67,7 @@ function RequestForm() {
     e.preventDefault();
     if (!name.trim()) { toast.error("नाम डालें"); return; }
     if (!category) { toast.error("Category चुनें"); return; }
-    if (!city.trim()) { toast.error("शहर डालें"); return; }
+    if (!location?.city && !location?.address) { toast.error("अपनी लोकेशन चुनें / Pick your location"); return; }
     if (submitting) return;
 
     setSubmitting(true);
@@ -83,11 +92,9 @@ function RequestForm() {
           clientId: currentUser?.id || null,
           category,
           subcategory,
-          location: area,
-          city,
+          location,
           description,
           source: "search",
-          ...(lat && lng ? { lat, lng } : {}),
         }),
       });
       const data = await res.json();
@@ -172,17 +179,9 @@ function RequestForm() {
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1.5 font-hindi">शहर *</label>
-          <input type="text" value={city} onChange={e => setCity(e.target.value)} placeholder="City"
-            className="w-full px-4 py-3.5 border border-gray-200 rounded-xl focus:outline-none focus:border-brand-navy text-sm" />
-        </div>
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1.5 font-hindi">एरिया</label>
-          <input type="text" value={area} onChange={e => setArea(e.target.value)} placeholder="Area (optional)"
-            className="w-full px-4 py-3.5 border border-gray-200 rounded-xl focus:outline-none focus:border-brand-navy text-sm" />
-        </div>
+      <div>
+        <label className="block text-sm font-semibold text-gray-700 mb-1.5 font-hindi">लोकेशन / Location *</label>
+        <AddressAutocomplete value={location} onChange={setLocation} />
       </div>
 
       <div>

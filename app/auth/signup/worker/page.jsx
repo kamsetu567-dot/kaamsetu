@@ -6,6 +6,7 @@ import { ChevronLeft, Wrench, RefreshCw, Upload, X } from 'lucide-react';
 import { useToast } from '@/components/Toast';
 import { CATEGORIES } from '@/lib/data/categories';
 import { compressImage } from '@/lib/utils/compressImage';
+import AddressAutocomplete from '@/components/AddressAutocomplete';
 
 const ICONS = { Hammer: '🔨', Home: '🏠', PartyPopper: '🎉', GraduationCap: '🎓', Sparkles: '✨', Car: '🚗', Store: '🏪', Settings: '⚙️', Heart: '❤️', Shield: '🛡️', Package: '📦' };
 
@@ -29,8 +30,7 @@ export default function WorkerSignupPage() {
 
   // Step 2 — Basic Info
   const [name, setName] = useState('');
-  const [city, setCity] = useState('');
-  const [area, setArea] = useState('');
+  const [location, setLocation] = useState(null); // { address, locality, city, state, pincode, lat, lng }
   const [experience, setExperience] = useState('');
   const [gender, setGender] = useState('');
 
@@ -57,8 +57,19 @@ export default function WorkerSignupPage() {
   function detectLocation() {
     if (typeof navigator === 'undefined' || !navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
-      (pos) => { setLat(pos.coords.latitude); setLng(pos.coords.longitude); },
-      () => {} // silent fail — city text match is the fallback
+      async (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        setLat(lat); setLng(lng);
+        // Pre-fill the autocomplete so the worker doesn't have to type again.
+        try {
+          const res = await fetch(`/api/places/reverse?lat=${lat}&lng=${lng}`);
+          const data = await res.json();
+          if (data?.result?.address) setLocation(data.result);
+          // If reverse fails, don't pre-fill the input — let the user type.
+        } catch {}
+      },
+      () => {} // silent fail — autocomplete is the fallback
     );
   }
 
@@ -113,7 +124,7 @@ export default function WorkerSignupPage() {
 
   function handleStep2Next() {
     if (!name.trim()) { toast.error('नाम डालें'); return; }
-    if (!city.trim()) { toast.error('शहर डालें'); return; }
+    if (!location?.city && !location?.address) { toast.error('अपनी लोकेशन चुनें / Pick your location'); return; }
     if (!gender) { toast.error('Gender चुनें'); return; }
     setStep(3);
   }
@@ -160,13 +171,13 @@ export default function WorkerSignupPage() {
         headers: { 'Content-Type': 'application/json' },
         signal: controller.signal,
         body: JSON.stringify({
-          mobile, email, name, city, area,
+          mobile, email, name,
+          location: location || (lat && lng ? { lat, lng } : null),
           experience: Number(experience) || 0,
           gender, category, subcategory, serviceType,
           aadharNumber, token: tempToken,
           aadharFrontUrl, aadharBackUrl, profilePhotoUrl,
           workPhotos: uploadedWorkPhotos,
-          ...(lat && lng ? { lat, lng } : {}),
         }),
       });
       const data = await res.json();
@@ -274,17 +285,19 @@ export default function WorkerSignupPage() {
           {/* STEP 2 — Basic Info */}
           {step === 2 && (
             <div className="space-y-4">
-              {[
-                { label: 'पूरा नाम *', ph: 'Full Name', val: name, set: setName },
-                { label: 'शहर *', ph: 'City', val: city, set: setCity },
-                { label: 'एरिया / Mohalla', ph: 'Area (optional)', val: area, set: setArea },
-              ].map(f => (
-                <div key={f.label}>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5 font-hindi">{f.label}</label>
-                  <input type="text" value={f.val} onChange={e => f.set(e.target.value)} placeholder={f.ph}
-                    className="w-full px-4 py-3.5 border border-gray-200 rounded-xl focus:outline-none focus:border-brand-navy text-base" />
-                </div>
-              ))}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5 font-hindi">पूरा नाम *</label>
+                <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Full Name"
+                  className="w-full px-4 py-3.5 border border-gray-200 rounded-xl focus:outline-none focus:border-brand-navy text-base" />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5 font-hindi">लोकेशन / Location *</label>
+                <AddressAutocomplete value={location} onChange={setLocation} />
+                <p className="text-xs text-gray-400 mt-1 font-hindi">
+                  कॉलोनी / सेक्टर / शहर — type and pick, or tap My Location
+                </p>
+              </div>
 
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1.5 font-hindi">अनुभव (साल में)</label>

@@ -19,6 +19,7 @@ export default function WorkerDashboardOverview() {
   const [jobActionLoading, setJobActionLoading] = useState(null); // "start" | "complete"
   const [startCodeInput, setStartCodeInput] = useState("");
   const [price, setPrice] = useState(199);
+  const [locationUpdating, setLocationUpdating] = useState(false);
 
   useEffect(() => {
     fetch("/api/settings/public")
@@ -141,6 +142,43 @@ export default function WorkerDashboardOverview() {
     finally { setStatusLoading(false); }
   }
 
+  async function updateLocation() {
+    if (locationUpdating) return;
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      toast.error("Browser doesn't support location / लोकेशन support नहीं है");
+      return;
+    }
+    setLocationUpdating(true);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const token = localStorage.getItem("kaamsetu_token");
+          const res = await fetch("/api/workers/me", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+            body: JSON.stringify({ location: { lat: pos.coords.latitude, lng: pos.coords.longitude } }),
+          });
+          const data = await res.json();
+          if (res.ok && data.worker) {
+            setWorker(data.worker);
+            toast.success("लोकेशन अपडेट हो गई / Location updated");
+          } else {
+            toast.error(data?.message || "Update failed");
+          }
+        } catch { toast.error("Network error"); }
+        finally { setLocationUpdating(false); }
+      },
+      (err) => {
+        setLocationUpdating(false);
+        const msg = err.code === 1
+          ? "Browser में location allow करें / Allow location in browser"
+          : "लोकेशन नहीं मिली / Could not get your location";
+        toast.error(msg);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  }
+
   function handleLogout() {
     localStorage.removeItem("kaamsetu_token");
     localStorage.removeItem("kaamsetu_user");
@@ -148,6 +186,9 @@ export default function WorkerDashboardOverview() {
   }
 
   if (!user) return null;
+
+  const hasCoords = Array.isArray(worker?.location?.coordinates?.coordinates)
+    && worker.location.coordinates.coordinates.length === 2;
 
   const isFree = status === "free";
 
@@ -165,6 +206,38 @@ export default function WorkerDashboardOverview() {
           <LogOut size={14} /> Logout
         </button>
       </div>
+
+      {/* Missing-GPS banner — workers without coords fall back to fuzzy city
+          match and get far fewer jobs. Surface the fix here so it's recoverable. */}
+      {worker && !hasCoords && (
+        <div className="bg-yellow-50 border-2 border-yellow-300 rounded-2xl p-4 flex items-start gap-3">
+          <MapPin size={20} className="text-yellow-700 flex-shrink-0 mt-0.5" />
+          <div className="flex-1 min-w-0">
+            <p className="font-bold text-yellow-900 font-hindi">आपकी लोकेशन सेट नहीं है</p>
+            <p className="text-xs text-yellow-800 mt-0.5">
+              Without your location, you'll get fewer job notifications. Tap to enable.
+            </p>
+          </div>
+          <button onClick={updateLocation} disabled={locationUpdating}
+            className="bg-yellow-600 text-white text-xs font-bold px-3 py-2 rounded-lg hover:bg-yellow-700 whitespace-nowrap disabled:opacity-60 min-h-0">
+            {locationUpdating ? "Updating…" : "Update Location"}
+          </button>
+        </div>
+      )}
+
+      {/* Always-available "Update Location" affordance once coords are set */}
+      {worker && hasCoords && (
+        <div className="flex items-center justify-between text-xs text-gray-500 px-1">
+          <span className="flex items-center gap-1.5">
+            <MapPin size={12} className="text-green-600" />
+            <span>{worker.location?.locality || worker.location?.city || "Location saved"}</span>
+          </span>
+          <button onClick={updateLocation} disabled={locationUpdating}
+            className="text-brand-navy font-semibold hover:underline min-h-0">
+            {locationUpdating ? "Updating…" : "Update Location"}
+          </button>
+        </div>
+      )}
 
       {/* Work Status */}
       <div className={`rounded-3xl border-2 p-6 ${isFree ? "bg-green-50 border-green-200" : "bg-orange-50 border-orange-200"}`}>

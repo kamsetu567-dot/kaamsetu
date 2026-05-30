@@ -44,12 +44,19 @@ export async function POST(request) {
       await user.save();
     }
 
+    // Prefer structured `location` from AddressAutocomplete; fall back to legacy flat fields.
+    const loc = location || {};
+    const latVal = loc.lat ?? lat;
+    const lngVal = loc.lng ?? lng;
     const locationData = {
-      city: city || "",
-      address: area || "",
+      address: loc.address || area || "",
+      locality: loc.locality || "",
+      city: loc.city || city || "",
+      state: loc.state || "",
+      pincode: loc.pincode || "",
     };
-    if (lat && lng) {
-      locationData.coordinates = { type: "Point", coordinates: [parseFloat(lng), parseFloat(lat)] };
+    if (latVal && lngVal) {
+      locationData.coordinates = { type: "Point", coordinates: [parseFloat(lngVal), parseFloat(latVal)] };
     }
 
     // Search by mobile to recover orphaned Client docs from previous failed signups

@@ -14,13 +14,21 @@ export async function POST(request) {
     const body = await request.json();
 
     const { mobile, name, category, subcategory, gender, experience, serviceType, city, area, token, aadharNumber, email, aadharFrontUrl, aadharBackUrl, profilePhotoUrl, workPhotos } = body;
+    // Accept new structured `location` (from AddressAutocomplete) and fall back
+    // to legacy flat fields so any in-flight client builds keep working.
+    const loc = body.location || {};
+    const lat = loc.lat ?? body.lat;
+    const lng = loc.lng ?? body.lng;
     const location = {
-      city: city || "",
-      address: area || "",
-      ...(body.lat && body.lng ? {
+      address: loc.address || area || "",
+      locality: loc.locality || "",
+      city: loc.city || city || "",
+      state: loc.state || "",
+      pincode: loc.pincode || "",
+      ...(lat && lng ? {
         coordinates: {
           type: "Point",
-          coordinates: [parseFloat(body.lng), parseFloat(body.lat)],
+          coordinates: [parseFloat(lng), parseFloat(lat)],
         },
       } : {}),
     };

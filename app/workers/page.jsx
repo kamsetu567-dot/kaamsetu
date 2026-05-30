@@ -95,6 +95,7 @@ function WorkerList() {
   const [showModal, setShowModal] = useState(false);
   const [role, setRole] = useState(null);
   const [clientCoords, setClientCoords] = useState(null); // { lat, lng } | null
+  const [clientCity, setClientCity] = useState(""); // saved city for fallback when no GPS
   const [coordsResolved, setCoordsResolved] = useState(false); // true once we know whether client has GPS
 
   // Pre-fill filters from URL params (e.g. from /categories/[slug])
@@ -134,6 +135,9 @@ function WorkerList() {
             // GeoJSON stores [lng, lat]
             setClientCoords({ lng: coords[0], lat: coords[1] });
           }
+          // City is used as a fallback when GPS is missing — distance chip
+          // then means "approved workers in my city" instead of nothing.
+          if (data?.client?.location?.city) setClientCity(data.client.location.city);
         })
         .catch(() => {})
         .finally(() => setCoordsResolved(true));
@@ -144,29 +148,37 @@ function WorkerList() {
 
   useEffect(() => {
     setLoading(true);
-    const augmented = clientCoords
-      ? { ...filters, lat: clientCoords.lat, lng: clientCoords.lng }
-      : filters;
+    const augmented = {
+      ...filters,
+      // Prefer the client's saved city over any user-typed filter city, so the
+      // server's city fallback always has something to anchor on when GPS is missing.
+      city: filters.city || clientCity || "",
+      ...(clientCoords ? { lat: clientCoords.lat, lng: clientCoords.lng } : {}),
+    };
     getWorkers(augmented)
       .then(setWorkers)
       .finally(() => setLoading(false));
-  }, [filters, clientCoords]);
+  }, [filters, clientCoords, clientCity]);
 
-  // Banner: shown when a logged-in client uses the distance filter without saved GPS
-  const showLocationBanner =
-    coordsResolved && role === "client" && !clientCoords && filters.distance > 0;
+  // Banner: distance filter is active but neither GPS nor city is available
+  // to anchor it — workers list will not be distance-filtered at all.
+  const distanceFilterIgnored =
+    coordsResolved && role === "client" && !clientCoords && !clientCity && filters.distance > 0;
+  // Softer banner: GPS missing but city fallback active — accuracy nudge.
+  const usingCityFallback =
+    coordsResolved && role === "client" && !clientCoords && clientCity && filters.distance > 0;
 
   return (
     <>
-      {showLocationBanner && (
+      {distanceFilterIgnored && (
         <div className="mb-4 flex items-start gap-3 bg-yellow-50 border-2 border-yellow-200 rounded-2xl px-4 py-3">
           <MapPin size={18} className="text-yellow-700 flex-shrink-0 mt-0.5" />
           <div className="flex-1 min-w-0">
             <p className="text-sm text-yellow-900 font-semibold">
-              Add your location to use the distance filter accurately
+              Distance filter needs your location
             </p>
             <p className="text-xs text-yellow-800 mt-0.5">
-              Showing workers from your city instead. Update your profile to enable km-based matching.
+              Showing all workers. Add your address to filter by distance.
             </p>
           </div>
           <Link
@@ -174,6 +186,25 @@ function WorkerList() {
             className="bg-yellow-600 text-white text-xs font-bold px-3 py-2 rounded-lg hover:bg-yellow-700 whitespace-nowrap"
           >
             Update Profile
+          </Link>
+        </div>
+      )}
+      {usingCityFallback && (
+        <div className="mb-4 flex items-start gap-3 bg-blue-50 border-2 border-blue-200 rounded-2xl px-4 py-3">
+          <MapPin size={18} className="text-blue-700 flex-shrink-0 mt-0.5" />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm text-blue-900 font-semibold">
+              Showing workers in {clientCity}
+            </p>
+            <p className="text-xs text-blue-800 mt-0.5">
+              Tap "Use My Location" on your profile for accurate km-based distance.
+            </p>
+          </div>
+          <Link
+            href="/client/dashboard/profile"
+            className="bg-blue-600 text-white text-xs font-bold px-3 py-2 rounded-lg hover:bg-blue-700 whitespace-nowrap"
+          >
+            Enable GPS
           </Link>
         </div>
       )}

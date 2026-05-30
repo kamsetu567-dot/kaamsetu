@@ -52,6 +52,13 @@ export async function GET(request) {
     // get accurate radius matching AND a per-worker distance back. Workers
     // without coordinates are naturally excluded by $geoNear.
     const hasGeo = Number.isFinite(lat) && Number.isFinite(lng) && distance > 0;
+    // If the client only has a city (no GPS) and a distance chip is selected,
+    // fall back to a city-name match so "nearby" still means *something*. This
+    // also catches workers who typed their address rather than tapping GPS.
+    const hasCityFallback = !hasGeo && distance > 0 && city;
+    if (hasCityFallback) {
+      filter["location.city"] = { $regex: city, $options: "i" };
+    }
     const now = new Date();
 
     // Self-heal: clear boosted flags whose boostedUntil has passed, so the
@@ -79,6 +86,30 @@ export async function GET(request) {
         { $limit: 50 },
       ];
       workers = await Worker.aggregate(pipeline);
+
+      // $geoNear silently excludes workers without coordinates. Many workers
+      // typed their address (no GPS) — they'd be invisible. Bring them back in
+      // via a city-name match so the radius chip doesn't hide real workers.
+      if (city) {
+        const seen = new Set(workers.map(w => String(w._id)));
+        const cityOnly = await Worker.find({
+          ...filter,
+          _id: { $nin: workers.map(w => w._id) },
+          "location.city": { $regex: city, $options: "i" },
+          $or: [
+            { "location.coordinates": { $exists: false } },
+            { "location.coordinates": null },
+            { "location.coordinates.coordinates": { $exists: false } },
+          ],
+        })
+          .sort(sort)
+          .limit(50 - workers.length)
+          .select("-__v")
+          .lean();
+        for (const w of cityOnly) {
+          if (!seen.has(String(w._id))) workers.push(w);
+        }
+      }
     } else {
       workers = await Worker.find(filter)
         .sort(sort)

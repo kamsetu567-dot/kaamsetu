@@ -2,8 +2,9 @@
 import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ChevronLeft, UserCheck, MapPin, Loader2, CheckCircle } from 'lucide-react';
+import { ChevronLeft, UserCheck } from 'lucide-react';
 import { useToast } from '@/components/Toast';
+import AddressAutocomplete from '@/components/AddressAutocomplete';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -13,55 +14,18 @@ export default function ClientSignupPage() {
   const [mobile, setMobile] = useState('');
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
-  const [city, setCity] = useState('');
-  const [area, setArea] = useState('');
+  const [location, setLocation] = useState(null);
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [lat, setLat] = useState(null);
-  const [lng, setLng] = useState(null);
-  const [locating, setLocating] = useState(false);
   const submitRef = useRef(false);
-
-  const located = lat != null && lng != null;
-
-  // Explicit, high-accuracy location capture on button tap. maximumAge:0 forces a
-  // fresh fix so we don't save a stale/coarse cached position — accurate "nearby"
-  // distance depends on this being precise.
-  function detectLocation() {
-    if (locating) return;
-    if (typeof navigator === 'undefined' || !navigator.geolocation) {
-      toast.error('आपका browser location support नहीं करता / Browser does not support location');
-      return;
-    }
-    setLocating(true);
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setLat(pos.coords.latitude);
-        setLng(pos.coords.longitude);
-        setLocating(false);
-        toast.success('लोकेशन मिल गई! / Location added — nearby workers will be accurate');
-      },
-      (err) => {
-        setLocating(false);
-        const msg = err.code === 1
-          ? 'Location permission denied / Browser में location allow करें'
-          : err.code === 3
-          ? 'Location request timed out / दोबारा try करें'
-          : 'लोकेशन नहीं मिली / Could not get your location';
-        toast.error(msg);
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-    );
-  }
 
   async function handleSignup(e) {
     e.preventDefault();
     if (!/^[6-9]\d{9}$/.test(mobile)) { toast.error('10 अंकों का सही नंबर डालें / Enter valid 10-digit number'); return; }
     if (!EMAIL_RE.test(email)) { toast.error('सही email डालें / Enter a valid email'); return; }
     if (!name.trim()) { toast.error('नाम डालें / Enter name'); return; }
-    if (!city.trim()) { toast.error('शहर डालें / Enter city'); return; }
-    if (!area.trim()) { toast.error('एरिया डालें / Enter area'); return; }
+    if (!location?.city && !location?.address) { toast.error('अपनी लोकेशन चुनें / Pick your location'); return; }
     if (password.length < 6) { toast.error('पासवर्ड कम से कम 6 अक्षर का हो / Password must be at least 6 characters'); return; }
     if (password !== confirmPassword) { toast.error('पासवर्ड मेल नहीं खाते / Passwords do not match'); return; }
     if (submitRef.current) return;
@@ -70,7 +34,7 @@ export default function ClientSignupPage() {
       const res = await fetch('/api/auth/signup/client', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mobile, email, name, city, area, password, ...(lat && lng ? { lat, lng } : {}) }),
+        body: JSON.stringify({ mobile, email, name, location, password }),
       });
       const data = await res.json();
       if (!res.ok) { toast.error(data.message || 'Signup failed'); return; }
@@ -129,36 +93,10 @@ export default function ClientSignupPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5 font-hindi">शहर * / City</label>
-              <input type="text" value={city} onChange={e => setCity(e.target.value)} placeholder="City"
-                className="w-full px-4 py-3.5 border border-gray-200 rounded-xl focus:outline-none focus:border-brand-navy text-base" />
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5 font-hindi">एरिया / Mohalla *</label>
-              <input type="text" value={area} onChange={e => setArea(e.target.value)} placeholder="Area / Mohalla"
-                className="w-full px-4 py-3.5 border border-gray-200 rounded-xl focus:outline-none focus:border-brand-navy text-base" />
-            </div>
-
-            <div>
-              <button type="button" onClick={detectLocation} disabled={locating}
-                className={`w-full flex items-center justify-center gap-2 py-3.5 rounded-xl border font-semibold text-sm transition-colors disabled:opacity-60 ${
-                  located
-                    ? 'bg-green-50 border-green-300 text-green-700'
-                    : 'bg-white border-gray-200 text-brand-navy hover:border-brand-navy'
-                }`}>
-                {locating ? (
-                  <><Loader2 size={16} className="animate-spin" /> <span className="font-hindi">लोकेशन ले रहे हैं... / Getting location...</span></>
-                ) : located ? (
-                  <><CheckCircle size={16} /> <span className="font-hindi">लोकेशन मिल गई — दोबारा लेने के लिए tap करें / Location added (tap to refresh)</span></>
-                ) : (
-                  <><MapPin size={16} /> <span className="font-hindi">मेरी लोकेशन / Use My Location</span></>
-                )}
-              </button>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5 font-hindi">लोकेशन / Location *</label>
+              <AddressAutocomplete value={location} onChange={setLocation} />
               <p className="text-xs text-gray-400 mt-1 font-hindi">
-                {located
-                  ? '✅ अब आस-पास के workers की दूरी सही दिखेगी / Nearby worker distance will be accurate'
-                  : 'सही "nearby" matching के लिए लोकेशन दें — शहर/एरिया fallback है / Add location for accurate nearby matching (city/area is fallback)'}
+                अपनी कॉलोनी / सेक्टर / शहर डालें — या My Location से auto-fill करें
               </p>
             </div>
 

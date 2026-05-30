@@ -140,7 +140,6 @@ export async function POST(request) {
     const body = await request.json();
 
     const category = body.category || "General";
-    const city = body.city || body.location || "Unknown";
 
     await connectDB();
 
@@ -151,22 +150,34 @@ export async function POST(request) {
     const clientMobile = clientDoc.mobile;
     const clientName = clientDoc.name || body.clientName || null;
 
+    // Accept structured `location` (from AddressAutocomplete) and fall back to legacy
+    // flat `city`/`location` string + top-level lat/lng so older clients still post.
+    const isStructuredLocation = body.location && typeof body.location === "object";
+    const loc = isStructuredLocation ? body.location : {};
+    const legacyAddress = isStructuredLocation ? "" : (body.location || "");
+    const latVal = loc.lat ?? body.lat;
+    const lngVal = loc.lng ?? body.lng;
+    const jobLocation = {
+      address: loc.address || legacyAddress || "",
+      locality: loc.locality || "",
+      city: loc.city || body.city || "Unknown",
+      state: loc.state || "",
+      pincode: loc.pincode || "",
+      ...(latVal && lngVal && {
+        coordinates: {
+          type: "Point",
+          coordinates: [parseFloat(lngVal), parseFloat(latVal)],
+        },
+      }),
+    };
+
     const jobData = {
       clientMobile,
       clientName: clientName || null,
       category,
       subcategory: body.subcategory || "",
       description: body.description || body.notes || "",
-      location: {
-        address: body.location || "",
-        city,
-        ...(body.lat && body.lng && {
-          coordinates: {
-            type: "Point",
-            coordinates: [parseFloat(body.lng), parseFloat(body.lat)],
-          },
-        }),
-      },
+      location: jobLocation,
       status: "pending",
       source: body.source || "search",
       clientId,
