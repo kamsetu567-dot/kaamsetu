@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, User } from "lucide-react";
+import { LayoutDashboard, User, Search } from "lucide-react";
 import Header from "@/components/Header";
 
 const TABS = [
-  { href: "/client/dashboard",         label: "Requests",  icon: LayoutDashboard, exact: true },
-  { href: "/client/dashboard/profile", label: "Profile",   icon: User },
+  { href: "/client/dashboard",          label: "Requests",  icon: LayoutDashboard, exact: true },
+  { href: "/client/dashboard/browse",   label: "Browse",    icon: Search },
+  { href: "/client/dashboard/profile",  label: "Profile",   icon: User },
 ];
 
 export default function ClientDashboardLayout({ children }) {

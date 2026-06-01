@@ -88,12 +88,9 @@ body {
   filter: blur(80px);
   opacity: 0.6;
 }
-/* warm yellow glow, top-right */
+/* top-right glow removed per user feedback */
 .hero-decor::before {
-  width: 460px; height: 460px;
-  top: -140px; right: -90px;
-  background: radial-gradient(circle at center, rgba(245,166,35,0.7), transparent 70%);
-  animation: heroFloat 14s ease-in-out infinite;
+  display: none;
 }
 /* violet glow, bottom-left */
 .hero-decor::after {

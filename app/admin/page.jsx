@@ -4,9 +4,10 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   Users, UserCheck, Briefcase, Phone, TrendingUp,
-  IndianRupee, Activity, Wifi, WifiOff, RefreshCw,
+  IndianRupee, Activity, Wifi, WifiOff, RefreshCw, AlertTriangle, ArrowRight,
 } from "lucide-react";
 import { getDashboardStats } from "@/lib/api/admin";
+import { apiGet } from "@/lib/api/client";
 
 function StatCard({ titleHi, titleEn, value, icon: Icon, color }) {
   const colorMap = {
@@ -15,6 +16,7 @@ function StatCard({ titleHi, titleEn, value, icon: Icon, color }) {
     orange: "bg-orange-50 text-orange-600",
     navy:   "bg-brand-navy/10 text-brand-navy",
     yellow: "bg-yellow-50 text-yellow-700",
+    red:    "bg-red-50 text-red-600",
   };
   const cls = colorMap[color] || colorMap.blue;
   return (
@@ -41,11 +43,19 @@ function StatCardSkeleton() {
 
 export default function AdminDashboardPage() {
   const [stats, setStats] = useState(null);
+  const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
 
   function load() {
     setLoading(true);
-    getDashboardStats().then(data => { setStats(data); setLoading(false); });
+    Promise.all([
+      getDashboardStats(),
+      apiGet("/api/admin/reports", { status: "pending", limit: 5 }).catch(() => ({ reports: [] }))
+    ]).then(([statsData, reportsData]) => {
+      setStats(statsData);
+      setReports(reportsData.reports || []);
+      setLoading(false);
+    });
   }
 
   useEffect(() => {
@@ -64,6 +74,7 @@ export default function AdminDashboardPage() {
     { titleHi: "काम पर Workers", titleEn: "Working Now",        value: stats.workingWorkers, icon: Wifi,         color: "orange" },
     { titleHi: "खाली Workers",   titleEn: "Free / Available",   value: stats.freeWorkers,    icon: WifiOff,      color: "yellow" },
     { titleHi: "Expired Plans",  titleEn: "Subscription Expired", value: stats.expiredWorkers ?? "—", icon: WifiOff, color: "orange" },
+    { titleHi: "लंबित रिपोर्ट",    titleEn: "Pending Reports",    value: stats.pendingReports, icon: AlertTriangle, color: "red" },
   ] : [];
 
   return (
@@ -102,15 +113,43 @@ export default function AdminDashboardPage() {
         ))}
       </div>
 
-      {/* Live activity placeholder */}
+      {/* Live activity / Pending Reports feed */}
       <div className="bg-white rounded-3xl border border-gray-100 p-5 shadow-sm">
-        <div className="flex items-center gap-2 mb-4">
-          <div className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse" />
-          <h2 className="font-black text-brand-navy font-hindi">Live Activity / लाइव गतिविधि</h2>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
+            <h2 className="font-black text-brand-navy font-hindi">Pending Reports / लंबित रिपोर्ट</h2>
+          </div>
+          <Link href="/admin/reports" className="flex items-center gap-1 text-xs font-bold text-blue-600 hover:underline">
+            View All <ArrowRight size={12} />
+          </Link>
         </div>
-        <div className="text-center py-8">
-          <p className="text-gray-300 text-sm">Live activity feed coming soon</p>
-        </div>
+        
+        {loading ? (
+          <div className="space-y-3">
+             {[1, 2].map(i => <div key={i} className="h-16 bg-gray-50 rounded-xl animate-pulse" />)}
+          </div>
+        ) : reports.length === 0 ? (
+          <div className="text-center py-8">
+            <p className="text-gray-400 text-sm font-hindi">All quiet! No pending reports. / सब ठीक है! कोई रिपोर्ट लंबित नहीं है।</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {reports.map(r => (
+              <div key={r.id} className="bg-red-50/50 border border-red-100 rounded-xl p-3 flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center flex-shrink-0">
+                  <AlertTriangle size={14} className="text-red-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-brand-navy">
+                    {r.reportedWorkerName || "Unknown"} <span className="text-xs font-normal text-gray-500">reported for</span> <span className="text-xs font-bold text-red-600 px-1.5 py-0.5 rounded-md bg-red-100">{r.reason}</span>
+                  </p>
+                  {r.description && <p className="text-xs text-gray-500 mt-1 line-clamp-1">{r.description}</p>}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

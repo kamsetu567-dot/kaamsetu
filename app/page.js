@@ -47,7 +47,7 @@ const HERO_ILLUSTRATIONS = [
 const SERVICE_TILES = [
   { icon: '/icons/construction-repair.png',  hi: 'निर्माण और मरम्मत',     en: 'Construction & Repair',   bg: 'bg-orange-50',  href: '/categories/construction-repair' },
   { icon: '/icons/home-services.png',        hi: 'घरेलू सेवाएँ',           en: 'Home Services',           bg: 'bg-blue-50',    href: '/categories/home-services' },
-  { icon: '/icons/event-services.png',       hi: 'इवेंट सेवाएँ',           en: 'Event Services',          bg: 'bg-pink-50',    href: '/categories/event-services' },
+  { icon: '/icons/event-services.png',       hi: 'इवेंट सेवाएँ',           en: 'Event Services',          bg: 'bg-violet-50',  href: '/categories/event-services' },
   { icon: '/icons/talent-training.png',      hi: 'हुनर और प्रशिक्षण',     en: 'Talent & Training',       bg: 'bg-purple-50',  href: '/categories/talent-training' },
   { icon: '/icons/beauty-personal-care.png', hi: 'सौंदर्य सेवाएँ',          en: 'Beauty & Personal Care',  bg: 'bg-rose-50',    href: '/categories/beauty-personal-care' },
   { icon: '/icons/vehicle-travel.png',       hi: 'वाहन और यात्रा',         en: 'Vehicle & Travel',        bg: 'bg-cyan-50',    href: '/categories/vehicle-travel' },
@@ -219,9 +219,9 @@ export default function HomePage() {
 
               {/* Search bar */}
               <form onSubmit={handleSearch}
-                className="bg-white rounded-2xl shadow-2xl p-2.5 mb-7 flex flex-col sm:flex-row gap-2">
+                className="bg-white rounded-3xl shadow-2xl p-3 md:p-4 mb-8 flex flex-col sm:flex-row gap-2 md:gap-3">
                 <select value={searchCategory} onChange={e => setSearchCategory(e.target.value)}
-                  className="sm:w-40 px-3 py-2.5 rounded-xl border border-gray-100 text-gray-600 text-sm focus:outline-none focus:border-brand-navy bg-gray-50 font-hindi">
+                  className="sm:w-48 px-4 py-3 md:py-3.5 rounded-xl md:rounded-2xl border border-gray-100 text-gray-700 text-sm md:text-base focus:outline-none focus:border-brand-navy bg-gray-50 font-hindi font-bold">
                   <option value="">{t({ hi: 'सभी कैटेगरी', en: 'All Categories' })}</option>
                   <option value="construction-repair">{t({ hi: 'मिस्त्री / प्लंबर', en: 'Mistri / Plumber' })}</option>
                   <option value="event-services">{t({ hi: 'इवेंट सेवाएँ', en: 'Event Services' })}</option>
@@ -241,7 +241,7 @@ export default function HomePage() {
                     onKeyDown={handleKeyDown}
                     onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
                     placeholder={t({ hi: 'आपको क्या चाहिए? (जैसे — Plumber, Painter)', en: 'What do you need? (e.g. Plumber, Painter)' })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-100 bg-gray-50 text-sm focus:outline-none focus:border-brand-navy font-hindi"
+                    className="w-full px-5 py-3 md:py-3.5 rounded-xl md:rounded-2xl border border-gray-100 bg-gray-50 text-sm md:text-base focus:outline-none focus:border-brand-navy font-hindi placeholder:text-gray-400"
                     autoComplete="off"
                   />
                   {showSuggestions && suggestions.length > 0 && (
@@ -261,15 +261,15 @@ export default function HomePage() {
                   )}
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex gap-2 md:gap-3">
                   <div className="relative">
-                    <MapPin size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <MapPin size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                     <input type="text" value={searchCity} onChange={e => setSearchCity(e.target.value)}
                       placeholder={t({ hi: 'आपका शहर', en: 'Your city' })}
-                      className="w-28 pl-8 pr-3 py-2.5 rounded-xl border border-gray-100 bg-gray-50 text-sm focus:outline-none focus:border-brand-navy font-hindi" />
+                      className="w-32 md:w-40 pl-10 pr-4 py-3 md:py-3.5 rounded-xl md:rounded-2xl border border-gray-100 bg-gray-50 text-sm md:text-base focus:outline-none focus:border-brand-navy font-hindi" />
                   </div>
                   <button type="submit"
-                    className="bg-brand-yellow text-brand-navy font-bold px-5 py-2.5 rounded-xl hover:bg-amber-400 transition-colors font-hindi text-sm whitespace-nowrap">
+                    className="bg-brand-yellow text-brand-navy font-black px-6 md:px-8 py-3 md:py-3.5 rounded-xl md:rounded-2xl hover:bg-amber-400 transition-colors font-hindi text-sm md:text-base whitespace-nowrap">
                     {t({ hi: 'खोजें', en: 'Search' })}
                   </button>
                 </div>

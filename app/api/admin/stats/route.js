@@ -2,6 +2,7 @@ import { connectDB } from "@/lib/db/mongoose";
 import Worker from "@/lib/models/Worker";
 import Client from "@/lib/models/Client";
 import JobRequest from "@/lib/models/JobRequest";
+import Report from "@/lib/models/Report";
 import { verifyToken, getTokenFromRequest } from "@/lib/utils/jwt";
 import { ok, error, unauthorized } from "@/lib/utils/apiResponse";
 
@@ -22,6 +23,7 @@ export async function GET(request) {
       totalWorkers, activeWorkers, pendingWorkers,
       totalClients, totalJobs, todayJobs,
       workingWorkers, freeWorkers, expiredWorkers,
+      pendingReports,
     ] = await Promise.all([
       Worker.countDocuments(),
       Worker.countDocuments({ status: "approved" }),
@@ -39,6 +41,7 @@ export async function GET(request) {
           { subscriptionExpiry: { $exists: false } },
         ],
       }),
+      Report.countDocuments({ status: "pending" }),
     ]);
 
     return ok({
@@ -52,6 +55,7 @@ export async function GET(request) {
         workingWorkers,
         freeWorkers,
         expiredWorkers,
+        pendingReports,
         totalEarnings: 0,
         totalCalls: 0,
       },

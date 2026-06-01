@@ -203,6 +203,18 @@ export default function LoginPage() {
               </p>
             </div>
 
+            {/* ── TAB SWITCHER ── */}
+            <div className="flex bg-gray-100 p-1.5 rounded-2xl mb-8">
+              <button type="button" onClick={switchToPassword}
+                className={`flex-1 text-center py-2.5 rounded-xl text-sm font-bold transition-all font-hindi ${method === 'password' ? 'bg-white text-brand-navy shadow-sm' : 'text-gray-500 hover:text-brand-navy'}`}>
+                Client लॉगिन
+              </button>
+              <button type="button" onClick={switchToOtp}
+                className={`flex-1 text-center py-2.5 rounded-xl text-sm font-bold transition-all font-hindi ${method === 'otp' ? 'bg-white text-brand-navy shadow-sm' : 'text-gray-500 hover:text-brand-navy'}`}>
+                Worker / Shop
+              </button>
+            </div>
+
             {/* ── PASSWORD MODE (clients) ── */}
             {method === 'password' && (
               <form onSubmit={handlePasswordLogin} className="space-y-4">
@@ -234,10 +246,6 @@ export default function LoginPage() {
                   {loading ? <><span className="animate-spin">⏳</span> {t({ hi: 'लॉगिन हो रहा है...', en: 'Logging in...' })}</> : <><Lock size={18} /> {t({ hi: 'लॉगिन करें', en: 'Login' })}</>}
                 </button>
 
-                <button type="button" onClick={switchToOtp}
-                  className="w-full text-gray-500 text-sm hover:text-brand-navy mt-2 font-hindi">
-                  {t({ hi: 'Worker / Shop लॉगिन (OTP)', en: 'Worker / Shop login (OTP)' })}
-                </button>
               </form>
             )}
 
@@ -267,10 +275,6 @@ export default function LoginPage() {
                   {loading ? <><span className="animate-spin">⏳</span> {t({ hi: 'भेज रहे हैं...', en: 'Sending...' })}</> : <><Phone size={18} /> {t({ hi: 'OTP भेजें', en: 'Send OTP' })}</>}
                 </button>
 
-                <button type="button" onClick={switchToPassword}
-                  className="w-full text-gray-500 text-sm hover:text-brand-navy mt-2 font-hindi">
-                  {t({ hi: 'Client लॉगिन (पासवर्ड)', en: 'Client login (password)' })}
-                </button>
               </form>
             )}
 

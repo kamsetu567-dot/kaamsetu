@@ -4,6 +4,7 @@ import Worker from "@/lib/models/Worker";
 import Client from "@/lib/models/Client";
 import { ok, error, created, unauthorized } from "@/lib/utils/apiResponse";
 import { getTokenFromRequest, verifyToken } from "@/lib/utils/jwt";
+import { sendAdminNewJobEmail } from "@/lib/utils/email";
 
 export async function GET(request) {
   try {
@@ -200,6 +201,10 @@ export async function POST(request) {
     let job;
     try {
       job = await JobRequest.create(jobData);
+      // Fire-and-forget email to admin
+      if (process.env.ADMIN_EMAIL) {
+        sendAdminNewJobEmail(process.env.ADMIN_EMAIL, jobData).catch(e => console.error("Admin email failed:", e));
+      }
     } catch (createError) {
       console.error("JobRequest create failed:", createError.message);
       return error("Job submission failed. Please try again.", 500);
