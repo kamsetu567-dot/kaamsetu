@@ -3,7 +3,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { MapPin, Users, Briefcase, Shield, Search, MessageCircle, CheckCircle, BadgeCheck, Zap, ArrowRight, Megaphone, Store } from 'lucide-react';
+import { MapPin, Users, Briefcase, Shield, Search, MessageCircle, CheckCircle, BadgeCheck, Zap, Megaphone, Store, Wrench } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import AdSlot from '@/components/AdSlot';
@@ -45,6 +45,7 @@ const HERO_ILLUSTRATIONS = [
 
 // Category icon tiles — one per top-level service category
 const SERVICE_TILES = [
+  // ── Top row: 12 broad categories (PNG icons already in /public/icons) ──
   { icon: '/icons/construction-repair.png',  hi: 'निर्माण और मरम्मत',     en: 'Construction & Repair',   bg: 'bg-orange-50',  href: '/categories/construction-repair' },
   { icon: '/icons/home-services.png',        hi: 'घरेलू सेवाएँ',           en: 'Home Services',           bg: 'bg-blue-50',    href: '/categories/home-services' },
   { icon: '/icons/event-services.png',       hi: 'इवेंट सेवाएँ',           en: 'Event Services',          bg: 'bg-violet-50',  href: '/categories/event-services' },
@@ -57,35 +58,70 @@ const SERVICE_TILES = [
   { icon: '/icons/security-services.png',    hi: 'सुरक्षा सेवाएँ',         en: 'Security Services',       bg: 'bg-indigo-50',  href: '/categories/security-event-safety' },
   { icon: '/icons/packing-logistics.png',    hi: 'पैकिंग और लॉजिस्टिक्स',   en: 'Packing & Logistics',     bg: 'bg-teal-50',    href: '/categories/packing-logistics' },
   { icon: '/icons/office-work.png',          hi: 'जॉब्स / स्टाफ / ऑफिस',   en: 'Jobs / Staff / Office',   bg: 'bg-emerald-50', href: '/categories/jobs-staff-office' },
+  // ── Next 12: popular specific services. Drop matching PNGs into /public/icons/.
+  // Each links straight to the category page with a subcategory pre-filter so the
+  // worker list opens scoped to that exact trade. ──
+  { icon: '/icons/plumber.png',         hi: 'प्लंबर',              en: 'Plumber',          bg: 'bg-sky-50',     href: '/categories/construction-repair?subcategory=Plumber' },
+  { icon: '/icons/electrician.png',     hi: 'इलेक्ट्रीशियन',        en: 'Electrician',      bg: 'bg-amber-50',   href: '/categories/construction-repair?subcategory=Electrician' },
+  { icon: '/icons/carpenter.png',       hi: 'कारपेंटर',             en: 'Carpenter',        bg: 'bg-yellow-50',  href: '/categories/construction-repair?subcategory=Carpenter' },
+  { icon: '/icons/painter.png',         hi: 'पेंटर',               en: 'Painter',          bg: 'bg-fuchsia-50', href: '/categories/construction-repair?subcategory=Painter' },
+  { icon: '/icons/ac-repair.png',       hi: 'AC रिपेयर',           en: 'AC Repair',        bg: 'bg-cyan-50',    href: '/categories/repair-technical?subcategory=AC%20Repair' },
+  { icon: '/icons/mobile-repair.png',   hi: 'मोबाइल रिपेयर',        en: 'Mobile Repair',    bg: 'bg-lime-50',    href: '/categories/repair-technical?subcategory=Mobile%20Repair' },
+  { icon: '/icons/maid.png',            hi: 'कामवाली / मेड',        en: 'Maid',             bg: 'bg-pink-50',    href: '/categories/home-services?subcategory=Maid' },
+  { icon: '/icons/cook.png',            hi: 'रसोइया / कुक',         en: 'Cook',             bg: 'bg-orange-50',  href: '/categories/home-services?subcategory=Cook' },
+  { icon: '/icons/driver.png',          hi: 'ड्राइवर',              en: 'Driver',           bg: 'bg-blue-50',    href: '/categories/vehicle-travel?subcategory=Driver' },
+  { icon: '/icons/photographer.png',    hi: 'फोटोग्राफर',           en: 'Photographer',     bg: 'bg-rose-50',    href: '/categories/event-services?subcategory=Photographer' },
+  { icon: '/icons/bridal-makeup.png',   hi: 'ब्राइडल मेकअप',         en: 'Bridal Makeup',    bg: 'bg-pink-50',    href: '/categories/beauty-personal-care?subcategory=Bridal%20Makeup' },
+  { icon: '/icons/tutor.png',           hi: 'ट्यूशन / ट्यूटर',       en: 'Tutor',            bg: 'bg-purple-50',  href: '/categories/talent-training?subcategory=Tuition' },
 ];
 
+// Four homepage entry-points. All four land on /auth/select-role which
+// handles signed-in users (auto-routes by active role) and guests (role
+// picker → signup) intelligently.
 const ACTION_CARDS = [
   {
     illustration: '/illustrations/worker-hero.png',
-    title: { hi: 'वर्कर ढूंढें', en: 'Find a Worker' },
+    title: { hi: 'काम करवाओ', en: 'Hire Worker' },
     desc: { hi: 'अपने काम के लिए सही वर्कर ढूंढें', en: 'Find the right worker for your job' },
-    btn: { hi: 'अभी खोजें', en: 'Search Now' },
+    btn: { hi: 'अभी खोजें', en: 'Get Started' },
     btnColor: 'bg-brand-navy text-white',
-    href: '/workers',
+    href: '/auth/select-role',
     imgW: 180, imgH: 200,
+    Icon: Wrench, iconBg: 'bg-orange-100', iconColor: 'text-orange-600',
+    subtitle: { en: 'Hire Worker' },
   },
   {
     illustration: '/illustrations/team-illustration.png',
-    title: { hi: 'टीम बनाएं', en: 'Build a Team' },
-    desc: { hi: 'अपनी टीम बनाएं और ज्यादा काम पाएं', en: 'Build your team and get more work' },
-    btn: { hi: 'टीम बनाएं', en: 'Build Team' },
+    title: { hi: 'काम ढूंढो', en: 'Find Work' },
+    desc: { hi: 'Worker बनें और अपने हुनर का काम पाएँ', en: 'Join as a worker and get matching jobs' },
+    btn: { hi: 'अभी शुरू करें', en: 'Get Started' },
     btnColor: 'bg-green-600 text-white',
     href: '/auth/select-role',
     imgW: 180, imgH: 200,
+    Icon: Search, iconBg: 'bg-blue-100', iconColor: 'text-blue-600',
+    subtitle: { en: 'Find Work' },
+  },
+  {
+    illustration: '/illustrations/team-illustration.png',
+    title: { hi: 'टीम / पार्टनर', en: 'Join as Partner' },
+    desc: { hi: 'टीम लीडर बनें या पार्टनर के तौर पर जुड़ें', en: 'Lead a team or partner with us' },
+    btn: { hi: 'अभी शुरू करें', en: 'Get Started' },
+    btnColor: 'bg-purple-600 text-white',
+    href: '/auth/select-role',
+    imgW: 180, imgH: 200,
+    Icon: Users, iconBg: 'bg-purple-100', iconColor: 'text-purple-600',
+    subtitle: { en: 'Join as Partner' },
   },
   {
     illustration: '/illustrations/shop-illustration.png',
-    title: { hi: 'दुकान जोड़ें', en: 'Add Your Shop' },
-    desc: { hi: 'अपनी दुकान रजिस्टर करें और ग्राहकों तक पहुंचाएं', en: 'Register your shop and reach customers' },
-    btn: { hi: 'दुकान जोड़ें', en: 'Add Shop' },
+    title: { hi: 'शॉप / ऐड्स', en: 'Shop / Ads' },
+    desc: { hi: 'अपनी दुकान रजिस्टर करें और ऐड लगाएं', en: 'Register your shop and run ads' },
+    btn: { hi: 'अभी शुरू करें', en: 'Get Started' },
     btnColor: 'bg-orange-500 text-white',
-    href: '/auth/signup/shop',
+    href: '/auth/select-role',
     imgW: 180, imgH: 200,
+    Icon: Store, iconBg: 'bg-amber-100', iconColor: 'text-amber-600',
+    subtitle: { en: 'Shop / Ads' },
   },
 ];
 
@@ -100,7 +136,6 @@ export default function HomePage() {
   const [suggestions, setSuggestions] = useState([]);
   const [activeIdx, setActiveIdx] = useState(-1);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [showAllCategories, setShowAllCategories] = useState(false);
   const [heroIdx, setHeroIdx] = useState(0);
   const suggestionsRef = useRef(null);
 
@@ -275,6 +310,22 @@ export default function HomePage() {
                 </div>
               </form>
 
+              {/* Quick action tiles — match the client's screenshot: white card,
+                  lucide icon on top, Hindi bold + English subtitle. All four
+                  land on /auth/select-role which handles signed-in vs guest. */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mb-6">
+                {ACTION_CARDS.map(card => (
+                  <Link key={card.title.en} href={card.href}
+                    className="bg-white rounded-2xl p-3 flex flex-col items-center text-center hover:-translate-y-0.5 hover:shadow-lg transition-all border border-white/10">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-2 ${card.iconBg}`}>
+                      <card.Icon size={20} className={card.iconColor} />
+                    </div>
+                    <p className="font-black text-brand-navy font-hindi text-sm leading-tight">{t(card.title)}</p>
+                    <p className="text-gray-500 text-[10px] mt-0.5 leading-tight">{card.subtitle.en}</p>
+                  </Link>
+                ))}
+              </div>
+
               {/* Stats */}
               <div className="flex flex-wrap gap-x-6 gap-y-2">
                 {[
@@ -364,56 +415,10 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── POPULAR SERVICES ─────────────────────────────────────── */}
-      <section className="bg-white py-14">
+      {/* ── ADVERTISEMENTS ───────────────────────────────────────── */}
+      <section className="bg-white py-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <AdSlot variant="banner-wide" limit={9} heading={t({ hi: 'विज्ञापन', en: 'Advertisements' })} className="mb-8" />
-          <div className="text-center mb-10">
-            <div className="flex items-center justify-center gap-3 mb-2">
-              <div className="h-px w-16 bg-brand-navy/25" />
-              <h2 className="text-2xl md:text-3xl font-black text-brand-navy font-hindi">{t({ hi: 'लोकप्रिय सेवाएं', en: 'Popular Services' })}</h2>
-              <div className="h-px w-16 bg-brand-navy/25" />
-            </div>
-            <p className="text-gray-500 text-sm font-hindi">{t({ hi: 'आपको जो भी काम चाहिए, हमारे पास सही वर्कर है', en: 'Whatever work you need, we have the right worker' })}</p>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-            {(showAllCategories ? CATEGORIES : CATEGORIES.slice(0, 8)).map(cat => (
-              <Link
-                key={cat.slug}
-                href={`/categories/${cat.slug}`}
-                className="relative overflow-hidden rounded-2xl group block h-40 sm:h-44"
-                aria-label={`${cat.nameEn} — ${cat.nameHi}`}
-              >
-                <Image
-                  src={cat.image}
-                  alt={cat.nameEn}
-                  fill
-                  className="object-cover transition-transform duration-300 group-hover:scale-105"
-                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-3">
-                  <p className="text-white font-black text-sm leading-tight drop-shadow font-hindi">{t({ hi: cat.nameHi, en: cat.nameEn })}</p>
-                </div>
-                <div className="absolute inset-0 border-4 border-transparent group-hover:border-brand-yellow rounded-2xl transition-colors duration-200 pointer-events-none" />
-              </Link>
-            ))}
-          </div>
-
-          <div className="text-center mt-8">
-            {showAllCategories ? (
-              <Link href="/categories"
-                className="inline-flex items-center gap-2 bg-brand-navy text-white font-bold px-6 py-2.5 rounded-xl hover:bg-brand-navy-dark transition-colors font-hindi text-sm">
-                {t({ hi: 'सभी सेवाएँ देखें', en: 'View All Services' })} <ArrowRight size={15} />
-              </Link>
-            ) : (
-              <button onClick={() => setShowAllCategories(true)}
-                className="inline-flex items-center gap-2 bg-brand-navy text-white font-bold px-6 py-2.5 rounded-xl hover:bg-brand-navy-dark transition-colors font-hindi text-sm">
-                {t({ hi: 'सभी सेवाएँ देखें', en: 'View All Services' })} <ArrowRight size={15} />
-              </button>
-            )}
-          </div>
+          <AdSlot variant="banner-wide" limit={9} heading={t({ hi: 'विज्ञापन', en: 'Advertisements' })} />
         </div>
       </section>
 
@@ -477,44 +482,31 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── ACTION CARDS ─────────────────────────────────────────── */}
+      {/* ── ACTION CARDS — 4 entry-points, all route through /auth/select-role
+           which handles signed-in users (auto-routes) and guests (role picker). */}
       <section className="bg-brand-bg py-14">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-4xl mx-auto">
-            {ACTION_CARDS.map(card => {
-              let resolvedHref = card.href;
-              if (role === 'worker') {
-                if (card.href === '/workers') resolvedHref = '/worker/dashboard';
-                if (card.href === '/auth/select-role') resolvedHref = '/worker/dashboard';
-                if (card.href === '/auth/signup/shop') resolvedHref = '/worker/dashboard';
-              } else if (role === 'client') {
-                if (card.href === '/workers') resolvedHref = '/workers';
-                if (card.href === '/auth/select-role') resolvedHref = '/client/request-service';
-                if (card.href === '/auth/signup/shop') resolvedHref = '/client/dashboard';
-              } else if (role === 'shop') {
-                resolvedHref = '/shop/dashboard';
-              }
-              return (
-                <div key={card.title.en}
-                  className="bg-white rounded-3xl p-4 sm:p-5 flex flex-col items-center text-center shadow-sm card-hover border border-gray-100">
-                  <div className="relative mb-4 w-28 h-32 sm:w-36 sm:h-40 md:w-44 md:h-48 mx-auto">
-                    <Image
-                      src={card.illustration}
-                      alt={t(card.title)}
-                      fill
-                      className="object-contain"
-                      sizes="(max-width:640px) 112px, (max-width:768px) 144px, 176px"
-                    />
-                  </div>
-                  <h3 className="font-black text-brand-navy font-hindi text-base mb-1">{t(card.title)}</h3>
-                  <p className="text-gray-500 text-xs font-hindi mb-4 leading-snug">{t(card.desc)}</p>
-                  <Link href={resolvedHref}
-                    className={`${card.btnColor} mt-auto w-full font-bold text-sm py-3 rounded-xl hover:opacity-90 transition-opacity font-hindi leading-none flex items-center justify-center`}>
-                    {t(card.btn)}
-                  </Link>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 max-w-5xl mx-auto">
+            {ACTION_CARDS.map(card => (
+              <div key={card.title.en}
+                className="bg-white rounded-2xl sm:rounded-3xl p-3 sm:p-5 flex flex-col items-center text-center shadow-sm card-hover border border-gray-100">
+                <div className="relative mb-3 sm:mb-4 w-20 h-24 sm:w-32 sm:h-36 mx-auto">
+                  <Image
+                    src={card.illustration}
+                    alt={t(card.title)}
+                    fill
+                    className="object-contain"
+                    sizes="(max-width:640px) 80px, (max-width:1024px) 128px, 144px"
+                  />
                 </div>
-              );
-            })}
+                <h3 className="font-black text-brand-navy font-hindi text-sm sm:text-base mb-1">{t(card.title)}</h3>
+                <p className="text-gray-500 text-[11px] sm:text-xs font-hindi mb-3 sm:mb-4 leading-snug">{t(card.desc)}</p>
+                <Link href={card.href}
+                  className={`${card.btnColor} mt-auto w-full font-bold text-xs sm:text-sm py-2.5 sm:py-3 rounded-xl hover:opacity-90 transition-opacity font-hindi leading-none flex items-center justify-center`}>
+                  {t(card.btn)}
+                </Link>
+              </div>
+            ))}
           </div>
         </div>
       </section>

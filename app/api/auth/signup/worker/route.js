@@ -62,7 +62,7 @@ export async function POST(request) {
     const existingWorker = await Worker.findOne({ mobile });
     if (existingWorker) {
       if (existingWorker.status === "approved" || existingWorker.status === "blocked") {
-        return error("Mobile number already registered", 400);
+        return error("Mobile number already registered as Worker", 400);
       }
       // If pending/rejected, allow re-registration by updating existing record
       await Worker.findByIdAndUpdate(existingWorker._id, {
@@ -79,7 +79,13 @@ export async function POST(request) {
         ...(profilePhotoUrl && { photo: profilePhotoUrl }),
         ...(workPhotos?.length && { workPhotos }),
       });
-      const updatedToken = signToken({ id: existingWorker.user, mobile, role: "worker" });
+      const existingUser = await User.findById(existingWorker.user).lean();
+      const updatedToken = signToken({
+        id: existingWorker.user,
+        mobile,
+        roles: existingUser?.roles?.length ? existingUser.roles : ["worker"],
+        role: "worker",
+      });
       return ok({
         message: "Registration updated successfully",
         token: updatedToken,
@@ -87,7 +93,24 @@ export async function POST(request) {
       });
     }
 
-    const user = await User.create({ mobile, name, email: email || "", role: "worker" });
+    // Multi-role: if a User with this mobile already exists (e.g. registered
+    // as Client), add 'worker' to their roles instead of rejecting. The
+    // unique mobile index on User keeps one row per phone number.
+    let user = await User.findOne({ mobile });
+    let userCreatedHere = false;
+    if (user) {
+      if (user.roles?.includes("worker") || user.role === "worker") {
+        return error("Mobile number already registered as Worker", 409);
+      }
+      const nextRoles = Array.from(new Set([...(user.roles || []), user.role, "worker"].filter(Boolean)));
+      user.roles = nextRoles;
+      if (email && !user.email) user.email = email;
+      if (name && !user.name) user.name = name;
+      await user.save();
+    } else {
+      user = await User.create({ mobile, name, email: email || "", roles: ["worker"], role: "worker" });
+      userCreatedHere = true;
+    }
 
     let worker;
     try {
@@ -110,11 +133,13 @@ export async function POST(request) {
       });
     } catch (createError) {
       logger.error("Worker create failed", { msg: createError.message, code: createError.code });
-      await User.findByIdAndDelete(user._id);
+      // Only roll back the User if WE just created it. If we added 'worker' to
+      // an existing User, deleting it would wipe out their other role too.
+      if (userCreatedHere) await User.findByIdAndDelete(user._id);
       return error("Worker registration failed. Please try again.", 500);
     }
 
-    const newToken = signToken({ id: user._id, mobile, role: "worker" });
+    const newToken = signToken({ id: user._id, mobile, roles: user.roles || ["worker"], role: "worker" });
 
     return created({
       message: "Worker registered. Pending admin approval.",

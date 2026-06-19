@@ -26,22 +26,25 @@ export async function POST(request) {
 
     const passwordHash = await hashPassword(password);
 
-    let user = await User.findOne({ mobile });
-    if (user && user.role !== "client") return error("Mobile already registered with a different role");
-    // Block re-registering an existing client — they should log in instead.
-    if (user && user.role === "client") {
-      return error("An account already exists with this number. Please login instead.", 409);
-    }
-
+    let user = await User.findOne({ mobile }).select("+password");
     let userCreatedHere = false;
-    if (!user) {
-      user = await User.create({ mobile, name, email, role: "client", password: passwordHash });
-      userCreatedHere = true;
-    } else {
+    if (user) {
+      // Multi-role: same mobile can register as both client and worker.
+      // Block only if they're already a client at this number.
+      if (user.roles?.includes("client") || user.role === "client") {
+        return error("An account already exists with this number. Please login instead.", 409);
+      }
+      // Add `client` to existing roles, set password (workers don't have one),
+      // refresh name/email if they were blank.
+      const nextRoles = Array.from(new Set([...(user.roles || []), user.role, "client"].filter(Boolean)));
+      user.roles = nextRoles;
       user.name = name;
       user.email = email;
       user.password = passwordHash;
       await user.save();
+    } else {
+      user = await User.create({ mobile, name, email, roles: ["client"], role: "client", password: passwordHash });
+      userCreatedHere = true;
     }
 
     // Prefer structured `location` from AddressAutocomplete; fall back to legacy flat fields.
@@ -85,12 +88,12 @@ export async function POST(request) {
       await client.save();
     }
 
-    const authToken = signToken({ id: user._id, mobile, role: "client" });
+    const authToken = signToken({ id: user._id, mobile, roles: user.roles || ["client"], role: "client" });
 
     return created({
       message: "Client registered successfully.",
       token: authToken,
-      user: { id: user._id, mobile, name, email: email || "", role: "client" },
+      user: { id: user._id, mobile, name, email: email || "", role: "client", roles: user.roles || ["client"] },
     });
   } catch (err) {
     logger.error("client signup error", { err: err.message });

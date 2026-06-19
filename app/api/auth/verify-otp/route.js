@@ -60,19 +60,23 @@ export async function POST(request) {
       return error("Your account has been blocked. Contact support.", 403);
     }
 
-    // Workers must be approved before they can log in
-    if (user.role === "worker") {
+    const userRoles = user.roles?.length ? user.roles : [user.role].filter(Boolean);
+
+    // Workers must be approved before they can log in (still applies if user
+    // also has other roles — gate only the worker side).
+    if (userRoles.includes("worker")) {
       const Worker = (await import("@/lib/models/Worker")).default;
       const worker = await Worker.findOne({ user: user._id }).lean();
-      if (worker && worker.status === "pending") {
+      // Only block login if worker is the ONLY role and it's not approved.
+      if (userRoles.length === 1 && worker?.status === "pending") {
         return error("Your registration is pending admin approval. You will be notified via email once approved.", 403);
       }
-      if (worker && worker.status === "rejected") {
+      if (userRoles.length === 1 && worker?.status === "rejected") {
         return error("Your registration was rejected. Please contact support.", 403);
       }
     }
 
-    const token = signToken({ id: user._id, mobile: user.mobile, role: user.role });
+    const token = signToken({ id: user._id, mobile: user.mobile, roles: userRoles, role: userRoles[0] });
 
     return ok({
       token,
@@ -82,7 +86,8 @@ export async function POST(request) {
         mobile: user.mobile,
         email: user.email || "",
         name: user.name,
-        role: user.role,
+        role: userRoles[0],
+        roles: userRoles,
         status: user.status,
       },
       isNewUser: false,

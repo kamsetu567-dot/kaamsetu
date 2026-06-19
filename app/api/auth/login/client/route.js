@@ -26,7 +26,11 @@ export async function POST(request) {
 
     await connectDB();
 
-    const user = await User.findOne({ mobile, role: "client" }).select("+password");
+    // Allow any User row that has 'client' among their roles to log in here.
+    const user = await User.findOne({
+      mobile,
+      $or: [{ roles: "client" }, { role: "client" }],
+    }).select("+password");
 
     // Generic message for missing user / wrong role / wrong password — don't leak which.
     if (!user) {
@@ -47,7 +51,8 @@ export async function POST(request) {
       return error("Your account has been blocked. Contact support.", 403);
     }
 
-    const token = signToken({ id: user._id, mobile: user.mobile, role: "client" });
+    const roles = user.roles?.length ? user.roles : [user.role].filter(Boolean);
+    const token = signToken({ id: user._id, mobile: user.mobile, roles, role: "client" });
 
     return ok({
       token,
@@ -56,7 +61,8 @@ export async function POST(request) {
         mobile: user.mobile,
         email: user.email || "",
         name: user.name,
-        role: user.role,
+        role: "client",
+        roles,
         status: user.status,
       },
     });
