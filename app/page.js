@@ -422,6 +422,32 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ── TRUST STATS STRIP — navy band, 4 big metrics ───────────────
+          Aspirational marketing numbers per client. Static for now; can
+          be wired to live counts later if asked. */}
+      <section className="bg-brand-navy py-6 sm:py-8 border-y border-brand-navy-light/30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
+            {[
+              { icon: Users,      val: '1,50,000+', label: { hi: 'कुल रजिस्टर्ड वर्कर', en: 'Registered Workers' } },
+              { icon: Briefcase,  val: '50,000+',   label: { hi: 'मासिक रिक्वेस्ट',     en: 'Monthly Requests' } },
+              { icon: MapPin,     val: '200+',      label: { hi: 'शहरों में सेवा',       en: 'Cities Served' } },
+              { icon: BadgeCheck, val: '95%',       label: { hi: 'सैटिस्फैक्शन',         en: 'Satisfaction' } },
+            ].map(s => (
+              <div key={s.label.en} className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-brand-yellow/15 flex items-center justify-center flex-shrink-0">
+                  <s.icon size={20} className="text-brand-yellow" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-white font-black text-lg sm:text-xl leading-tight">{s.val}</p>
+                  <p className="text-white/60 text-xs font-hindi leading-tight">{t(s.label)}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── INTRO VIDEO ──────────────────────────────────────────── */}
       <section className="bg-white py-14">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
