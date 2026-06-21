@@ -70,7 +70,7 @@ function PhotoGallery({ photos, name }) {
               <button
                 key={i}
                 onClick={() => setIdx(i)}
-                className={`w-2 h-2 rounded-full transition-colors ${i === idx ? "bg-white" : "bg-white/50"}`}
+                className={`dot-indicator w-2 transition-colors ${i === idx ? "bg-white" : "bg-white/50"}`}
                 aria-label={`Photo ${i + 1}`}
               />
             ))}

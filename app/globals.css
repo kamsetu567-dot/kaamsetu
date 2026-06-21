@@ -313,6 +313,18 @@ body {
 button, a, [role="button"] {
   min-height: 44px;
 }
+/* Opt-out for tiny page indicators (carousel dots). Tailwind's min-h-0 utility
+   loses to the global rule under certain layer orderings, so this is the
+   reliable kill-switch. Apply alongside h-1/h-1.5/h-2 width-shifting dot
+   classes — Tailwind utilities like w-1/w-3 then drive the visible size. */
+.dot-indicator {
+  min-height: 0 !important;
+  height: 6px !important;
+  border-radius: 9999px !important;
+  padding: 0 !important;
+  line-height: 0 !important;
+  display: inline-block !important;
+}
 
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: #F1F5F9; }
@@ -336,4 +348,45 @@ button, a, [role="button"] {
 .ad-fade { animation: adFade 0.6s ease-in-out; }
 @media (prefers-reduced-motion: reduce) {
   .ad-fade { animation: none; }
+}
+
+/* Infinite R→L marquee for the top-rated workers strip. The track contains
+   the worker list twice; we translate by exactly -50% so the join is seamless.
+   Soft edge fades on left/right hide the wrap point. */
+.marquee-mask {
+  position: relative;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+          mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+}
+.marquee-track {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  gap: 1rem;
+  width: max-content;
+  animation: marqueeScroll 40s linear infinite;
+  will-change: transform;
+}
+.marquee-item {
+  flex: 0 0 180px;
+  width: 180px;
+  min-width: 180px;
+  max-width: 180px;
+}
+/* Wider, shorter pill variant — used by the top-rated workers strip after
+   the design switched from portrait cards to horizontal name + rating pills. */
+.marquee-item--pill {
+  flex: 0 0 240px !important;
+  width: 240px !important;
+  min-width: 240px !important;
+  max-width: 240px !important;
+}
+.marquee-track--pill {
+  /* Pill row reads better when centred vertically. */
+  align-items: center;
+}
+@keyframes marqueeScroll {
+  0%   { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-50%, 0, 0); }
 }

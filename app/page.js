@@ -3,7 +3,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { MapPin, Users, Briefcase, Shield, Search, MessageCircle, CheckCircle, BadgeCheck, Zap, Megaphone, Store, Wrench } from 'lucide-react';
+import { MapPin, Users, Briefcase, Shield, Search, MessageCircle, CheckCircle, BadgeCheck, Zap, Megaphone, Store, Wrench, Star } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import AdSlot from '@/components/AdSlot';
@@ -125,6 +125,59 @@ const ACTION_CARDS = [
   },
 ];
 
+// Fake top-rated worker data. Twenty-four entries; we shuffle on mount and
+// surface seven in the marquee, so each page load shows a different sample.
+const TOP_WORKERS_POOL = [
+  { name: 'Rakesh Kumar',   trade: 'Plumber',     rating: 4.9, accent: 'bg-sky-100' },
+  { name: 'Suresh Yadav',   trade: 'Electrician', rating: 4.9, accent: 'bg-amber-100' },
+  { name: 'Vikram Singh',   trade: 'Carpenter',   rating: 4.8, accent: 'bg-yellow-100' },
+  { name: 'Anil Sharma',    trade: 'AC Repair',   rating: 4.9, accent: 'bg-cyan-100' },
+  { name: 'Priya Devi',     trade: 'Maid',        rating: 4.8, accent: 'bg-pink-100' },
+  { name: 'Ramesh Yadav',   trade: 'Driver',      rating: 4.9, accent: 'bg-blue-100' },
+  { name: 'Manoj Gupta',    trade: 'Painter',     rating: 4.7, accent: 'bg-fuchsia-100' },
+  { name: 'Sunita Verma',   trade: 'Cook',        rating: 4.9, accent: 'bg-orange-100' },
+  { name: 'Deepak Mishra',  trade: 'Welder',      rating: 4.8, accent: 'bg-slate-100' },
+  { name: 'Pooja Singh',    trade: 'Beauty',      rating: 4.9, accent: 'bg-rose-100' },
+  { name: 'Arjun Patel',    trade: 'Mobile Repair', rating: 4.8, accent: 'bg-lime-100' },
+  { name: 'Kavita Joshi',   trade: 'Tutor',       rating: 5.0, accent: 'bg-purple-100' },
+  { name: 'Mahesh Tiwari',  trade: 'Photographer', rating: 4.9, accent: 'bg-rose-100' },
+  { name: 'Geeta Kumari',   trade: 'Mehndi Artist', rating: 4.8, accent: 'bg-pink-100' },
+  { name: 'Vinod Saini',    trade: 'CCTV',        rating: 4.7, accent: 'bg-slate-100' },
+  { name: 'Sandeep Kumar',  trade: 'Caterer',     rating: 4.9, accent: 'bg-amber-100' },
+  { name: 'Renu Sharma',    trade: 'Dance Teacher', rating: 4.8, accent: 'bg-purple-100' },
+  { name: 'Amit Choudhary', trade: 'Tempo Driver', rating: 4.7, accent: 'bg-cyan-100' },
+  { name: 'Lakshmi Rao',    trade: 'Yoga Trainer', rating: 5.0, accent: 'bg-emerald-100' },
+  { name: 'Naveen Reddy',   trade: 'DJ / Sound',  rating: 4.8, accent: 'bg-violet-100' },
+  { name: 'Kiran Bedi',     trade: 'Bouncer',     rating: 4.9, accent: 'bg-indigo-100' },
+  { name: 'Rohit Verma',    trade: 'Tile Worker', rating: 4.7, accent: 'bg-yellow-100' },
+  { name: 'Anita Devi',     trade: 'Cleaner',     rating: 4.9, accent: 'bg-blue-100' },
+  { name: 'Pradeep Yadav',  trade: 'Tent House',  rating: 4.8, accent: 'bg-orange-100' },
+];
+
+const TOP_WORKERS_VISIBLE = 7;
+
+function shuffleAndPick(arr, n) {
+  const copy = arr.slice();
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy.slice(0, n);
+}
+
+// Fake testimonials. 6 entries shown 3 at a time via the carousel below.
+const TESTIMONIALS = [
+  { name: 'Anjali Verma', role: 'Client', city: 'Delhi',     rating: 5, quote: { hi: 'सिर्फ 30 मिनट में प्लंबर आ गया, बहुत अच्छा अनुभव!',                     en: 'Plumber arrived within 30 minutes — great experience!' } },
+  { name: 'Mohit Singh',  role: 'Worker', city: 'Jaipur',    rating: 5, quote: { hi: 'पहले महीने में ही 12 जॉब्स मिलीं। ₹199 की सब्सक्रिप्शन वसूल हो गई।', en: 'Got 12 jobs in my first month. The ₹199 subscription paid for itself.' } },
+  { name: 'Neha Sharma',  role: 'Client', city: 'Mumbai',    rating: 5, quote: { hi: 'घर के हर काम के लिए एक ही ऐप — कमाल का!',                                   en: 'One app for every home service — amazing!' } },
+  { name: 'Suresh Kumar', role: 'Worker', city: 'Bengaluru', rating: 5, quote: { hi: 'KaamSetu ने मेरा बिजनेस बदल दिया। रोज नए क्लाइंट मिलते हैं।',         en: 'KaamSetu changed my business. New clients every day.' } },
+  { name: 'Pooja Mishra', role: 'Client', city: 'Lucknow',   rating: 5, quote: { hi: 'वर्कर वेरिफाइड थे, बिल्कुल सेफ लगा।',                                       en: 'Workers are verified — felt completely safe.' } },
+  { name: 'Rohit Verma',  role: 'Worker', city: 'Pune',      rating: 5, quote: { hi: 'अब हर महीने ₹40k+ कमा लेता हूँ। बहुत आभार!',                                en: 'I earn ₹40k+ every month now. Thank you!' } },
+];
+
+const TESTIMONIALS_PER_PAGE = 3;
+const TESTIMONIAL_PAGES = Math.ceil(TESTIMONIALS.length / TESTIMONIALS_PER_PAGE);
+
 export default function HomePage() {
   const router = useRouter();
   const { lang } = useLang();
@@ -137,7 +190,25 @@ export default function HomePage() {
   const [activeIdx, setActiveIdx] = useState(-1);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [heroIdx, setHeroIdx] = useState(0);
+  const [testimonialPage, setTestimonialPage] = useState(0);
+  const [testimonialPaused, setTestimonialPaused] = useState(false);
+  // Shuffle workers client-side after mount so SSR HTML matches the initial
+  // server render; the random sample appears on the next paint.
+  const [topWorkers, setTopWorkers] = useState(() => TOP_WORKERS_POOL.slice(0, TOP_WORKERS_VISIBLE));
   const suggestionsRef = useRef(null);
+
+  useEffect(() => {
+    setTopWorkers(shuffleAndPick(TOP_WORKERS_POOL, TOP_WORKERS_VISIBLE));
+  }, []);
+
+  // Auto-rotate the testimonials carousel every 6s; pause on hover.
+  useEffect(() => {
+    if (testimonialPaused || TESTIMONIAL_PAGES <= 1) return;
+    const id = setInterval(() => {
+      setTestimonialPage(p => (p + 1) % TESTIMONIAL_PAGES);
+    }, 6000);
+    return () => clearInterval(id);
+  }, [testimonialPaused]);
 
   useEffect(() => {
     try {
@@ -609,6 +680,114 @@ export default function HomePage() {
                 <h3 className="font-bold text-brand-navy font-hindi mb-1">{t(f.title)}</h3>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── TOP-RATED WORKERS — fake leaderboard for social proof ─── */}
+      <section className="bg-brand-bg py-14">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="text-center mb-10">
+            <div className="flex items-center justify-center gap-3 mb-2">
+              <div className="h-px w-16 bg-brand-navy/25" />
+              <h2 className="text-2xl md:text-3xl font-black text-brand-navy font-hindi">
+                {t({ hi: 'हमारे टॉप वर्कर्स', en: 'Our Top-Rated Workers' })}
+              </h2>
+              <div className="h-px w-16 bg-brand-navy/25" />
+            </div>
+            <p className="text-gray-500 text-sm font-hindi">
+              {t({ hi: 'हज़ारों खुश क्लाइंट्स ने इन्हें चुना है', en: 'Thousands of happy clients chose them' })}
+            </p>
+          </div>
+          {/* Continuous R→L marquee — duplicate the visible list so the
+              animation can loop seamlessly. Pause on hover. */}
+          <div className="marquee-mask group">
+            <div className="marquee-track marquee-track--pill group-hover:[animation-play-state:paused]">
+              {[...topWorkers, ...topWorkers].map((w, i) => (
+                <div key={`${w.name}-${i}`} className="marquee-item--pill bg-white rounded-full pl-4 pr-2 py-2 shadow-sm border border-gray-100 flex items-center gap-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[13px] text-brand-navy font-hindi leading-tight truncate">
+                      {t({
+                        hi: `${w.name} को मिली ${w.rating} रेटिंग`,
+                        en: `${w.name} got ${w.rating} rating`,
+                      })}
+                    </p>
+                    <p className="text-[10px] text-gray-400 leading-tight truncate">{w.trade}</p>
+                  </div>
+                  <div className="flex items-center gap-1 bg-amber-50 text-amber-700 rounded-full px-2.5 py-1 flex-shrink-0">
+                    <Star size={12} className="fill-amber-500 text-amber-500" />
+                    <span className="font-black text-xs">{w.rating}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── TESTIMONIALS — 6 fake quotes, 3 at a time, 6s auto-advance ── */}
+      <section className="bg-white py-14">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6">
+          <div className="text-center mb-10">
+            <div className="flex items-center justify-center gap-3 mb-2">
+              <div className="h-px w-16 bg-brand-navy/25" />
+              <h2 className="text-2xl md:text-3xl font-black text-brand-navy font-hindi">
+                {t({ hi: 'हमारे यूज़र्स क्या कहते हैं', en: 'What Our Users Say' })}
+              </h2>
+              <div className="h-px w-16 bg-brand-navy/25" />
+            </div>
+          </div>
+
+          <div
+            onMouseEnter={() => setTestimonialPaused(true)}
+            onMouseLeave={() => setTestimonialPaused(false)}
+          >
+            <div key={testimonialPage} className="ad-fade grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {TESTIMONIALS.slice(
+                testimonialPage * TESTIMONIALS_PER_PAGE,
+                testimonialPage * TESTIMONIALS_PER_PAGE + TESTIMONIALS_PER_PAGE
+              ).map(tst => (
+                <div key={tst.name} className="bg-gradient-to-br from-white to-brand-bg rounded-2xl p-6 border border-gray-100 shadow-sm">
+                  <div className="flex gap-0.5 mb-3">
+                    {Array.from({ length: tst.rating }).map((_, i) => (
+                      <Star key={i} size={14} className="fill-amber-500 text-amber-500" />
+                    ))}
+                  </div>
+                  <p className="text-brand-navy text-sm font-hindi leading-relaxed mb-4">&quot;{t(tst.quote)}&quot;</p>
+                  <div className="flex items-center gap-3 pt-3 border-t border-gray-100">
+                    <div className="w-9 h-9 rounded-full bg-brand-navy text-white font-black flex items-center justify-center text-sm flex-shrink-0">
+                      {tst.name[0]}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-bold text-brand-navy text-sm leading-tight">{tst.name}</p>
+                      <p className="text-xs text-gray-500">
+                        <span className={tst.role === 'Worker' ? 'text-green-600 font-semibold' : 'text-brand-navy font-semibold'}>
+                          {t({ hi: tst.role === 'Worker' ? 'वर्कर' : 'क्लाइंट', en: tst.role })}
+                        </span>
+                        {' • '}{tst.city}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Page dots */}
+            {TESTIMONIAL_PAGES > 1 && (
+              <div className="flex items-center justify-center gap-1 mt-6">
+                {Array.from({ length: TESTIMONIAL_PAGES }).map((_, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => setTestimonialPage(i)}
+                    aria-label={`Show testimonials page ${i + 1}`}
+                    className={`dot-indicator transition-all shrink-0 ${
+                      i === testimonialPage ? 'w-3 bg-brand-navy' : 'w-1.5 bg-gray-300'
+                    }`}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </section>

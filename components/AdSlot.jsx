@@ -94,7 +94,7 @@ function NarrowCarousel({ ads, className }) {
               key={i}
               onClick={() => setIdx(i)}
               aria-label={`Ad ${i + 1}`}
-              className={`w-1.5 h-1.5 min-h-0 shrink-0 rounded-full transition-colors ${i === idx ? "bg-brand-navy" : "bg-gray-300"}`}
+              className={`dot-indicator w-1.5 shrink-0 transition-colors ${i === idx ? "bg-brand-navy" : "bg-gray-300"}`}
             />
           ))}
         </div>
