@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { getDashboardStats } from "@/lib/api/admin";
 import { apiGet } from "@/lib/api/client";
+import { useT } from "@/lib/i18n/useT";
 
 function StatCard({ titleHi, titleEn, value, icon: Icon, color }) {
   const colorMap = {
@@ -42,6 +43,7 @@ function StatCardSkeleton() {
 }
 
 export default function AdminDashboardPage() {
+  const t = useT();
   const [stats, setStats] = useState(null);
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -81,11 +83,11 @@ export default function AdminDashboardPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-black text-brand-navy font-hindi">डैशबोर्ड / Dashboard</h1>
-          <p className="text-gray-400 text-sm mt-0.5">Platform overview at a glance</p>
+          <h1 className="text-2xl font-black text-brand-navy font-hindi">{t({ hi: 'डैशबोर्ड', en: 'Dashboard' })}</h1>
+          <p className="text-gray-400 text-sm mt-0.5">{t({ hi: 'प्लेटफ़ॉर्म की एक नज़र में जानकारी', en: 'Platform overview at a glance' })}</p>
         </div>
         <button onClick={load} disabled={loading} className="flex items-center gap-1 text-brand-navy text-sm font-semibold hover:opacity-70 disabled:opacity-40 min-h-0">
-          <RefreshCw size={14} className={loading ? "animate-spin" : ""} /> Refresh
+          <RefreshCw size={14} className={loading ? "animate-spin" : ""} /> {t({ hi: 'रिफ्रेश', en: 'Refresh' })}
         </button>
       </div>
 
@@ -118,10 +120,10 @@ export default function AdminDashboardPage() {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
-            <h2 className="font-black text-brand-navy font-hindi">Pending Reports / लंबित रिपोर्ट</h2>
+            <h2 className="font-black text-brand-navy font-hindi">{t({ hi: 'लंबित रिपोर्ट', en: 'Pending Reports' })}</h2>
           </div>
           <Link href="/admin/reports" className="flex items-center gap-1 text-xs font-bold text-blue-600 hover:underline">
-            View All <ArrowRight size={12} />
+            {t({ hi: 'सभी देखें', en: 'View All' })} <ArrowRight size={12} />
           </Link>
         </div>
         
@@ -131,7 +133,7 @@ export default function AdminDashboardPage() {
           </div>
         ) : reports.length === 0 ? (
           <div className="text-center py-8">
-            <p className="text-gray-400 text-sm font-hindi">All quiet! No pending reports. / सब ठीक है! कोई रिपोर्ट लंबित नहीं है।</p>
+            <p className="text-gray-400 text-sm font-hindi">{t({ hi: 'सब ठीक है! कोई रिपोर्ट लंबित नहीं है।', en: 'All quiet! No pending reports.' })}</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -142,7 +144,7 @@ export default function AdminDashboardPage() {
                 </div>
                 <div>
                   <p className="text-sm font-bold text-brand-navy">
-                    {r.reportedWorkerName || "Unknown"} <span className="text-xs font-normal text-gray-500">reported for</span> <span className="text-xs font-bold text-red-600 px-1.5 py-0.5 rounded-md bg-red-100">{r.reason}</span>
+                    {r.reportedWorkerName || t({ hi: 'अज्ञात', en: 'Unknown' })} <span className="text-xs font-normal text-gray-500">{t({ hi: 'के लिए रिपोर्ट हुई', en: 'reported for' })}</span> <span className="text-xs font-bold text-red-600 px-1.5 py-0.5 rounded-md bg-red-100">{r.reason}</span>
                   </p>
                   {r.description && <p className="text-xs text-gray-500 mt-1 line-clamp-1">{r.description}</p>}
                 </div>

@@ -7,6 +7,7 @@ import {
 } from "recharts";
 import { BarChart3 } from "lucide-react";
 import { getAnalytics } from "@/lib/api/admin";
+import { useT } from "@/lib/i18n/useT";
 
 const PLACEHOLDER_DATA = Array.from({ length: 7 }, (_, i) => ({
   day: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][i],
@@ -29,6 +30,7 @@ function ChartCard({ title, titleHi, children }) {
 }
 
 export default function AdminAnalyticsPage() {
+  const t = useT();
   const [data, setData] = useState(PLACEHOLDER_DATA);
   const [range, setRange] = useState("7d");
 
@@ -54,12 +56,12 @@ export default function AdminAnalyticsPage() {
             className="text-2xl font-black text-brand-navy"
             style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
           >
-            विश्लेषण / Analytics
+            {t({ hi: 'विश्लेषण', en: 'Analytics' })}
           </h1>
-          <p className="text-gray-500 text-sm mt-0.5">Platform performance metrics</p>
+          <p className="text-gray-500 text-sm mt-0.5">{t({ hi: 'प्लेटफ़ॉर्म प्रदर्शन मापदंड', en: 'Platform performance metrics' })}</p>
         </div>
         <div className="flex gap-2">
-          {[["7d", "7 Days"], ["30d", "30 Days"], ["90d", "90 Days"]].map(([val, label]) => (
+          {[["7d", t({ hi: '7 दिन', en: '7 Days' })], ["30d", t({ hi: '30 दिन', en: '30 Days' })], ["90d", t({ hi: '90 दिन', en: '90 Days' })]].map(([val, label]) => (
             <button
               key={val}
               onClick={() => setRange(val)}
@@ -79,17 +81,17 @@ export default function AdminAnalyticsPage() {
       {data.every(d => d.visits === 0 && d.jobs === 0) && (
         <div className="flex items-center gap-3 bg-blue-50 border-2 border-blue-200 rounded-2xl px-4 py-3">
           <BarChart3 size={18} className="text-blue-600 flex-shrink-0" />
-          <p className="text-blue-600 text-sm">
-            <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>
-              Analytics data backend ready होने के बाद यहाँ दिखेगा।
-            </span>
-            {" / Charts will populate once the analytics backend is connected."}
+          <p className="text-blue-600 text-sm" style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>
+            {t({
+              hi: 'Analytics data backend ready होने के बाद यहाँ दिखेगा।',
+              en: 'Charts will populate once the analytics backend is connected.',
+            })}
           </p>
         </div>
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        <ChartCard title="Daily visits to the platform" titleHi="Platform Visits">
+        <ChartCard title={t({ hi: 'प्लेटफ़ॉर्म पर रोज़ की विज़िट्स', en: 'Daily visits to the platform' })} titleHi={t({ hi: 'प्लेटफ़ॉर्म विज़िट्स', en: 'Platform Visits' })}>
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={data}>
               <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
@@ -101,7 +103,7 @@ export default function AdminAnalyticsPage() {
           </ResponsiveContainer>
         </ChartCard>
 
-        <ChartCard title="New user registrations" titleHi="नए Users">
+        <ChartCard title={t({ hi: 'नए यूज़र रजिस्ट्रेशन', en: 'New user registrations' })} titleHi={t({ hi: 'नए Users', en: 'New Users' })}>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={data}>
               <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
@@ -113,7 +115,7 @@ export default function AdminAnalyticsPage() {
           </ResponsiveContainer>
         </ChartCard>
 
-        <ChartCard title="Job requests per day" titleHi="Job Requests">
+        <ChartCard title={t({ hi: 'प्रति दिन जॉब रिक्वेस्ट', en: 'Job requests per day' })} titleHi={t({ hi: 'जॉब रिक्वेस्ट', en: 'Job Requests' })}>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={data}>
               <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
@@ -125,7 +127,7 @@ export default function AdminAnalyticsPage() {
           </ResponsiveContainer>
         </ChartCard>
 
-        <ChartCard title="Calls made via platform" titleHi="Calls Made">
+        <ChartCard title={t({ hi: 'प्लेटफ़ॉर्म से की गई कॉल्स', en: 'Calls made via platform' })} titleHi={t({ hi: 'कॉल्स की गईं', en: 'Calls Made' })}>
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={data}>
               <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />

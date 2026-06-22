@@ -5,8 +5,10 @@ import { Tag, Trash2, CheckCircle, Clock, PlusCircle } from "lucide-react";
 import { apiGet, apiPatch, apiPost } from "@/lib/api/client";
 import { CATEGORIES } from "@/lib/data/categories";
 import EmptyState from "@/components/EmptyState";
+import { useT } from "@/lib/i18n/useT";
 
 export default function AdminCategoriesPage() {
+  const t = useT();
   const [custom, setCustom] = useState([]);
   const [loading, setLoading] = useState(true);
   const [newName, setNewName] = useState("");
@@ -32,7 +34,7 @@ export default function AdminCategoriesPage() {
   }
 
   async function handleDelete(id) {
-    if (!confirm("Delete this category?")) return;
+    if (!confirm(t({ hi: 'इस कैटेगरी को delete करें?', en: 'Delete this category?' }))) return;
     try {
       await apiPatch(`/api/categories/custom/${id}`, { status: "deleted" });
       await loadCustom();
@@ -58,25 +60,25 @@ export default function AdminCategoriesPage() {
   return (
     <div className="space-y-6 max-w-4xl">
       <div>
-        <h1 className="text-2xl font-black text-brand-navy font-hindi">कैटेगरी प्रबंधन / Category Management</h1>
-        <p className="text-gray-500 text-sm mt-0.5">Manage built-in and user-submitted categories</p>
+        <h1 className="text-2xl font-black text-brand-navy font-hindi">{t({ hi: 'कैटेगरी प्रबंधन', en: 'Category Management' })}</h1>
+        <p className="text-gray-500 text-sm mt-0.5">{t({ hi: 'इन-बिल्ट और यूज़र द्वारा सबमिट की गई कैटेगरी मैनेज करें', en: 'Manage built-in and user-submitted categories' })}</p>
       </div>
 
       {/* Add new custom category */}
       <div className="bg-white rounded-3xl border-2 border-brand-navy p-5">
         <h2 className="font-black text-brand-navy mb-4 flex items-center gap-2">
-          <PlusCircle size={18} className="text-orange-500" /> नई Category जोड़ें / Add New Category
+          <PlusCircle size={18} className="text-orange-500" /> {t({ hi: 'नई कैटेगरी जोड़ें', en: 'Add New Category' })}
         </h2>
         <form onSubmit={handleAddNew} className="flex flex-col sm:flex-row gap-3">
           <input value={newNameHi} onChange={e => setNewNameHi(e.target.value)}
-            placeholder="Hindi नाम (जैसे: सफाई सेवा)"
+            placeholder={t({ hi: 'हिंदी नाम (जैसे: सफाई सेवा)', en: 'Hindi name (e.g. सफाई सेवा)' })}
             className="flex-1 border-2 border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand-navy font-hindi" />
           <input value={newName} onChange={e => setNewName(e.target.value)}
-            placeholder="English Name (e.g. Cleaning Service)"
+            placeholder={t({ hi: 'अंग्रेज़ी नाम (जैसे: Cleaning Service)', en: 'English name (e.g. Cleaning Service)' })}
             className="flex-1 border-2 border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand-navy" />
           <button type="submit" disabled={adding || !newName.trim()}
             className="bg-brand-navy text-white font-bold px-6 py-3 rounded-xl disabled:opacity-50 whitespace-nowrap">
-            {adding ? "Adding..." : "Add"}
+            {adding ? t({ hi: 'जोड़ रहे हैं...', en: 'Adding...' }) : t({ hi: 'जोड़ें', en: 'Add' })}
           </button>
         </form>
       </div>
@@ -84,7 +86,7 @@ export default function AdminCategoriesPage() {
       {/* Built-in categories (read-only display) */}
       <div className="bg-white rounded-3xl border-2 border-gray-200 p-5">
         <h2 className="font-black text-brand-navy mb-4 flex items-center gap-2">
-          <Tag size={18} className="text-blue-500" /> Built-in Categories ({CATEGORIES.length})
+          <Tag size={18} className="text-blue-500" /> {t({ hi: 'इन-बिल्ट कैटेगरी', en: 'Built-in Categories' })} ({CATEGORIES.length})
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
           {CATEGORIES.map(cat => (
@@ -103,7 +105,7 @@ export default function AdminCategoriesPage() {
       {pendingCustom.length > 0 && (
         <div className="bg-white rounded-3xl border-2 border-orange-200 p-5">
           <h2 className="font-black text-brand-navy mb-4 flex items-center gap-2">
-            <Clock size={18} className="text-orange-500" /> Pending Approval ({pendingCustom.length})
+            <Clock size={18} className="text-orange-500" /> {t({ hi: 'अप्रूवल के लिए लंबित', en: 'Pending Approval' })} ({pendingCustom.length})
           </h2>
           <div className="space-y-2">
             {pendingCustom.map(cat => (
@@ -115,11 +117,11 @@ export default function AdminCategoriesPage() {
                 <div className="flex gap-2">
                   <button onClick={() => handleApprove(cat._id)}
                     className="flex items-center gap-1 text-xs font-bold bg-green-100 text-green-700 px-3 py-1.5 rounded-xl hover:bg-green-200">
-                    <CheckCircle size={12} /> Approve
+                    <CheckCircle size={12} /> {t({ hi: 'अप्रूव', en: 'Approve' })}
                   </button>
                   <button onClick={() => handleDelete(cat._id)}
                     className="flex items-center gap-1 text-xs font-bold bg-red-100 text-red-700 px-3 py-1.5 rounded-xl hover:bg-red-200">
-                    <Trash2 size={12} /> Delete
+                    <Trash2 size={12} /> {t({ hi: 'डिलीट', en: 'Delete' })}
                   </button>
                 </div>
               </div>
@@ -131,10 +133,10 @@ export default function AdminCategoriesPage() {
       {/* Approved custom categories */}
       <div className="bg-white rounded-3xl border-2 border-gray-200 p-5">
         <h2 className="font-black text-brand-navy mb-4 flex items-center gap-2">
-          <CheckCircle size={18} className="text-green-600" /> Approved Custom ({approvedCustom.length})
+          <CheckCircle size={18} className="text-green-600" /> {t({ hi: 'अप्रूव की गई कस्टम कैटेगरी', en: 'Approved Custom' })} ({approvedCustom.length})
         </h2>
         {loading ? (
-          <p className="text-gray-400 text-sm">Loading...</p>
+          <p className="text-gray-400 text-sm">{t({ hi: 'लोड हो रहा है...', en: 'Loading...' })}</p>
         ) : approvedCustom.length === 0 ? (
           <EmptyState icon="default" titleHi="कोई Custom Category नहीं" titleEn="No approved custom categories" descHi="" descEn="" />
         ) : (

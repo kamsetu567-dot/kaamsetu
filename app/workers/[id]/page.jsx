@@ -14,6 +14,7 @@ import WorkerStatusBadge from "@/components/WorkerStatusBadge";
 import RatingStars from "@/components/RatingStars";
 import EmptyState from "@/components/EmptyState";
 import { useToast } from "@/components/Toast";
+import { useT } from "@/lib/i18n/useT";
 
 function ProfileSkeleton() {
   return (
@@ -88,6 +89,7 @@ export default function WorkerProfilePage() {
   const { id } = useParams();
   const router = useRouter();
   const toast = useToast();
+  const t = useT();
 
   const [worker, setWorker] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -190,26 +192,26 @@ export default function WorkerProfilePage() {
                   <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
                     <User size={40} className="text-gray-400" />
                   </div>
-                  <p className="font-black text-text-primary text-lg mb-2">Worker Not Found</p>
+                  <p className="font-black text-text-primary text-lg mb-2">{t({ hi: 'वर्कर नहीं मिला', en: 'Worker Not Found' })}</p>
                   <p className="text-text-secondary text-sm mb-4">
-                    This profile is no longer available or has been removed.
+                    {t({ hi: 'यह प्रोफ़ाइल अब उपलब्ध नहीं है या हटा दी गई है।', en: 'This profile is no longer available or has been removed.' })}
                   </p>
                   <Link
                     href="/workers"
                     className="inline-block bg-primary-blue text-white font-bold py-2.5 px-6 rounded-2xl text-sm"
                   >
-                    Browse Workers
+                    {t({ hi: 'वर्कर्स ब्राउज़ करें', en: 'Browse Workers' })}
                   </Link>
                 </>
               ) : (
                 <>
-                  <p className="font-black text-text-primary text-lg mb-2">Failed to load profile</p>
-                  <p className="text-text-secondary text-sm mb-4">Please check your internet and try again.</p>
+                  <p className="font-black text-text-primary text-lg mb-2">{t({ hi: 'प्रोफ़ाइल लोड नहीं हो पाई', en: 'Failed to load profile' })}</p>
+                  <p className="text-text-secondary text-sm mb-4">{t({ hi: 'अपना इंटरनेट चेक करें और फिर से try करें।', en: 'Please check your internet and try again.' })}</p>
                   <button
                     onClick={loadWorker}
                     className="bg-primary-blue text-white font-bold py-2.5 px-6 rounded-2xl text-sm"
                   >
-                    Try Again
+                    {t({ hi: 'फिर से try करें', en: 'Try Again' })}
                   </button>
                 </>
               )}
@@ -317,8 +319,9 @@ export default function WorkerProfilePage() {
                   >
                     <FileText size={20} className="text-primary-blue flex-shrink-0" />
                     <div>
-                      <p className="font-bold text-primary-blue text-sm">Download Biodata</p>
-                      <p className="text-xs text-gray-500" style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>बायोडेटा डाउनलोड करें</p>
+                      <p className="font-bold text-primary-blue text-sm" style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>
+                        {t({ hi: 'बायोडेटा डाउनलोड करें', en: 'Download Biodata' })}
+                      </p>
                     </div>
                   </a>
                 </div>
@@ -330,7 +333,7 @@ export default function WorkerProfilePage() {
                     className="font-black text-text-primary mb-3"
                     style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
                   >
-                    Skills / हुनर
+                    {t({ hi: 'हुनर', en: 'Skills' })}
                   </h3>
                   <div className="flex flex-wrap gap-2">
                     {worker.skills.map(skill => (
@@ -345,7 +348,7 @@ export default function WorkerProfilePage() {
               <div className="flex justify-end">
                 <button onClick={() => setShowReport(true)}
                   className="flex items-center gap-1.5 text-xs text-red-400 hover:text-red-600 transition-colors py-1">
-                  <Flag size={13} /> Report this worker
+                  <Flag size={13} /> {t({ hi: 'इस वर्कर की रिपोर्ट करें', en: 'Report this worker' })}
                 </button>
               </div>
 
@@ -355,40 +358,40 @@ export default function WorkerProfilePage() {
                     {reportSubmitted ? (
                       <div className="text-center py-4">
                         <p className="text-2xl mb-2">✅</p>
-                        <p className="font-black text-brand-navy">Report Submit हो गई!</p>
-                        <p className="text-gray-500 text-sm mt-1">We'll review it shortly.</p>
+                        <p className="font-black text-brand-navy">{t({ hi: 'रिपोर्ट सबमिट हो गई!', en: 'Report submitted!' })}</p>
+                        <p className="text-gray-500 text-sm mt-1">{t({ hi: 'हम जल्द ही इसकी समीक्षा करेंगे।', en: "We'll review it shortly." })}</p>
                         <button onClick={() => { setShowReport(false); setReportSubmitted(false); setReportReason(""); setReportDesc(""); }}
-                          className="mt-4 w-full bg-brand-navy text-white font-bold py-3 rounded-xl">Close</button>
+                          className="mt-4 w-full bg-brand-navy text-white font-bold py-3 rounded-xl">{t({ hi: 'बंद करें', en: 'Close' })}</button>
                       </div>
                     ) : (
                       <>
-                        <h3 className="font-black text-brand-navy mb-1 flex items-center gap-2"><Flag size={16} className="text-red-500" /> Report Worker</h3>
-                        <p className="text-gray-500 text-xs mb-4">Help us keep KaamSetu safe</p>
+                        <h3 className="font-black text-brand-navy mb-1 flex items-center gap-2"><Flag size={16} className="text-red-500" /> {t({ hi: 'वर्कर की रिपोर्ट करें', en: 'Report Worker' })}</h3>
+                        <p className="text-gray-500 text-xs mb-4">{t({ hi: 'KaamSetu को सुरक्षित बनाए रखने में मदद करें', en: 'Help us keep KaamSetu safe' })}</p>
                         <div className="space-y-2 mb-4">
                           {[
-                            { value: "fake_profile", label: "Fake Profile" },
-                            { value: "fraud", label: "Fraud / Cheating" },
-                            { value: "bad_behaviour", label: "Bad Behaviour" },
-                            { value: "spam", label: "Spam" },
-                            { value: "wrong_work", label: "Wrong / Poor Work" },
+                            { value: "fake_profile",  hi: 'फेक प्रोफ़ाइल',          en: 'Fake Profile' },
+                            { value: "fraud",         hi: 'धोखाधड़ी / ठगी',         en: 'Fraud / Cheating' },
+                            { value: "bad_behaviour", hi: 'खराब व्यवहार',           en: 'Bad Behaviour' },
+                            { value: "spam",          hi: 'स्पैम',                   en: 'Spam' },
+                            { value: "wrong_work",    hi: 'गलत / खराब काम',          en: 'Wrong / Poor Work' },
                           ].map(r => (
                             <label key={r.value} className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-colors ${reportReason === r.value ? "border-red-500 bg-red-50" : "border-gray-200"}`}>
                               <input type="radio" value={r.value} checked={reportReason === r.value}
                                 onChange={e => setReportReason(e.target.value)} className="sr-only" />
                               <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 ${reportReason === r.value ? "border-red-500 bg-red-500" : "border-gray-300"}`} />
-                              <span className="text-sm font-semibold text-brand-navy">{r.label}</span>
+                              <span className="text-sm font-semibold text-brand-navy">{t({ hi: r.hi, en: r.en })}</span>
                             </label>
                           ))}
                         </div>
                         <textarea value={reportDesc} onChange={e => setReportDesc(e.target.value)}
-                          placeholder="Additional details (optional)..."
+                          placeholder={t({ hi: 'अतिरिक्त जानकारी (वैकल्पिक)...', en: 'Additional details (optional)...' })}
                           rows={2}
                           className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-red-400 resize-none mb-4" />
                         <div className="flex gap-3">
                           <button onClick={() => setShowReport(false)}
-                            className="flex-1 border-2 border-gray-200 text-gray-500 font-bold py-3 rounded-xl">Cancel</button>
+                            className="flex-1 border-2 border-gray-200 text-gray-500 font-bold py-3 rounded-xl">{t({ hi: 'रद्द करें', en: 'Cancel' })}</button>
                           <button onClick={submitReport} disabled={!reportReason}
-                            className="flex-1 bg-red-500 text-white font-bold py-3 rounded-xl disabled:opacity-50">Submit</button>
+                            className="flex-1 bg-red-500 text-white font-bold py-3 rounded-xl disabled:opacity-50">{t({ hi: 'सबमिट करें', en: 'Submit' })}</button>
                         </div>
                       </>
                     )}
@@ -401,7 +404,7 @@ export default function WorkerProfilePage() {
                   className="font-black text-text-primary mb-3"
                   style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
                 >
-                  Reviews / समीक्षाएँ
+                  {t({ hi: 'समीक्षाएँ', en: 'Reviews' })}
                 </h3>
                 <EmptyState
                   icon="default"
@@ -423,7 +426,7 @@ export default function WorkerProfilePage() {
                 <a
                   href={`tel:+91${worker.mobile}`}
                   className="flex-1 flex items-center justify-center gap-1.5 bg-primary-green text-white font-bold py-2.5 rounded-2xl hover:bg-green-700 transition-colors text-sm"
-                  aria-label="Call worker"
+                  aria-label={t({ hi: 'वर्कर को कॉल करें', en: 'Call worker' })}
                 >
                   <Phone size={16} />
                   <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>कॉल</span>
@@ -434,7 +437,7 @@ export default function WorkerProfilePage() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex-1 flex items-center justify-center gap-1.5 bg-[#25D366] text-white font-bold py-2.5 rounded-2xl hover:opacity-90 transition-opacity text-sm"
-                  aria-label="WhatsApp worker"
+                  aria-label={t({ hi: 'WhatsApp पर वर्कर से बात करें', en: 'WhatsApp worker' })}
                 >
                   <MessageSquare size={16} />
                   <span>WhatsApp</span>

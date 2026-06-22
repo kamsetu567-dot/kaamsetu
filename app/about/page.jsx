@@ -1,13 +1,12 @@
-﻿import Header from "@/components/Header";
+"use client";
+
+import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Users, Target, Heart, Wrench } from "lucide-react";
-
-export const metadata = {
-  title: "About KaamSetu | हमारे बारे में",
-  description: "KaamSetu — India's Hindi-first local service marketplace connecting clients with skilled workers.",
-};
+import { useT } from "@/lib/i18n/useT";
 
 export default function AboutPage() {
+  const t = useT();
   return (
     <div className="min-h-screen flex flex-col bg-brand-bg">
       <Header />
@@ -22,9 +21,8 @@ export default function AboutPage() {
             className="text-3xl font-black text-brand-navy"
             style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
           >
-            KaamSetu के बारे में
+            {t({ hi: 'KaamSetu के बारे में', en: 'About KaamSetu' })}
           </h1>
-          <p className="text-gray-500 text-lg">About KaamSetu</p>
         </div>
 
         {/* Mission */}
@@ -37,21 +35,17 @@ export default function AboutPage() {
               className="text-xl font-black text-brand-navy"
               style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
             >
-              हमारा उद्देश्य / Our Mission
+              {t({ hi: 'हमारा उद्देश्य', en: 'Our Mission' })}
             </h2>
           </div>
           <p
             className="text-gray-500 leading-relaxed"
             style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
           >
-            KaamSetu एक Hindi-first डिजिटल platform है जो skilled workers और clients को connect करता है।
-            हमारा लक्ष्य है कि हर कारीगर, मज़दूर, और service provider को digital economy का हिस्सा बनाया जाए
-            — बिना किसी भाषा barrier के।
-          </p>
-          <p className="text-gray-500 leading-relaxed mt-3 text-sm">
-            KaamSetu is a Hindi-first digital platform connecting skilled service providers with clients across India.
-            Our mission is to bring every artisan, laborer, and service professional into the digital economy —
-            without any language barrier.
+            {t({
+              hi: 'KaamSetu एक Hindi-first डिजिटल platform है जो skilled workers और clients को connect करता है। हमारा लक्ष्य है कि हर कारीगर, मज़दूर, और service provider को digital economy का हिस्सा बनाया जाए — बिना किसी भाषा barrier के।',
+              en: "KaamSetu is a Hindi-first digital platform connecting skilled service providers with clients across India. Our mission is to bring every artisan, laborer, and service professional into the digital economy — without any language barrier.",
+            })}
           </p>
         </div>
 
@@ -65,7 +59,7 @@ export default function AboutPage() {
               className="text-xl font-black text-brand-navy"
               style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
             >
-              हम क्या करते हैं / What We Do
+              {t({ hi: 'हम क्या करते हैं', en: 'What We Do' })}
             </h2>
           </div>
           <div className="space-y-3">
@@ -84,9 +78,8 @@ export default function AboutPage() {
                     className="font-semibold text-brand-navy"
                     style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
                   >
-                    {item.hi}
+                    {t(item)}
                   </p>
-                  <p className="text-gray-500 text-sm">{item.en}</p>
                 </div>
               </div>
             ))}
@@ -101,31 +94,30 @@ export default function AboutPage() {
               className="text-xl font-black"
               style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
             >
-              हमारे मूल्य / Our Values
+              {t({ hi: 'हमारे मूल्य', en: 'Our Values' })}
             </h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {[
-              { hi: "विश्वास",    en: "Trust",       desc: "Verified profiles, honest reviews." },
-              { hi: "सुविधा",    en: "Convenience", desc: "One app for all local services."  },
-              { hi: "समावेश",    en: "Inclusion",   desc: "Hindi-first, low-literacy friendly." },
+              { hi: "विश्वास",    en: "Trust",       desc: { hi: 'सत्यापित प्रोफाइल, सच्ची समीक्षाएँ।', en: 'Verified profiles, honest reviews.' } },
+              { hi: "सुविधा",    en: "Convenience", desc: { hi: 'सभी लोकल सेवाओं के लिए एक ऐप।', en: 'One app for all local services.' } },
+              { hi: "समावेश",    en: "Inclusion",   desc: { hi: 'Hindi-first, सरल भाषा वाले इंटरफ़ेस।', en: 'Hindi-first, low-literacy friendly.' } },
             ].map(v => (
               <div key={v.en} className="bg-white/10 rounded-2xl p-4">
                 <p
                   className="font-black text-brand-yellow text-lg"
                   style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
                 >
-                  {v.hi}
+                  {t({ hi: v.hi, en: v.en })}
                 </p>
-                <p className="text-white/80 text-sm font-semibold">{v.en}</p>
-                <p className="text-white/60 text-xs mt-1">{v.desc}</p>
+                <p className="text-white/60 text-xs mt-1">{t(v.desc)}</p>
               </div>
             ))}
           </div>
         </div>
 
         <p className="text-center text-gray-500 text-sm">
-          Questions? Contact us at{" "}
+          {t({ hi: 'सवाल हैं? हमें यहाँ संपर्क करें', en: 'Questions? Contact us at' })}{" "}
           <span className="text-blue-600 font-semibold">support@kaamsetu.in</span>
         </p>
 

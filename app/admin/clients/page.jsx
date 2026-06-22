@@ -4,9 +4,11 @@ import { useState, useEffect } from "react";
 import { Ban, Search, RefreshCw, ShieldCheck, Trash2 } from "lucide-react";
 import { getAllClients, blockUser, unblockClient, deleteClient } from "@/lib/api/admin";
 import { useToast } from "@/components/Toast";
+import { useT } from "@/lib/i18n/useT";
 
 export default function AdminClientsPage() {
   const toast = useToast();
+  const t = useT();
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -23,12 +25,12 @@ export default function AdminClientsPage() {
     if (actionInProgress) return;
     setActionInProgress(`${id}-${action}`);
     try {
-      if (action === "block") { await blockUser(id, "client"); toast.success("Client blocked."); }
-      else if (action === "unblock") { await unblockClient(id); toast.success("Client unblocked."); }
-      else if (action === "delete") { await deleteClient(id); toast.success("Client deleted."); }
+      if (action === "block") { await blockUser(id, "client"); toast.success(t({ hi: 'क्लाइंट ब्लॉक किया गया।', en: 'Client blocked.' })); }
+      else if (action === "unblock") { await unblockClient(id); toast.success(t({ hi: 'क्लाइंट अनब्लॉक किया गया।', en: 'Client unblocked.' })); }
+      else if (action === "delete") { await deleteClient(id); toast.success(t({ hi: 'क्लाइंट डिलीट किया गया।', en: 'Client deleted.' })); }
       load();
     } catch (err) {
-      toast.error(err?.message || "Action failed");
+      toast.error(err?.message || t({ hi: 'कार्रवाई विफल', en: 'Action failed' }));
     } finally {
       setActionInProgress(null);
     }
@@ -44,17 +46,17 @@ export default function AdminClientsPage() {
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-black text-brand-navy font-hindi">Clients प्रबंधन</h1>
-          <p className="text-gray-400 text-sm mt-0.5">View all clients and manage their access</p>
+          <h1 className="text-2xl font-black text-brand-navy font-hindi">{t({ hi: 'क्लाइंट प्रबंधन', en: 'Client Management' })}</h1>
+          <p className="text-gray-400 text-sm mt-0.5">{t({ hi: 'सभी क्लाइंट देखें और उनकी एक्सेस मैनेज करें', en: 'View all clients and manage their access' })}</p>
         </div>
         <button onClick={load} disabled={loading} className="flex items-center gap-1 text-brand-navy text-sm font-semibold hover:opacity-70 disabled:opacity-40 min-h-0">
-          <RefreshCw size={14} className={loading ? "animate-spin" : ""} /> Refresh
+          <RefreshCw size={14} className={loading ? "animate-spin" : ""} /> {t({ hi: 'रिफ्रेश', en: 'Refresh' })}
         </button>
       </div>
 
       <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-4 py-2.5 max-w-sm shadow-sm">
         <Search size={16} className="text-gray-400 flex-shrink-0" />
-        <input type="text" placeholder="नाम या मोबाइल खोजें"
+        <input type="text" placeholder={t({ hi: 'नाम या मोबाइल खोजें', en: 'Search by name or mobile' })}
           value={search} onChange={e => setSearch(e.target.value)}
           className="flex-1 bg-transparent outline-none text-sm text-brand-navy placeholder:text-gray-400" />
       </div>
@@ -64,7 +66,15 @@ export default function AdminClientsPage() {
           <table className="w-full text-sm min-w-[640px]">
             <thead>
               <tr className="border-b border-gray-100 bg-brand-bg">
-                {["नाम / Name", "Mobile", "City", "Status", "Requests", "Joined", "Actions"].map(h => (
+                {[
+                  t({ hi: 'नाम', en: 'Name' }),
+                  t({ hi: 'मोबाइल', en: 'Mobile' }),
+                  t({ hi: 'शहर', en: 'City' }),
+                  t({ hi: 'स्टेटस', en: 'Status' }),
+                  t({ hi: 'रिक्वेस्ट्स', en: 'Requests' }),
+                  t({ hi: 'जुड़ने की तारीख़', en: 'Joined' }),
+                  t({ hi: 'कार्रवाई', en: 'Actions' }),
+                ].map(h => (
                   <th key={h} className="text-left px-4 py-3 text-gray-400 font-semibold text-xs whitespace-nowrap">{h}</th>
                 ))}
               </tr>
@@ -79,7 +89,7 @@ export default function AdminClientsPage() {
                   </tr>
                 ))
               ) : filtered.length === 0 ? (
-                <tr><td colSpan={7} className="py-12 text-center text-gray-400">No clients found</td></tr>
+                <tr><td colSpan={7} className="py-12 text-center text-gray-400">{t({ hi: 'कोई क्लाइंट नहीं मिला', en: 'No clients found' })}</td></tr>
               ) : (
                 filtered.map(c => (
                   <tr key={c.id} className="border-b border-gray-50 hover:bg-brand-bg last:border-0 transition-colors">
@@ -100,15 +110,15 @@ export default function AdminClientsPage() {
                         {c.status === "blocked" ? (
                           <button onClick={() => handleAction(c.id, "unblock")} disabled={!!actionInProgress}
                             className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-green-100 text-green-700 hover:bg-green-200 transition-colors disabled:opacity-40">
-                            <ShieldCheck size={12} /> Unblock
+                            <ShieldCheck size={12} /> {t({ hi: 'अनब्लॉक', en: 'Unblock' })}
                           </button>
                         ) : (
                           <button onClick={() => handleAction(c.id, "block")} disabled={!!actionInProgress}
                             className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-gray-100 text-gray-600 hover:bg-red-100 hover:text-red-600 transition-colors disabled:opacity-40">
-                            <Ban size={12} /> Block
+                            <Ban size={12} /> {t({ hi: 'ब्लॉक', en: 'Block' })}
                           </button>
                         )}
-                        <button onClick={() => { if (confirm(`Delete ${c.name}? This cannot be undone.`)) handleAction(c.id, "delete"); }} disabled={!!actionInProgress}
+                        <button onClick={() => { if (confirm(t({ hi: `${c.name} को डिलीट करें? यह वापस नहीं किया जा सकता।`, en: `Delete ${c.name}? This cannot be undone.` }))) handleAction(c.id, "delete"); }} disabled={!!actionInProgress}
                           className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-gray-100 text-gray-400 hover:bg-red-100 hover:text-red-600 transition-colors disabled:opacity-40">
                           <Trash2 size={12} />
                         </button>
@@ -122,7 +132,10 @@ export default function AdminClientsPage() {
         </div>
         {!loading && filtered.length > 0 && (
           <div className="px-4 py-3 border-t border-gray-50 bg-brand-bg text-xs text-gray-400">
-            {filtered.length} client{filtered.length !== 1 ? "s" : ""} shown · {filtered.filter(c => c.status === "blocked").length} blocked
+            {t({
+              hi: `${filtered.length} क्लाइंट दिखाए जा रहे हैं · ${filtered.filter(c => c.status === 'blocked').length} ब्लॉक्ड`,
+              en: `${filtered.length} client${filtered.length !== 1 ? 's' : ''} shown · ${filtered.filter(c => c.status === 'blocked').length} blocked`,
+            })}
           </div>
         )}
       </div>

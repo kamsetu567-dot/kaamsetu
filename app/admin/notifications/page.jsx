@@ -4,24 +4,26 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Send, CheckCircle, Bell } from "lucide-react";
 import { broadcastNotification } from "@/lib/api/admin";
+import { useT } from "@/lib/i18n/useT";
 
 const AUDIENCE_OPTIONS = [
-  { value: "all",     hi: "सभी Users",          en: "All Users"        },
-  { value: "workers", hi: "सभी Workers",         en: "All Workers"      },
-  { value: "clients", hi: "सभी Clients",         en: "All Clients"      },
-  { value: "free",    hi: "खाली Workers (Free)", en: "Free Workers"     },
-  { value: "working", hi: "Busy Workers",        en: "Working Workers"  },
-];
-
-const CHANNEL_OPTIONS = [
-  { value: "sms",       label: "SMS"       },
-  { value: "whatsapp",  label: "WhatsApp"  },
-  { value: "push",      label: "Push Notification" },
+  { value: "all",     hi: "सभी यूज़र",          en: "All Users"        },
+  { value: "workers", hi: "सभी वर्कर",          en: "All Workers"      },
+  { value: "clients", hi: "सभी क्लाइंट",         en: "All Clients"      },
+  { value: "free",    hi: "खाली वर्कर (Free)",   en: "Free Workers"     },
+  { value: "working", hi: "व्यस्त वर्कर",        en: "Working Workers"  },
 ];
 
 export default function AdminNotificationsPage() {
+  const t = useT();
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+
+  const CHANNEL_OPTIONS = [
+    { value: "sms",       label: "SMS"       },
+    { value: "whatsapp",  label: "WhatsApp"  },
+    { value: "push",      label: t({ hi: 'पुश नोटिफिकेशन', en: 'Push Notification' }) },
+  ];
 
   const { register, handleSubmit, reset, watch, formState: { errors } } = useForm({
     defaultValues: { audience: "all", channels: ["sms"] },
@@ -45,9 +47,9 @@ export default function AdminNotificationsPage() {
           className="text-2xl font-black text-brand-navy"
           style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
         >
-          सूचनाएँ भेजें / Broadcast Notifications
+          {t({ hi: 'सूचनाएँ भेजें', en: 'Broadcast Notifications' })}
         </h1>
-        <p className="text-gray-500 text-sm mt-0.5">Send SMS, WhatsApp, or push notifications to platform users</p>
+        <p className="text-gray-500 text-sm mt-0.5">{t({ hi: 'प्लेटफ़ॉर्म यूज़र्स को SMS, WhatsApp या पुश नोटिफिकेशन भेजें', en: 'Send SMS, WhatsApp, or push notifications to platform users' })}</p>
       </div>
 
       <div className="bg-white rounded-3xl border-2 border-gray-200 p-5">
@@ -60,9 +62,9 @@ export default function AdminNotificationsPage() {
               className="font-black text-brand-navy text-xl"
               style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
             >
-              Notification भेजी गई!
+              {t({ hi: 'नोटिफिकेशन भेजी गई!', en: 'Notification sent!' })}
             </p>
-            <p className="text-gray-500 text-sm">Notification sent successfully.</p>
+            <p className="text-gray-500 text-sm">{t({ hi: 'नोटिफिकेशन सफलतापूर्वक भेजी गई।', en: 'Notification sent successfully.' })}</p>
           </div>
         ) : (
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
@@ -73,7 +75,7 @@ export default function AdminNotificationsPage() {
                 className="block text-sm font-semibold text-brand-navy mb-2"
                 style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
               >
-                Audience / किसे भेजें
+                {t({ hi: 'किसे भेजें', en: 'Audience' })}
               </label>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                 {AUDIENCE_OPTIONS.map(o => {
@@ -110,7 +112,7 @@ export default function AdminNotificationsPage() {
             {/* Channels */}
             <div>
               <label className="block text-sm font-semibold text-brand-navy mb-2">
-                Channel / माध्यम
+                {t({ hi: 'माध्यम', en: 'Channel' })}
               </label>
               <div className="flex flex-wrap gap-3">
                 {CHANNEL_OPTIONS.map(c => (
@@ -130,19 +132,18 @@ export default function AdminNotificationsPage() {
             {/* Message */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="text-sm font-semibold text-brand-navy">
-                  <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>संदेश</span>
-                  {" / Message"}
+                <label className="text-sm font-semibold text-brand-navy" style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>
+                  {t({ hi: 'संदेश', en: 'Message' })}
                 </label>
                 <span className="text-xs text-gray-500">{message.length}/160</span>
               </div>
               <textarea
                 {...register("message", {
-                  required: "Message is required",
-                  maxLength: { value: 160, message: "Max 160 characters" },
+                  required: t({ hi: 'संदेश ज़रूरी है', en: 'Message is required' }),
+                  maxLength: { value: 160, message: t({ hi: 'अधिकतम 160 अक्षर', en: 'Max 160 characters' }) },
                 })}
                 rows={4}
-                placeholder="यहाँ अपना message लिखें / Write your message here..."
+                placeholder={t({ hi: 'यहाँ अपना संदेश लिखें...', en: 'Write your message here...' })}
                 className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-blue-600 transition-colors resize-none"
                 style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
               />
@@ -155,7 +156,7 @@ export default function AdminNotificationsPage() {
               className="flex items-center gap-2 bg-orange-500 text-white font-black px-8 py-3.5 rounded-2xl hover:bg-orange-600 transition-colors disabled:opacity-60 w-full justify-center"
             >
               <Send size={18} />
-              {submitting ? "Sending..." : "Send Notification / भेजें"}
+              {submitting ? t({ hi: 'भेज रहे हैं...', en: 'Sending...' }) : t({ hi: 'नोटिफिकेशन भेजें', en: 'Send Notification' })}
             </button>
           </form>
         )}
@@ -164,11 +165,11 @@ export default function AdminNotificationsPage() {
       {/* Info box */}
       <div className="flex items-start gap-3 bg-blue-50 border-2 border-blue-200 rounded-2xl px-4 py-3">
         <Bell size={18} className="text-blue-600 flex-shrink-0 mt-0.5" />
-        <p className="text-blue-600 text-sm">
-          <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>
-            Backend ready होने के बाद actual SMS/WhatsApp gateway से messages जाएंगे।
-          </span>
-          {" / Messages will be sent via SMS/WhatsApp gateway once the backend is connected."}
+        <p className="text-blue-600 text-sm" style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>
+          {t({
+            hi: 'Backend ready होने के बाद actual SMS/WhatsApp gateway से messages जाएंगे।',
+            en: 'Messages will be sent via SMS/WhatsApp gateway once the backend is connected.',
+          })}
         </p>
       </div>
     </div>

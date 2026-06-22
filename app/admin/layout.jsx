@@ -6,12 +6,14 @@ import Image from "next/image";
 import AdminSidebar from "@/components/AdminSidebar";
 import { Menu } from "lucide-react";
 import { isAdminLoggedIn } from "@/lib/utils/adminAuth";
+import { useT } from "@/lib/i18n/useT";
 
 export default function AdminLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
+  const t = useT();
 
   useEffect(() => {
     if (pathname === "/admin/login") {
@@ -79,7 +81,7 @@ export default function AdminLayout({ children }) {
             className="w-11 h-11 rounded-lg object-contain flex-shrink-0"
             unoptimized
           />
-          <span className="text-white font-black text-lg">KAAMSETU Admin</span>
+          <span className="text-white font-black text-lg">KAAMSETU {t({ hi: 'एडमिन', en: 'Admin' })}</span>
         </div>
 
         <main className="flex-1 p-4 md:p-6 max-w-7xl w-full mx-auto">

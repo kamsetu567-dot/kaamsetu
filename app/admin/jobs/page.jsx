@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Search, RefreshCw } from "lucide-react";
 import { getAllJobs } from "@/lib/api/admin";
+import { useT } from "@/lib/i18n/useT";
 
 const STATUS_BADGE = {
   pending:   "bg-yellow-100 text-yellow-700",
@@ -14,6 +15,7 @@ const STATUS_BADGE = {
 };
 
 export default function AdminJobsPage() {
+  const t = useT();
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -41,28 +43,28 @@ export default function AdminJobsPage() {
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-black text-brand-navy font-hindi">Jobs / सभी जॉब्स</h1>
-          <p className="text-gray-400 text-sm mt-0.5">All job requests across the platform</p>
+          <h1 className="text-2xl font-black text-brand-navy font-hindi">{t({ hi: 'सभी जॉब्स', en: 'Jobs' })}</h1>
+          <p className="text-gray-400 text-sm mt-0.5">{t({ hi: 'प्लेटफ़ॉर्म पर सभी जॉब रिक्वेस्ट', en: 'All job requests across the platform' })}</p>
         </div>
         <button onClick={load} disabled={loading} className="flex items-center gap-1 text-brand-navy text-sm font-semibold hover:opacity-70 disabled:opacity-40 min-h-0">
-          <RefreshCw size={14} className={loading ? "animate-spin" : ""} /> Refresh
+          <RefreshCw size={14} className={loading ? "animate-spin" : ""} /> {t({ hi: 'रिफ्रेश', en: 'Refresh' })}
         </button>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-4 py-2.5 flex-1 max-w-sm shadow-sm">
           <Search size={16} className="text-gray-400 flex-shrink-0" />
-          <input type="text" placeholder="Client name, mobile, category, city..."
+          <input type="text" placeholder={t({ hi: 'क्लाइंट का नाम, मोबाइल, कैटेगरी, शहर...', en: 'Client name, mobile, category, city...' })}
             value={search} onChange={e => setSearch(e.target.value)}
             className="flex-1 bg-transparent outline-none text-sm placeholder:text-gray-400" />
         </div>
         <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
           className="px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-brand-navy text-sm bg-white shadow-sm">
-          <option value="all">All Status</option>
-          <option value="pending">Pending</option>
-          <option value="accepted">Accepted</option>
-          <option value="completed">Completed</option>
-          <option value="cancelled">Cancelled</option>
+          <option value="all">{t({ hi: 'सभी स्टेटस', en: 'All Status' })}</option>
+          <option value="pending">{t({ hi: 'लंबित', en: 'Pending' })}</option>
+          <option value="accepted">{t({ hi: 'स्वीकार', en: 'Accepted' })}</option>
+          <option value="completed">{t({ hi: 'पूरी हुई', en: 'Completed' })}</option>
+          <option value="cancelled">{t({ hi: 'रद्द', en: 'Cancelled' })}</option>
         </select>
       </div>
 
@@ -71,7 +73,15 @@ export default function AdminJobsPage() {
           <table className="w-full text-sm min-w-[700px]">
             <thead>
               <tr className="border-b border-gray-100 bg-brand-bg">
-                {["Job ID", "Client", "Category", "City", "Status", "Date", "Source"].map(h => (
+                {[
+                  t({ hi: 'जॉब आईडी', en: 'Job ID' }),
+                  t({ hi: 'क्लाइंट', en: 'Client' }),
+                  t({ hi: 'कैटेगरी', en: 'Category' }),
+                  t({ hi: 'शहर', en: 'City' }),
+                  t({ hi: 'स्टेटस', en: 'Status' }),
+                  t({ hi: 'दिनांक', en: 'Date' }),
+                  t({ hi: 'सोर्स', en: 'Source' }),
+                ].map(h => (
                   <th key={h} className="text-left px-4 py-3 text-gray-400 font-semibold text-xs whitespace-nowrap">{h}</th>
                 ))}
               </tr>
@@ -86,7 +96,7 @@ export default function AdminJobsPage() {
                   </tr>
                 ))
               ) : filtered.length === 0 ? (
-                <tr><td colSpan={7} className="py-12 text-center text-gray-400">No jobs found</td></tr>
+                <tr><td colSpan={7} className="py-12 text-center text-gray-400">{t({ hi: 'कोई जॉब नहीं मिली', en: 'No jobs found' })}</td></tr>
               ) : (
                 filtered.map(j => (
                   <tr key={j._id || j.id} className="border-b border-gray-50 hover:bg-brand-bg last:border-0 transition-colors">
@@ -116,7 +126,7 @@ export default function AdminJobsPage() {
         </div>
         {!loading && filtered.length > 0 && (
           <div className="px-4 py-3 border-t border-gray-50 bg-brand-bg text-xs text-gray-400">
-            {filtered.length} job{filtered.length !== 1 ? "s" : ""} shown
+            {t({ hi: `${filtered.length} जॉब्स दिखाई जा रही हैं`, en: `${filtered.length} job${filtered.length !== 1 ? 's' : ''} shown` })}
           </div>
         )}
       </div>

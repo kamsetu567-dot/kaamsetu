@@ -4,8 +4,10 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { CheckCircle, Upload, CreditCard } from "lucide-react";
 import { getPaymentSettings, updatePaymentSettings } from "@/lib/api/admin";
+import { useT } from "@/lib/i18n/useT";
 
 export default function AdminPaymentsPage() {
+  const t = useT();
   const [saved, setSaved] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [qrPreview, setQrPreview] = useState(null);
@@ -49,9 +51,9 @@ export default function AdminPaymentsPage() {
           className="text-2xl font-black text-brand-navy"
           style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
         >
-          भुगतान सेटिंग / Payment Settings
+          {t({ hi: 'भुगतान सेटिंग', en: 'Payment Settings' })}
         </h1>
-        <p className="text-gray-500 text-sm mt-0.5">Configure UPI ID, QR code, and bank details for worker subscriptions</p>
+        <p className="text-gray-500 text-sm mt-0.5">{t({ hi: 'वर्कर सब्सक्रिप्शन के लिए UPI ID, QR कोड और बैंक विवरण कॉन्फ़िगर करें', en: 'Configure UPI ID, QR code, and bank details for worker subscriptions' })}</p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
@@ -63,16 +65,16 @@ export default function AdminPaymentsPage() {
             style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
           >
             <CreditCard size={18} className="text-blue-600" />
-            UPI Details
+            {t({ hi: 'UPI विवरण', en: 'UPI Details' })}
           </h2>
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-semibold text-brand-navy mb-1.5">
-                UPI ID
+                {t({ hi: 'UPI ID', en: 'UPI ID' })}
               </label>
               <input
-                {...register("upiId", { required: "UPI ID required" })}
-                placeholder="yourname@upi"
+                {...register("upiId", { required: t({ hi: 'UPI ID ज़रूरी है', en: 'UPI ID required' }) })}
+                placeholder={t({ hi: 'yourname@upi', en: 'yourname@upi' })}
                 className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-blue-600 transition-colors"
               />
               {errors.upiId && <p className="text-red-500 text-xs mt-1">{errors.upiId.message}</p>}
@@ -81,12 +83,12 @@ export default function AdminPaymentsPage() {
             {/* QR code upload */}
             <div>
               <label className="block text-sm font-semibold text-brand-navy mb-1.5">
-                QR Code Image / QR कोड
+                {t({ hi: 'QR कोड इमेज', en: 'QR Code Image' })}
               </label>
               <div className="flex items-start gap-4">
                 {qrPreview ? (
                   <div className="relative w-28 h-28 flex-shrink-0">
-                    <img src={qrPreview} alt="QR Code" className="w-full h-full object-contain border-2 border-gray-200 rounded-xl" />
+                    <img src={qrPreview} alt={t({ hi: 'QR कोड', en: 'QR Code' })} className="w-full h-full object-contain border-2 border-gray-200 rounded-xl" />
                     <button
                       type="button"
                       onClick={() => setQrPreview(null)}
@@ -102,7 +104,7 @@ export default function AdminPaymentsPage() {
                 )}
                 <label className="flex items-center gap-2 bg-brand-bg border-2 border-gray-200 text-brand-navy text-sm font-semibold px-4 py-2.5 rounded-xl cursor-pointer hover:border-blue-600 transition-colors">
                   <Upload size={16} />
-                  Upload QR
+                  {t({ hi: 'QR अपलोड करें', en: 'Upload QR' })}
                   <input type="file" accept="image/*" onChange={handleQrChange} className="hidden" />
                 </label>
               </div>
@@ -116,14 +118,14 @@ export default function AdminPaymentsPage() {
             className="font-black text-brand-navy mb-4"
             style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
           >
-            Bank Details / बैंक जानकारी
+            {t({ hi: 'बैंक विवरण', en: 'Bank Details' })}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {[
-              { name: "accountHolder", label: "Account Holder Name", placeholder: "Full name as on bank" },
-              { name: "bankName",      label: "Bank Name",           placeholder: "e.g. State Bank of India" },
-              { name: "accountNumber", label: "Account Number",      placeholder: "12-digit account number" },
-              { name: "ifsc",          label: "IFSC Code",           placeholder: "e.g. SBIN0001234" },
+              { name: "accountHolder", label: t({ hi: 'खाताधारक का नाम', en: 'Account Holder Name' }), placeholder: t({ hi: 'बैंक में जैसा पूरा नाम है', en: 'Full name as on bank' }) },
+              { name: "bankName",      label: t({ hi: 'बैंक का नाम', en: 'Bank Name' }),               placeholder: t({ hi: 'जैसे: State Bank of India', en: 'e.g. State Bank of India' }) },
+              { name: "accountNumber", label: t({ hi: 'खाता संख्या', en: 'Account Number' }),         placeholder: t({ hi: '12 अंकों का खाता नंबर', en: '12-digit account number' }) },
+              { name: "ifsc",          label: t({ hi: 'IFSC कोड', en: 'IFSC Code' }),                  placeholder: t({ hi: 'जैसे: SBIN0001234', en: 'e.g. SBIN0001234' }) },
             ].map(f => (
               <div key={f.name}>
                 <label className="block text-sm font-semibold text-brand-navy mb-1.5">{f.label}</label>
@@ -144,7 +146,7 @@ export default function AdminPaymentsPage() {
           className="flex items-center gap-2 bg-brand-navy text-white font-black px-8 py-3.5 rounded-2xl hover:bg-blue-900 transition-colors disabled:opacity-60"
         >
           {saved ? <CheckCircle size={18} /> : null}
-          {submitting ? "Saving..." : saved ? "Saved! / सहेजा गया!" : "Save Settings / सहेजें"}
+          {submitting ? t({ hi: 'सेव हो रहा है...', en: 'Saving...' }) : saved ? t({ hi: 'सहेजा गया!', en: 'Saved!' }) : t({ hi: 'सेटिंग सहेजें', en: 'Save Settings' })}
         </button>
       </form>
     </div>
