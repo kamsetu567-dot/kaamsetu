@@ -33,15 +33,8 @@ const SEARCH_SUGGESTIONS = [
 ].filter((item, i, arr) => arr.findIndex(x => x.query === item.query) === i); // deduplicate by query
 
 
-// Hero illustrations that crossfade in the hero spotlight (transparent PNGs)
-const HERO_ILLUSTRATIONS = [
-  '/illustrations/worker-hero-2.png',
-  '/illustrations/hero-carpenter.png',
-  '/illustrations/hero-electrician.png',
-  '/illustrations/hero-plumber.png',
-  '/illustrations/hero-caterer.png',
-  '/illustrations/hero-computer-operator.png',
-];
+// Single static hero illustration — no rotation, no fade, no glow.
+const HERO_IMAGE = '/illustrations/hero-group.png';
 
 // Category icon tiles — one per top-level service category
 const SERVICE_TILES = [
@@ -78,6 +71,10 @@ const SERVICE_TILES = [
 // Four homepage entry-points. All four land on /auth/select-role which
 // handles signed-in users (auto-routes by active role) and guests (role
 // picker → signup) intelligently.
+// Each tile carries a `role` it represents + a `signupHref` (where guests go,
+// or where logged-in users without this role go to add it) + a `dashboardHref`
+// (where logged-in users who already have this role go for that action).
+// Smart routing lives in `tileHref(card, currentRole, currentRoles)` below.
 const ACTION_CARDS = [
   {
     illustration: '/illustrations/worker-hero.png',
@@ -85,7 +82,9 @@ const ACTION_CARDS = [
     desc: { hi: 'अपने काम के लिए सही वर्कर ढूंढें', en: 'Find the right worker for your job' },
     btn: { hi: 'अभी खोजें', en: 'Get Started' },
     btnColor: 'bg-brand-navy text-white',
-    href: '/auth/select-role',
+    role: 'client',
+    signupHref: '/auth/signup/client',
+    dashboardHref: '/client/request-service',
     imgW: 180, imgH: 200,
     Icon: Wrench, iconBg: 'bg-orange-100', iconColor: 'text-orange-600',
     subtitle: { en: 'Hire Worker' },
@@ -96,7 +95,9 @@ const ACTION_CARDS = [
     desc: { hi: 'Worker बनें और अपने हुनर का काम पाएँ', en: 'Join as a worker and get matching jobs' },
     btn: { hi: 'अभी शुरू करें', en: 'Get Started' },
     btnColor: 'bg-green-600 text-white',
-    href: '/auth/select-role',
+    role: 'worker',
+    signupHref: '/auth/signup/worker',
+    dashboardHref: '/worker/dashboard/jobs',
     imgW: 180, imgH: 200,
     Icon: Search, iconBg: 'bg-blue-100', iconColor: 'text-blue-600',
     subtitle: { en: 'Find Work' },
@@ -107,7 +108,9 @@ const ACTION_CARDS = [
     desc: { hi: 'टीम लीडर बनें या पार्टनर के तौर पर जुड़ें', en: 'Lead a team or partner with us' },
     btn: { hi: 'अभी शुरू करें', en: 'Get Started' },
     btnColor: 'bg-purple-600 text-white',
-    href: '/auth/select-role',
+    role: 'worker',
+    signupHref: '/auth/signup/worker?as=partner',
+    dashboardHref: '/worker/dashboard',
     imgW: 180, imgH: 200,
     Icon: Users, iconBg: 'bg-purple-100', iconColor: 'text-purple-600',
     subtitle: { en: 'Join as Partner' },
@@ -118,12 +121,24 @@ const ACTION_CARDS = [
     desc: { hi: 'अपनी दुकान रजिस्टर करें और ऐड लगाएं', en: 'Register your shop and run ads' },
     btn: { hi: 'अभी शुरू करें', en: 'Get Started' },
     btnColor: 'bg-orange-500 text-white',
-    href: '/auth/select-role',
+    role: 'shop',
+    signupHref: '/auth/signup/shop',
+    dashboardHref: '/shop/ads',
     imgW: 180, imgH: 200,
     Icon: Store, iconBg: 'bg-amber-100', iconColor: 'text-amber-600',
     subtitle: { en: 'Shop / Ads' },
   },
 ];
+
+// Smart tile routing: guests → role-specific signup. Logged-in users who
+// already have that role → their action page. Logged-in users without
+// that role → signup page for the new role (multi-role User supports
+// adding additional roles to one account).
+function tileHref(card, role, roles) {
+  if (!role) return card.signupHref; // guest
+  const hasRole = Array.isArray(roles) ? roles.includes(card.role) : role === card.role;
+  return hasRole ? card.dashboardHref : card.signupHref;
+}
 
 // Fake top-rated worker data. Twenty-four entries; we shuffle on mount and
 // surface seven in the marquee, so each page load shows a different sample.
@@ -186,10 +201,10 @@ export default function HomePage() {
   const [searchCity, setSearchCity] = useState('');
   const [searchCategory, setSearchCategory] = useState('');
   const [role, setRole] = useState(null);
+  const [roles, setRoles] = useState([]);
   const [suggestions, setSuggestions] = useState([]);
   const [activeIdx, setActiveIdx] = useState(-1);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [heroIdx, setHeroIdx] = useState(0);
   const [testimonialPage, setTestimonialPage] = useState(0);
   const [testimonialPaused, setTestimonialPaused] = useState(false);
   // Shuffle workers client-side after mount so SSR HTML matches the initial
@@ -214,17 +229,9 @@ export default function HomePage() {
     try {
       const user = JSON.parse(localStorage.getItem('kaamsetu_user') || '{}');
       setRole(user.role || null);
+      if (Array.isArray(user.roles)) setRoles(user.roles);
+      else if (user.role) setRoles([user.role]);
     } catch { }
-  }, []);
-
-  // Cycle the hero illustration every 4s. The image always rotates; the
-  // fade animation itself is disabled under prefers-reduced-motion via CSS
-  // (.hero-stage-fade), so we don't gate the rotation here.
-  useEffect(() => {
-    const id = setInterval(() => {
-      setHeroIdx(i => (i + 1) % HERO_ILLUSTRATIONS.length);
-    }, 4000);
-    return () => clearInterval(id);
   }, []);
 
   // Close dropdown when clicking outside
@@ -381,12 +388,12 @@ export default function HomePage() {
                 </div>
               </form>
 
-              {/* Quick action tiles — match the client's screenshot: white card,
-                  lucide icon on top, Hindi bold + English subtitle. All four
-                  land on /auth/select-role which handles signed-in vs guest. */}
+              {/* Quick action tiles. Each tile smart-routes via tileHref():
+                  guests → role-specific signup page; logged-in users with
+                  the role → their dashboard / action page. */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mb-6">
                 {ACTION_CARDS.map(card => (
-                  <Link key={card.title.en} href={card.href}
+                  <Link key={card.title.en} href={tileHref(card, role, roles)}
                     className="bg-white rounded-2xl p-3 flex flex-col items-center text-center hover:-translate-y-0.5 hover:shadow-lg transition-all border border-white/10">
                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-2 ${card.iconBg}`}>
                       <card.Icon size={20} className={card.iconColor} />
@@ -435,24 +442,13 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* right — crossfading hero illustrations with moving yellow glow behind */}
+            {/* right — single static hero illustration */}
             <div className="flex justify-center items-end self-end">
-              <div className="hero-stage">
-                {/* Moving yellow glow behind the worker */}
-                <span className="hero-glow-disc" aria-hidden="true" />
-                {/* Single image whose src swaps every 5s. key forces a remount so
-                    the change is always visible (no opacity-stacking issues). */}
-                <img
-                  key={heroIdx}
-                  src={HERO_ILLUSTRATIONS[heroIdx]}
-                  alt="KaamSetu verified worker"
-                  className="hero-stage-img hero-stage-fade"
-                />
-                {/* Preload the rest so swaps are instant */}
-                <div style={{ display: 'none' }} aria-hidden="true">
-                  {HERO_ILLUSTRATIONS.map(src => <img key={src} src={src} alt="" />)}
-                </div>
-              </div>
+              <img
+                src={HERO_IMAGE}
+                alt="KaamSetu workers"
+                className="w-full max-w-md object-contain"
+              />
             </div>
           </div>
         </div>
@@ -490,32 +486,6 @@ export default function HomePage() {
       <section className="bg-white py-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <AdSlot variant="banner-wide" limit={9} heading={t({ hi: 'विज्ञापन', en: 'Advertisements' })} />
-        </div>
-      </section>
-
-      {/* ── TRUST STATS STRIP — navy band, 4 big metrics ───────────────
-          Aspirational marketing numbers per client. Static for now; can
-          be wired to live counts later if asked. */}
-      <section className="bg-brand-navy py-6 sm:py-8 border-y border-brand-navy-light/30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
-            {[
-              { icon: Users,      val: '1,50,000+', label: { hi: 'कुल रजिस्टर्ड वर्कर', en: 'Registered Workers' } },
-              { icon: Briefcase,  val: '50,000+',   label: { hi: 'मासिक रिक्वेस्ट',     en: 'Monthly Requests' } },
-              { icon: MapPin,     val: '200+',      label: { hi: 'शहरों में सेवा',       en: 'Cities Served' } },
-              { icon: BadgeCheck, val: '95%',       label: { hi: 'सैटिस्फैक्शन',         en: 'Satisfaction' } },
-            ].map(s => (
-              <div key={s.label.en} className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-brand-yellow/15 flex items-center justify-center flex-shrink-0">
-                  <s.icon size={20} className="text-brand-yellow" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-white font-black text-lg sm:text-xl leading-tight">{s.val}</p>
-                  <p className="text-white/60 text-xs font-hindi leading-tight">{t(s.label)}</p>
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
       </section>
 
@@ -598,7 +568,7 @@ export default function HomePage() {
                 </div>
                 <h3 className="font-black text-brand-navy font-hindi text-sm sm:text-base mb-1">{t(card.title)}</h3>
                 <p className="text-gray-500 text-[11px] sm:text-xs font-hindi mb-3 sm:mb-4 leading-snug">{t(card.desc)}</p>
-                <Link href={card.href}
+                <Link href={tileHref(card, role, roles)}
                   className={`${card.btnColor} mt-auto w-full font-bold text-xs sm:text-sm py-2.5 sm:py-3 rounded-xl hover:opacity-90 transition-opacity font-hindi leading-none flex items-center justify-center`}>
                   {t(card.btn)}
                 </Link>
@@ -684,47 +654,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── TOP-RATED WORKERS — fake leaderboard for social proof ─── */}
-      <section className="bg-brand-bg py-14">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="text-center mb-10">
-            <div className="flex items-center justify-center gap-3 mb-2">
-              <div className="h-px w-16 bg-brand-navy/25" />
-              <h2 className="text-2xl md:text-3xl font-black text-brand-navy font-hindi">
-                {t({ hi: 'हमारे टॉप वर्कर्स', en: 'Our Top-Rated Workers' })}
-              </h2>
-              <div className="h-px w-16 bg-brand-navy/25" />
-            </div>
-            <p className="text-gray-500 text-sm font-hindi">
-              {t({ hi: 'हज़ारों खुश क्लाइंट्स ने इन्हें चुना है', en: 'Thousands of happy clients chose them' })}
-            </p>
-          </div>
-          {/* Continuous R→L marquee — duplicate the visible list so the
-              animation can loop seamlessly. Pause on hover. */}
-          <div className="marquee-mask group">
-            <div className="marquee-track marquee-track--pill group-hover:[animation-play-state:paused]">
-              {[...topWorkers, ...topWorkers].map((w, i) => (
-                <div key={`${w.name}-${i}`} className="marquee-item--pill bg-white rounded-full pl-4 pr-2 py-2 shadow-sm border border-gray-100 flex items-center gap-3">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[13px] text-brand-navy font-hindi leading-tight truncate">
-                      {t({
-                        hi: `${w.name} को मिली ${w.rating} रेटिंग`,
-                        en: `${w.name} got ${w.rating} rating`,
-                      })}
-                    </p>
-                    <p className="text-[10px] text-gray-400 leading-tight truncate">{w.trade}</p>
-                  </div>
-                  <div className="flex items-center gap-1 bg-amber-50 text-amber-700 rounded-full px-2.5 py-1 flex-shrink-0">
-                    <Star size={12} className="fill-amber-500 text-amber-500" />
-                    <span className="font-black text-xs">{w.rating}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* ── TESTIMONIALS — 6 fake quotes, 3 at a time, 6s auto-advance ── */}
       <section className="bg-white py-14">
         <div className="max-w-5xl mx-auto px-4 sm:px-6">
@@ -732,7 +661,7 @@ export default function HomePage() {
             <div className="flex items-center justify-center gap-3 mb-2">
               <div className="h-px w-16 bg-brand-navy/25" />
               <h2 className="text-2xl md:text-3xl font-black text-brand-navy font-hindi">
-                {t({ hi: 'हमारे यूज़र्स क्या कहते हैं', en: 'What Our Users Say' })}
+                {t({ hi: 'हमारे क्लाइंट्स और यूज़र्स क्या कहते हैं', en: 'What Our Clients & Users Say' })}
               </h2>
               <div className="h-px w-16 bg-brand-navy/25" />
             </div>
@@ -788,6 +717,47 @@ export default function HomePage() {
                 ))}
               </div>
             )}
+          </div>
+        </div>
+      </section>
+
+      {/* ── TOP-RATED WORKERS — fake leaderboard for social proof ─── */}
+      <section className="bg-brand-bg py-14">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="text-center mb-10">
+            <div className="flex items-center justify-center gap-3 mb-2">
+              <div className="h-px w-16 bg-brand-navy/25" />
+              <h2 className="text-2xl md:text-3xl font-black text-brand-navy font-hindi">
+                {t({ hi: 'हमारे टॉप वर्कर्स', en: 'Our Top-Rated Workers' })}
+              </h2>
+              <div className="h-px w-16 bg-brand-navy/25" />
+            </div>
+            <p className="text-gray-500 text-sm font-hindi">
+              {t({ hi: 'हज़ारों खुश क्लाइंट्स ने इन्हें चुना है', en: 'Thousands of happy clients chose them' })}
+            </p>
+          </div>
+          {/* Continuous R→L marquee — duplicate the visible list so the
+              animation can loop seamlessly. Pause on hover. */}
+          <div className="marquee-mask group">
+            <div className="marquee-track marquee-track--pill group-hover:[animation-play-state:paused]">
+              {[...topWorkers, ...topWorkers].map((w, i) => (
+                <div key={`${w.name}-${i}`} className="marquee-item--pill bg-white rounded-full pl-4 pr-2 py-2 shadow-sm border border-gray-100 flex items-center gap-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[13px] text-brand-navy font-hindi leading-tight truncate">
+                      {t({
+                        hi: `${w.name} को मिली ${w.rating} रेटिंग`,
+                        en: `${w.name} got ${w.rating} rating`,
+                      })}
+                    </p>
+                    <p className="text-[10px] text-gray-400 leading-tight truncate">{w.trade}</p>
+                  </div>
+                  <div className="flex items-center gap-1 bg-amber-50 text-amber-700 rounded-full px-2.5 py-1 flex-shrink-0">
+                    <Star size={12} className="fill-amber-500 text-amber-500" />
+                    <span className="font-black text-xs">{w.rating}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
