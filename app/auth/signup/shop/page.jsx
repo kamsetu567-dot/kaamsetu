@@ -2,13 +2,15 @@
 import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ChevronLeft, Store, RefreshCw } from 'lucide-react';
+import { ChevronLeft, Store, RefreshCw, Wrench } from 'lucide-react';
 import { useToast } from '@/components/Toast';
+import { useT } from '@/lib/i18n/useT';
 import { CATEGORIES } from '@/lib/data/categories';
 
 export default function ShopSignupPage() {
   const router = useRouter();
   const toast = useToast();
+  const t = useT();
   const [step, setStep] = useState(1);
 
   // Step 1 — Mobile + OTP
@@ -111,22 +113,55 @@ export default function ShopSignupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-brand-bg flex flex-col">
-      <div className="bg-brand-navy px-4 py-4 flex items-center gap-3">
-        <button onClick={() => step > 1 ? setStep(step - 1) : router.push('/auth/select-role')}
-          className="text-white/70 hover:text-white min-h-0"><ChevronLeft size={24} /></button>
-        <span className="font-black text-white">KAAM<span className="text-brand-yellow">SETU</span></span>
-      </div>
-
-      <div className="bg-white border-b border-gray-100 px-4 py-3">
-        <div className="max-w-sm mx-auto flex gap-2">
-          {[1,2,3].map(i => <div key={i} className={`flex-1 h-1.5 rounded-full ${i <= step ? 'bg-brand-navy' : 'bg-gray-200'}`} />)}
+    <div className="min-h-screen flex flex-col md:flex-row">
+      {/* Left panel — desktop only */}
+      <div className="hidden md:flex md:w-1/2 gradient-hero flex-col justify-center items-center px-12 text-center">
+        <div className="w-20 h-20 bg-brand-yellow rounded-2xl flex items-center justify-center mb-6">
+          <Wrench size={40} className="text-brand-navy" />
         </div>
-        <p className="text-center text-xs text-gray-400 mt-1">Step {step} of 3</p>
+        <h1 className="text-4xl font-black text-white font-hindi mb-3">KAAM<span className="text-brand-yellow">SETU</span></h1>
+        <p className="text-white/80 font-hindi text-lg mb-2">{t({ hi: 'दुकान को ऑनलाइन ले जाएँ', en: 'Take your shop online' })}</p>
+        <p className="text-white/60 text-sm">{t({ hi: 'शॉप / बिज़नेस के तौर पर जुड़ें', en: 'Join as a Shop / Business' })}</p>
+        <div className="mt-10 space-y-3 text-left">
+          {[
+            { hi: 'अपने ग्राहकों तक पहुँचें', en: 'Reach more customers' },
+            { hi: 'ऐड चलाकर दिखें', en: 'Get featured via ads' },
+            { hi: 'सिर्फ ₹100/दिन से शुरू', en: 'Starts at just ₹100/day' },
+          ].map(item => (
+            <div key={item.en} className="flex items-center gap-2 text-white/80 text-sm font-hindi">
+              <span className="text-brand-yellow">✓</span> {t(item)}
+            </div>
+          ))}
+        </div>
       </div>
 
-      <div className="flex-1 flex items-center justify-center px-4 py-10">
-        <div className="w-full max-w-sm bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
+      {/* Right panel — form */}
+      <div className="flex-1 bg-white flex flex-col">
+        {/* Mobile top bar */}
+        <div className="md:hidden bg-brand-navy px-4 py-4 flex items-center gap-3">
+          <button onClick={() => step > 1 ? setStep(step - 1) : router.push('/auth/select-role')}
+            className="text-white/70 hover:text-white min-h-0"><ChevronLeft size={24} /></button>
+          <span className="font-black text-white">KAAM<span className="text-brand-yellow">SETU</span></span>
+        </div>
+
+        {/* Desktop back button */}
+        <div className="hidden md:flex justify-start px-6 pt-6">
+          <button onClick={() => step > 1 ? setStep(step - 1) : router.push('/auth/select-role')}
+            className="text-gray-400 hover:text-brand-navy min-h-0 flex items-center gap-1 text-sm">
+            <ChevronLeft size={18} /> {t({ hi: 'पीछे', en: 'Back' })}
+          </button>
+        </div>
+
+        {/* Step progress */}
+        <div className="bg-white border-b border-gray-100 px-4 py-3">
+          <div className="max-w-sm mx-auto flex gap-2">
+            {[1,2,3].map(i => <div key={i} className={`flex-1 h-1.5 rounded-full ${i <= step ? 'bg-brand-navy' : 'bg-gray-200'}`} />)}
+          </div>
+          <p className="text-center text-xs text-gray-400 mt-1">{t({ hi: `चरण ${step} / 3`, en: `Step ${step} of 3` })}</p>
+        </div>
+
+        <div className="flex-1 flex items-center justify-center px-4 py-10">
+          <div className="w-full max-w-md bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
           <div className="flex items-center justify-center w-14 h-14 bg-brand-yellow rounded-2xl mx-auto mb-5">
             <Store size={28} className="text-brand-navy" />
           </div>
@@ -244,9 +279,12 @@ export default function ShopSignupPage() {
             </div>
           )}
 
-          <p className="text-center text-sm text-gray-400 mt-4">
-            <Link href="/auth/login" className="text-brand-navy font-semibold hover:underline">पहले से account है? Login</Link>
-          </p>
+            <p className="text-center text-sm text-gray-400 mt-4">
+              <Link href="/auth/login" className="text-brand-navy font-semibold hover:underline">
+                {t({ hi: 'पहले से account है? लॉगिन', en: 'Already have an account? Login' })}
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     </div>
