@@ -3,7 +3,12 @@
 import { usePathname } from "next/navigation";
 
 const SUPPORT_NUMBER = process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP || "918410270299";
-const COMMUNITY_URL = process.env.NEXT_PUBLIC_WHATSAPP_COMMUNITY_URL || "";
+// Default community link works out of the box; admin can override via env if
+// they create a different community. Hardcoded fallback used to be "" which
+// hid the icon entirely until the env var was set.
+const COMMUNITY_URL =
+  process.env.NEXT_PUBLIC_WHATSAPP_COMMUNITY_URL ||
+  "https://chat.whatsapp.com/JxKr6vUbOzpKzz1nGzKMUk";
 
 function WhatsAppIcon({ className = "" }) {
   return (
