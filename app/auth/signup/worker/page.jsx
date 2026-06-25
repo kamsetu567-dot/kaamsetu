@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ChevronLeft, Wrench, RefreshCw, Upload, X } from 'lucide-react';
 import { useToast } from '@/components/Toast';
+import { useT } from '@/lib/i18n/useT';
 import { CATEGORIES } from '@/lib/data/categories';
 import { compressImage } from '@/lib/utils/compressImage';
 import AddressAutocomplete from '@/components/AddressAutocomplete';
@@ -13,6 +14,7 @@ const ICONS = { Hammer: '🔨', Home: '🏠', PartyPopper: '🎉', GraduationCap
 export default function WorkerSignupPage() {
   const router = useRouter();
   const toast = useToast();
+  const t = useT();
   const [step, setStep] = useState(1);
 
   // Step 1 — Mobile + OTP
@@ -202,22 +204,55 @@ export default function WorkerSignupPage() {
   const selectedCategoryData = CATEGORIES.find(c => c.id === category);
 
   return (
-    <div className="min-h-screen bg-brand-bg flex flex-col">
-      <div className="bg-brand-navy px-4 py-4 flex items-center gap-3">
-        <button onClick={() => step > 1 ? setStep(step - 1) : router.push('/auth/select-role')}
-          className="text-white/70 hover:text-white min-h-0"><ChevronLeft size={24} /></button>
-        <span className="font-black text-white">KAAM<span className="text-brand-yellow">SETU</span></span>
-      </div>
-
-      <div className="bg-white border-b border-gray-100 px-4 py-3">
-        <div className="max-w-sm mx-auto flex gap-2">
-          {[1,2,3,4].map(i => <div key={i} className={`flex-1 h-1.5 rounded-full ${i <= step ? 'bg-brand-navy' : 'bg-gray-200'}`} />)}
+    <div className="min-h-screen flex flex-col md:flex-row">
+      {/* Left panel — desktop only */}
+      <div className="hidden md:flex md:w-1/2 gradient-hero flex-col justify-center items-center px-12 text-center">
+        <div className="w-20 h-20 bg-brand-yellow rounded-2xl flex items-center justify-center mb-6">
+          <Wrench size={40} className="text-brand-navy" />
         </div>
-        <p className="text-center text-xs text-gray-400 mt-1">Step {step} of 4</p>
+        <h1 className="text-4xl font-black text-white font-hindi mb-3">KAAM<span className="text-brand-yellow">SETU</span></h1>
+        <p className="text-white/80 font-hindi text-lg mb-2">{t({ hi: 'काम ढूंढो — कमाई शुरू करो', en: 'Find work — start earning' })}</p>
+        <p className="text-white/60 text-sm">{t({ hi: 'वर्कर के तौर पर जुड़ें', en: 'Join as a Worker' })}</p>
+        <div className="mt-10 space-y-3 text-left">
+          {[
+            { hi: 'रोज़ नए जॉब्स', en: 'New jobs daily' },
+            { hi: 'सीधा क्लाइंट से संपर्क', en: 'Direct client contact' },
+            { hi: 'सिर्फ ₹199/महीना', en: 'Just ₹199/month' },
+          ].map(item => (
+            <div key={item.en} className="flex items-center gap-2 text-white/80 text-sm font-hindi">
+              <span className="text-brand-yellow">✓</span> {t(item)}
+            </div>
+          ))}
+        </div>
       </div>
 
-      <div className="flex-1 flex items-start justify-center px-4 py-8">
-        <div className="w-full max-w-sm bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
+      {/* Right panel — form */}
+      <div className="flex-1 bg-white flex flex-col">
+        {/* Mobile top bar */}
+        <div className="md:hidden bg-brand-navy px-4 py-4 flex items-center gap-3">
+          <button onClick={() => step > 1 ? setStep(step - 1) : router.push('/auth/select-role')}
+            className="text-white/70 hover:text-white min-h-0"><ChevronLeft size={24} /></button>
+          <span className="font-black text-white">KAAM<span className="text-brand-yellow">SETU</span></span>
+        </div>
+
+        {/* Desktop back button */}
+        <div className="hidden md:flex justify-start px-6 pt-6">
+          <button onClick={() => step > 1 ? setStep(step - 1) : router.push('/auth/select-role')}
+            className="text-gray-400 hover:text-brand-navy min-h-0 flex items-center gap-1 text-sm">
+            <ChevronLeft size={18} /> {t({ hi: 'पीछे', en: 'Back' })}
+          </button>
+        </div>
+
+        {/* Step progress */}
+        <div className="bg-white border-b border-gray-100 px-4 py-3">
+          <div className="max-w-sm mx-auto flex gap-2">
+            {[1,2,3,4].map(i => <div key={i} className={`flex-1 h-1.5 rounded-full ${i <= step ? 'bg-brand-navy' : 'bg-gray-200'}`} />)}
+          </div>
+          <p className="text-center text-xs text-gray-400 mt-1">{t({ hi: `चरण ${step} / 4`, en: `Step ${step} of 4` })}</p>
+        </div>
+
+        <div className="flex-1 flex items-start justify-center px-4 py-8">
+          <div className="w-full max-w-md bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
           <div className="flex items-center justify-center w-14 h-14 bg-brand-navy rounded-2xl mx-auto mb-5">
             <Wrench size={28} className="text-brand-yellow" />
           </div>
@@ -501,9 +536,12 @@ export default function WorkerSignupPage() {
             </div>
           )}
 
-          <p className="text-center text-sm text-gray-400 mt-4">
-            <Link href="/auth/login" className="text-brand-navy font-semibold hover:underline">पहले से account है? Login</Link>
-          </p>
+            <p className="text-center text-sm text-gray-400 mt-4">
+              <Link href="/auth/login" className="text-brand-navy font-semibold hover:underline">
+                {t({ hi: 'पहले से account है? लॉगिन', en: 'Already have an account? Login' })}
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     </div>

@@ -41,15 +41,31 @@ export async function POST(request) {
         description: description || "",
         location: { city: city || "", address: area || "" },
       });
-      const updatedToken = signToken({ id: existingShop.user, mobile, role: "shop" });
+      const updatedToken = signToken({ id: existingShop.user, mobile, role: "shop", roles: ["shop"] });
       return ok({
         message: "Shop registration updated",
         token: updatedToken,
-        user: { id: existingShop.user, mobile, name: ownerName, role: "shop" },
+        user: { id: existingShop.user, mobile, name: ownerName, role: "shop", roles: ["shop"] },
       });
     }
 
-    const user = await User.create({ mobile, name: ownerName, email: email || "", role: "shop" });
+    // Multi-role: same mobile can register as both shop and (worker|client).
+    // If a User already exists for this mobile, add "shop" to their roles
+    // instead of trying to insert a duplicate (which would throw on the
+    // unique mobile index and 409 a legitimate signup).
+    let user = await User.findOne({ mobile });
+    if (user) {
+      if (user.roles?.includes("shop") || user.role === "shop") {
+        return error("Shop is already registered with this number", 409);
+      }
+      const nextRoles = Array.from(new Set([...(user.roles || []), user.role, "shop"].filter(Boolean)));
+      user.roles = nextRoles;
+      if (!user.name) user.name = ownerName;
+      if (!user.email && email) user.email = email;
+      await user.save();
+    } else {
+      user = await User.create({ mobile, name: ownerName, email: email || "", roles: ["shop"], role: "shop" });
+    }
 
     let shop;
     try {
@@ -73,12 +89,17 @@ export async function POST(request) {
       return error(`Shop registration failed: ${createError.message}`, 500);
     }
 
-    const newToken = signToken({ id: user._id, mobile, role: "shop" });
+    const newToken = signToken({
+      id: user._id,
+      mobile,
+      role: "shop",
+      roles: user.roles || ["shop"],
+    });
 
     return created({
       message: "Shop registered. Pending admin approval.",
       token: newToken,
-      user: { id: user._id, mobile, name: ownerName, role: "shop" },
+      user: { id: user._id, mobile, name: ownerName, role: "shop", roles: user.roles || ["shop"] },
     });
   } catch (err) {
     logger.error("[SHOP_SIGNUP] error", { msg: err.message, code: err.code, name: err.name, stack: err.stack });

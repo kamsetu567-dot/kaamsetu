@@ -13,11 +13,33 @@ export async function POST(request) {
     const payload = verifyToken(token);
     if (!payload) return unauthorized();
 
-    const { workerId, reason, description } = await request.json();
-    if (!workerId || !reason) return error("workerId and reason are required");
-    if (!VALID_REASONS.includes(reason)) return error("Invalid reason");
-
+    const body = await request.json();
     await connectDB();
+
+    // ── General complaint path (used by the navbar Report button) ──
+    // No workerId — accept a free-form title + description and stash it
+    // with source="general" so admin can filter for these separately.
+    if (!body.workerId) {
+      const title = String(body.title || "").trim().slice(0, 200);
+      const description = String(body.description || "").trim().slice(0, 2000);
+      if (!title) return error("Title is required");
+      if (description.length < 5) return error("Please describe the issue");
+
+      const report = await Report.create({
+        reportedBy: payload.id,
+        reportedByRole: payload.role || (Array.isArray(payload.roles) ? payload.roles[0] : ""),
+        source: "general",
+        title,
+        reason: "general",
+        description,
+      });
+      return created({ message: "Report submitted", reportId: report._id });
+    }
+
+    // ── Worker-specific path (used by /workers/[id] Flag modal) ──
+    const { workerId, reason, description } = body;
+    if (!reason) return error("reason is required");
+    if (!VALID_REASONS.includes(reason)) return error("Invalid reason");
 
     const worker = await Worker.findById(workerId).lean();
     if (!worker) return error("Worker not found", 404);
@@ -30,6 +52,7 @@ export async function POST(request) {
       reportedWorkerName: worker.name,
       reportedBy: payload.id,
       reportedByRole: payload.role,
+      source: "worker_profile",
       reason,
       description: description?.slice(0, 500) || "",
     });
