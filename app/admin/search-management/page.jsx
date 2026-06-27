@@ -1,33 +1,68 @@
 ﻿"use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, PlusCircle, X, TrendingUp } from "lucide-react";
 import { useT } from "@/lib/i18n/useT";
 
-const INITIAL_KEYWORDS = [
-  "plumber", "electrician", "carpenter", "painter", "cleaner",
-  "cook", "driver", "security guard", "nurse", "teacher",
-];
+function authHeaders() {
+  const token = typeof window !== "undefined" ? localStorage.getItem("kaamsetu_admin_token") : null;
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
 
 export default function AdminSearchManagementPage() {
   const t = useT();
-  const [keywords, setKeywords] = useState(INITIAL_KEYWORDS);
+  // Each keyword is {id, keyword}. We surface .keyword text in the UI but
+  // need the id for the DELETE call so the chip remove button knows what
+  // to target.
+  const [keywords, setKeywords] = useState([]);
   const [input, setInput] = useState("");
   const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
 
-  // TODO: Persist keywords via API when backend is ready
+  useEffect(() => {
+    fetch("/api/admin/search-keywords", { headers: authHeaders() })
+      .then(r => r.json())
+      .then(d => { if (Array.isArray(d?.keywords)) setKeywords(d.keywords); })
+      .catch(() => {});
+  }, []);
 
-  function addKeyword() {
+  async function addKeyword() {
     const kw = input.trim().toLowerCase();
     if (!kw) { setError(t({ hi: 'Keyword खाली नहीं हो सकता', en: 'Keyword cannot be empty' })); return; }
-    if (keywords.includes(kw)) { setError(t({ hi: 'यह Keyword पहले से है', en: 'Keyword already exists' })); return; }
-    setKeywords(prev => [...prev, kw]);
-    setInput("");
-    setError("");
+    if (keywords.some(k => k.keyword === kw)) { setError(t({ hi: 'यह Keyword पहले से है', en: 'Keyword already exists' })); return; }
+    setBusy(true);
+    try {
+      const res = await fetch("/api/admin/search-keywords", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...authHeaders() },
+        body: JSON.stringify({ keyword: kw }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data?.message || t({ hi: 'जोड़ नहीं पाए', en: 'Could not add' }));
+        return;
+      }
+      setKeywords(prev => [data.keyword, ...prev]);
+      setInput("");
+      setError("");
+    } catch {
+      setError(t({ hi: 'नेटवर्क error', en: 'Network error' }));
+    } finally {
+      setBusy(false);
+    }
   }
 
-  function removeKeyword(kw) {
-    setKeywords(prev => prev.filter(k => k !== kw));
+  async function removeKeyword(id) {
+    setBusy(true);
+    try {
+      const res = await fetch(`/api/admin/search-keywords/${id}`, {
+        method: "DELETE",
+        headers: authHeaders(),
+      });
+      if (res.ok) setKeywords(prev => prev.filter(k => k.id !== id));
+    } catch {} finally {
+      setBusy(false);
+    }
   }
 
   function handleKey(e) {
@@ -69,7 +104,8 @@ export default function AdminSearchManagementPage() {
           </div>
           <button
             onClick={addKeyword}
-            className="bg-green-600 text-white font-bold px-5 py-2.5 rounded-xl hover:bg-green-700 transition-colors text-sm"
+            disabled={busy}
+            className="bg-green-600 text-white font-bold px-5 py-2.5 rounded-xl hover:bg-green-700 transition-colors text-sm disabled:opacity-50"
           >
             {t({ hi: 'जोड़ें', en: 'Add' })}
           </button>
@@ -87,16 +123,17 @@ export default function AdminSearchManagementPage() {
           {t({ hi: 'सक्रिय Keywords', en: 'Active Keywords' })} ({keywords.length})
         </h2>
         <div className="flex flex-wrap gap-2">
-          {keywords.map(kw => (
+          {keywords.map(k => (
             <span
-              key={kw}
+              key={k.id}
               className="inline-flex items-center gap-1.5 bg-blue-50 text-blue-600 border border-blue-200 text-sm font-semibold px-3 py-1.5 rounded-full"
             >
-              {kw}
+              {k.keyword}
               <button
-                onClick={() => removeKeyword(kw)}
-                className="text-blue-400 hover:text-red-500 transition-colors ml-0.5"
-                aria-label={t({ hi: `Keyword हटाएँ: ${kw}`, en: `Remove keyword: ${kw}` })}
+                onClick={() => removeKeyword(k.id)}
+                disabled={busy}
+                className="text-blue-400 hover:text-red-500 transition-colors ml-0.5 disabled:opacity-50"
+                aria-label={t({ hi: `Keyword हटाएँ: ${k.keyword}`, en: `Remove keyword: ${k.keyword}` })}
               >
                 <X size={13} />
               </button>
