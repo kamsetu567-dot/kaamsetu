@@ -311,11 +311,11 @@ export default function HomePage() {
           <div className="hero-dots" />
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-14 md:pt-20 pb-0 relative z-10">
-          <div className="grid md:grid-cols-2 gap-6 md:min-h-[520px]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-6 md:pt-10 pb-0 relative z-10">
+          <div className="grid xl:grid-cols-2 gap-6 xl:min-h-[520px]">
 
             {/* left */}
-            <div className="flex flex-col justify-center pb-14 md:pb-20">
+            <div className="flex flex-col justify-center pb-4 xl:pb-20">
               <div className="inline-flex items-center gap-2 bg-white/10 rounded-full px-4 py-1.5 mb-5">
                 <span className="text-brand-yellow text-xs">⭐</span>
                 <span className="text-white/90 text-xs font-medium font-hindi">{t({ hi: 'भारत का #1 लोकल सर्विस प्लेटफ़ॉर्म', en: "India's #1 Local Service Platform" })}</span>
@@ -332,9 +332,9 @@ export default function HomePage() {
 
               {/* Search bar */}
               <form onSubmit={handleSearch}
-                className="bg-white rounded-3xl shadow-2xl p-3 md:p-4 mb-8 flex flex-col sm:flex-row gap-2 md:gap-3">
+                className="bg-white rounded-2xl shadow-2xl p-2 md:p-2.5 mb-6 flex flex-col sm:flex-row gap-2">
                 <select value={searchCategory} onChange={e => setSearchCategory(e.target.value)}
-                  className="sm:w-48 px-4 py-3 md:py-3.5 rounded-xl md:rounded-2xl border border-gray-100 text-gray-700 text-sm md:text-base focus:outline-none focus:border-brand-navy bg-gray-50 font-hindi font-bold">
+                  className="sm:w-48 px-3 py-2 md:py-2.5 rounded-xl border border-gray-100 text-gray-700 text-sm focus:outline-none focus:border-brand-navy bg-gray-50 font-hindi font-bold">
                   <option value="">{t({ hi: 'सभी कैटेगरी', en: 'All Categories' })}</option>
                   <option value="construction-repair">{t({ hi: 'मिस्त्री / प्लंबर', en: 'Mistri / Plumber' })}</option>
                   <option value="event-services">{t({ hi: 'इवेंट सेवाएँ', en: 'Event Services' })}</option>
@@ -354,7 +354,7 @@ export default function HomePage() {
                     onKeyDown={handleKeyDown}
                     onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
                     placeholder={t({ hi: 'आपको क्या चाहिए? (जैसे — Plumber, Painter)', en: 'What do you need? (e.g. Plumber, Painter)' })}
-                    className="w-full px-5 py-3 md:py-3.5 rounded-xl md:rounded-2xl border border-gray-100 bg-gray-50 text-sm md:text-base focus:outline-none focus:border-brand-navy font-hindi placeholder:text-gray-400"
+                    className="w-full px-4 py-2 md:py-2.5 rounded-xl border border-gray-100 bg-gray-50 text-sm focus:outline-none focus:border-brand-navy font-hindi placeholder:text-gray-400"
                     autoComplete="off"
                   />
                   {showSuggestions && suggestions.length > 0 && (
@@ -379,10 +379,10 @@ export default function HomePage() {
                     <MapPin size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                     <input type="text" value={searchCity} onChange={e => setSearchCity(e.target.value)}
                       placeholder={t({ hi: 'आपका शहर', en: 'Your city' })}
-                      className="w-32 md:w-40 pl-10 pr-4 py-3 md:py-3.5 rounded-xl md:rounded-2xl border border-gray-100 bg-gray-50 text-sm md:text-base focus:outline-none focus:border-brand-navy font-hindi" />
+                      className="w-32 md:w-40 pl-10 pr-3 py-2 md:py-2.5 rounded-xl border border-gray-100 bg-gray-50 text-sm focus:outline-none focus:border-brand-navy font-hindi" />
                   </div>
                   <button type="submit"
-                    className="bg-brand-yellow text-brand-navy font-black px-6 md:px-8 py-3 md:py-3.5 rounded-xl md:rounded-2xl hover:bg-amber-400 transition-colors font-hindi text-sm md:text-base whitespace-nowrap">
+                    className="bg-brand-yellow text-brand-navy font-black px-6 md:px-7 py-2 md:py-2.5 rounded-xl hover:bg-amber-400 transition-colors font-hindi text-sm whitespace-nowrap">
                     {t({ hi: 'खोजें', en: 'Search' })}
                   </button>
                 </div>
@@ -422,7 +422,7 @@ export default function HomePage() {
                 ))}
               </div>
 
-              <div className="flex flex-wrap gap-3 mt-8">
+              <div className="flex flex-wrap gap-3 mt-4 xl:mt-6">
                 <Link
                   href={role === 'client' ? '/client/request-service' : role === 'worker' ? '/worker/dashboard' : role === 'shop' ? '/shop/dashboard' : '/auth/select-role'}
                   className="bg-brand-yellow text-brand-navy font-bold px-6 py-3 rounded-xl hover:bg-amber-400 transition-colors font-hindi leading-none flex items-center justify-center">
@@ -442,12 +442,16 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* right — single static hero illustration */}
-            <div className="flex justify-center items-end self-end">
+            {/* right — single static hero illustration. Bottom-aligned via
+                flex so the workers stand on the hero's bottom edge, sized
+                large enough to balance the left-column copy and shifted
+                right so the right edge of the image lines up with the right
+                edge of the hero panel. */}
+            <div className="flex items-end justify-center xl:justify-end pt-2 xl:pt-0 xl:-mr-16 2xl:-mr-32">
               <img
                 src={HERO_IMAGE}
                 alt="KaamSetu workers"
-                className="w-full max-w-md object-contain"
+                className="block w-full max-w-[420px] sm:max-w-[480px] md:max-w-[600px] lg:max-w-[680px] xl:max-w-[820px] 2xl:max-w-[900px] h-auto select-none pointer-events-none"
               />
             </div>
           </div>
