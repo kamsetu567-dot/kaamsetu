@@ -16,6 +16,10 @@ export default function AdminReportsPage() {
     bad_behaviour: t({ hi: 'खराब व्यवहार', en: 'Bad Behaviour' }),
     spam:          t({ hi: 'स्पैम', en: 'Spam' }),
     wrong_work:    t({ hi: 'गलत काम', en: 'Wrong Work' }),
+    // Navbar Report button (source: "general") doesn't pick from the worker-
+    // reason enum; we surface it as "Other" and rely on the report's title +
+    // description to convey what's wrong.
+    general:       t({ hi: 'अन्य', en: 'Other' }),
   };
   const STATUS_LABELS = {
     all:          t({ hi: 'सभी', en: 'All' }),
@@ -93,7 +97,14 @@ export default function AdminReportsPage() {
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap mb-1">
-                    <span className="font-black text-brand-navy">{r.reportedWorkerName || t({ hi: 'अज्ञात वर्कर', en: 'Unknown Worker' })}</span>
+                    {/* General reports come from the navbar Report button and
+                        don't reference a worker; surface the user-supplied
+                        title in the slot where the worker name normally sits. */}
+                    <span className="font-black text-brand-navy">
+                      {r.source === 'general'
+                        ? (r.title || t({ hi: 'सामान्य शिकायत', en: 'General complaint' }))
+                        : (r.reportedWorkerName || t({ hi: 'अज्ञात वर्कर', en: 'Unknown Worker' }))}
+                    </span>
                     <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
                       r.status === "pending" ? "bg-red-100 text-red-600" :
                       r.status === "action_taken" ? "bg-green-100 text-green-700" :

@@ -18,11 +18,14 @@ function cleanEmails(arr) {
 
 async function getTargetEmails(audience) {
   const baseFilter = { email: { $type: "string", $ne: "" } };
+  // Query the `roles` array (Mongo's `{ field: value }` matches "value in array")
+  // so we catch multi-role users where the legacy `role` mirror points at a
+  // different role than the one they signed up with second.
   switch (audience) {
     case "workers":
-      return cleanEmails(await User.find({ role: "worker", ...baseFilter }).distinct("email"));
+      return cleanEmails(await User.find({ roles: "worker", ...baseFilter }).distinct("email"));
     case "clients":
-      return cleanEmails(await User.find({ role: "client", ...baseFilter }).distinct("email"));
+      return cleanEmails(await User.find({ roles: "client", ...baseFilter }).distinct("email"));
     case "free":
     case "working": {
       const workers = await Worker.find({ workStatus: audience === "free" ? "free" : "working" })
@@ -31,7 +34,7 @@ async function getTargetEmails(audience) {
       return cleanEmails(workers.map(w => w.user?.email));
     }
     default: // "all"
-      return cleanEmails(await User.find({ role: { $in: ["worker", "client"] }, ...baseFilter }).distinct("email"));
+      return cleanEmails(await User.find({ roles: { $in: ["worker", "client"] }, ...baseFilter }).distinct("email"));
   }
 }
 

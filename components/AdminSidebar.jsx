@@ -71,10 +71,7 @@ export default function AdminSidebar() {
             >
               <item.icon size={18} className="flex-shrink-0" />
               <div>
-                <span
-                  className="block text-sm font-semibold"
-                  className="font-hindi"
-                >
+                <span className="block text-sm font-semibold font-hindi">
                   {item.hi}
                 </span>
                 <span className="block text-xs opacity-70">{item.en}</span>
