@@ -1,17 +1,36 @@
 ﻿"use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Shield, Ban, AlertTriangle, CheckCircle, X, PlusCircle } from "lucide-react";
 import { useT } from "@/lib/i18n/useT";
 
+function authHeaders() {
+  const token = typeof window !== "undefined" ? localStorage.getItem("kaamsetu_admin_token") : null;
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 export default function AdminSecurityPage() {
   const t = useT();
-  // TODO: Persist all security settings via API when backend is ready
   const [adminOtp,    setAdminOtp]    = useState(true);
   const [idVerify,    setIdVerify]    = useState(false);
   const [fraudInput,  setFraudInput]  = useState("");
   const [fraudList,   setFraudList]   = useState([]);
   const [savedMsg,    setSavedMsg]    = useState("");
+  const [saving,      setSaving]      = useState(false);
+
+  // Load persisted settings on mount.
+  useEffect(() => {
+    fetch("/api/admin/security-settings", { headers: authHeaders() })
+      .then(r => r.json())
+      .then(d => {
+        if (d?.settings) {
+          setAdminOtp(!!d.settings.adminOtp);
+          setIdVerify(!!d.settings.idVerify);
+          setFraudList(Array.isArray(d.settings.fraudList) ? d.settings.fraudList : []);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   function addFraud() {
     const val = fraudInput.trim();
@@ -24,10 +43,26 @@ export default function AdminSecurityPage() {
     setFraudList(prev => prev.filter(i => i !== item));
   }
 
-  function saveSettings() {
-    // TODO: Call updateSettings({ adminOtp, idVerify, fraudList }) when backend is ready
-    setSavedMsg(t({ hi: 'सेटिंग सहेजी गई!', en: 'Settings saved!' }));
-    setTimeout(() => setSavedMsg(""), 3000);
+  async function saveSettings() {
+    if (saving) return;
+    setSaving(true);
+    try {
+      const res = await fetch("/api/admin/security-settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", ...authHeaders() },
+        body: JSON.stringify({ adminOtp, idVerify, fraudList }),
+      });
+      if (!res.ok) {
+        setSavedMsg(t({ hi: 'सेव नहीं हो पाया', en: 'Could not save' }));
+      } else {
+        setSavedMsg(t({ hi: 'सेटिंग सहेजी गई!', en: 'Settings saved!' }));
+      }
+    } catch {
+      setSavedMsg(t({ hi: 'नेटवर्क error', en: 'Network error' }));
+    } finally {
+      setSaving(false);
+      setTimeout(() => setSavedMsg(""), 3000);
+    }
   }
 
   function Toggle({ enabled, onToggle, labelOn, labelOff }) {
@@ -163,13 +198,14 @@ export default function AdminSecurityPage() {
         )}
       </div>
 
-      {/* Warning banner */}
+      {/* Warning banner — settings persist now, but enforcement (admin OTP
+          flow, fraud-list check on signup/login) isn't wired in yet. */}
       <div className="flex items-start gap-3 bg-yellow-50 border-2 border-accent-yellow rounded-2xl px-4 py-3">
         <AlertTriangle size={18} className="text-yellow-600 flex-shrink-0 mt-0.5" />
         <p className="text-yellow-700 text-sm" style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>
           {t({
-            hi: 'Security settings backend ready होने के बाद persist होंगे।',
-            en: 'Changes will persist once the backend is connected.',
+            hi: 'सेटिंग्स save हो जाएँगी। Enforcement (Admin OTP और fraud list checks) अभी wired नहीं हैं।',
+            en: 'Settings will be saved. Enforcement (Admin OTP flow and fraud-list checks at signup/login) is not wired in yet.',
           })}
         </p>
       </div>
@@ -177,10 +213,11 @@ export default function AdminSecurityPage() {
       {/* Save */}
       <button
         onClick={saveSettings}
-        className="flex items-center gap-2 bg-brand-navy text-white font-black px-8 py-3.5 rounded-2xl hover:bg-blue-900 transition-colors"
+        disabled={saving}
+        className="flex items-center gap-2 bg-brand-navy text-white font-black px-8 py-3.5 rounded-2xl hover:bg-blue-900 transition-colors disabled:opacity-50"
       >
         {savedMsg ? <CheckCircle size={18} /> : <Shield size={18} />}
-        {savedMsg || t({ hi: 'सुरक्षा सेटिंग सहेजें', en: 'Save Security Settings' })}
+        {savedMsg || (saving ? t({ hi: 'सेव हो रहा है...', en: 'Saving...' }) : t({ hi: 'सुरक्षा सेटिंग सहेजें', en: 'Save Security Settings' }))}
       </button>
     </div>
   );
