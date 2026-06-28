@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { PlusCircle, Tag, Trash2, CheckCircle } from "lucide-react";
+import { PlusCircle, Tag, Trash2, CheckCircle, AlertTriangle } from "lucide-react";
 import EmptyState from "@/components/EmptyState";
 import { getOffers, createOffer, deleteOffer } from "@/lib/api/admin";
 import { useT } from "@/lib/i18n/useT";
@@ -43,6 +43,25 @@ export default function AdminOffersPage() {
 
   return (
     <div className="space-y-5 max-w-3xl">
+      {/* Honest status banner — admin can create offers, but no public surface
+          on the site currently consumes them. Until the worker subscription
+          page (or wherever offers belong) is wired up, this CRUD is just data
+          warehousing. */}
+      <div className="flex items-start gap-3 bg-yellow-50 border-2 border-accent-yellow rounded-2xl px-4 py-3">
+        <AlertTriangle size={18} className="text-yellow-700 flex-shrink-0 mt-0.5" />
+        <div className="text-yellow-800 text-sm">
+          <p className="font-bold" style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>
+            {t({ hi: 'Coming soon — अभी users को नहीं दिखते', en: 'Coming soon — not visible to users yet' })}
+          </p>
+          <p className="text-xs mt-0.5">
+            {t({
+              hi: 'ऑफर save हो रहे हैं, पर worker subscription page पर अभी display नहीं होते। यहाँ बनाए कूपन users को तब तक नहीं मिलेंगे जब तक frontend wire up नहीं हो जाता।',
+              en: 'Offers save successfully, but the worker subscription page does not display them yet. Coupons created here will not reach users until the frontend is wired up.',
+            })}
+          </p>
+        </div>
+      </div>
+
       <div className="flex items-start justify-between">
         <div>
           <h1

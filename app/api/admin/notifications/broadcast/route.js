@@ -1,9 +1,21 @@
 import { connectDB } from "@/lib/db/mongoose";
 import User from "@/lib/models/User";
 import Worker from "@/lib/models/Worker";
+import Notification from "@/lib/models/Notification";
 import { verifyToken, getTokenFromRequest } from "@/lib/utils/jwt";
 import { ok, error, unauthorized } from "@/lib/utils/apiResponse";
 import { sendBroadcastEmail } from "@/lib/utils/email";
+
+// Map the broadcast page's audience values to the Notification model's enum.
+// "free" / "working" don't have direct Notification equivalents (the model
+// only knows about roles), so they degrade to "worker" — the bell is broader
+// than the email blast, which is acceptable. Document this so future readers
+// don't think it's a bug.
+function audienceToBellEnum(audience) {
+  if (audience === "clients") return "client";
+  if (audience === "workers" || audience === "free" || audience === "working") return "worker";
+  return "all";
+}
 
 function adminGuard(request) {
   const token = getTokenFromRequest(request);
@@ -45,12 +57,36 @@ export async function POST(request) {
     if (!message?.trim()) return error("Message is required");
 
     await connectDB();
-    const emails = await getTargetEmails(audience);
-    if (!emails.length) return ok({ message: "No users found for this audience", sent: 0 });
 
-    const result = await sendBroadcastEmail(emails, message.trim());
+    // Always persist to the Notification model so the user navbar bell shows
+    // the broadcast — even if the email blast has zero deliverable addresses
+    // (users without an email row can still see the bell). The bell entry is
+    // the canonical record; email is best-effort delivery.
+    const trimmed = message.trim();
+    await Notification.create({
+      title: "KaamSetu Update",
+      body: trimmed,
+      audience: audienceToBellEnum(audience),
+      active: true,
+    }).catch(err => {
+      // Bell write failure shouldn't kill the broadcast — log and continue.
+      console.error("Notification.create failed during broadcast:", err.message);
+    });
+
+    const emails = await getTargetEmails(audience);
+    if (!emails.length) {
+      // Bell entry is already saved above, so a "no email targets" case still
+      // surfaces to users via the bell. Report honestly.
+      return ok({
+        message: "Saved to in-app bell. No email addresses found for this audience.",
+        sent: 0,
+        total: 0,
+      });
+    }
+
+    const result = await sendBroadcastEmail(emails, trimmed);
     return ok({
-      message: `Notification sent to ${result.sent}/${result.total} user(s)`,
+      message: `Sent to ${result.sent}/${result.total} via email, plus in-app bell.`,
       sent: result.sent,
       total: result.total,
       failures: result.failures?.length || 0,

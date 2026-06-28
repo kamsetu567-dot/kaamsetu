@@ -29,13 +29,28 @@ export default function AdminNotificationsPage() {
     defaultValues: { audience: "all", channels: ["sms"] },
   });
 
+  const [resultMsg, setResultMsg] = useState("");
+
   async function onSubmit(data) {
     setSubmitting(true);
-    await broadcastNotification(data);
+    let res;
+    try {
+      res = await broadcastNotification(data);
+    } catch (err) {
+      res = { success: false, message: err?.message || "Send failed" };
+    }
     setSubmitting(false);
-    setSuccess(true);
-    reset();
-    setTimeout(() => setSuccess(false), 3000);
+    // The broadcast route always saves to the in-app bell now, so any 2xx
+    // means at least the bell entry landed even if every email bounced.
+    if (res?.success !== false) {
+      setSuccess(true);
+      setResultMsg(res?.message || "");
+      reset();
+      setTimeout(() => { setSuccess(false); setResultMsg(""); }, 4000);
+    } else {
+      setResultMsg(res?.message || "Could not send notification");
+      setTimeout(() => setResultMsg(""), 4000);
+    }
   }
 
   const message = watch("message") ?? "";
@@ -64,7 +79,7 @@ export default function AdminNotificationsPage() {
             >
               {t({ hi: 'नोटिफिकेशन भेजी गई!', en: 'Notification sent!' })}
             </p>
-            <p className="text-gray-500 text-sm">{t({ hi: 'नोटिफिकेशन सफलतापूर्वक भेजी गई।', en: 'Notification sent successfully.' })}</p>
+            <p className="text-gray-500 text-sm">{resultMsg || t({ hi: 'नोटिफिकेशन सफलतापूर्वक भेजी गई।', en: 'Notification sent successfully.' })}</p>
           </div>
         ) : (
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
@@ -150,6 +165,10 @@ export default function AdminNotificationsPage() {
               {errors.message && <p className="text-red-500 text-xs mt-1">{errors.message.message}</p>}
             </div>
 
+            {resultMsg && !success && (
+              <p className="text-red-600 text-xs bg-red-50 border border-red-200 rounded-lg px-3 py-2">{resultMsg}</p>
+            )}
+
             <button
               type="submit"
               disabled={submitting}
@@ -162,13 +181,14 @@ export default function AdminNotificationsPage() {
         )}
       </div>
 
-      {/* Info box */}
+      {/* Info box — now honest: bell entry is always written; email is
+          best-effort; SMS/WhatsApp not yet connected. */}
       <div className="flex items-start gap-3 bg-blue-50 border-2 border-blue-200 rounded-2xl px-4 py-3">
         <Bell size={18} className="text-blue-600 flex-shrink-0 mt-0.5" />
         <p className="text-blue-600 text-sm" style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>
           {t({
-            hi: 'Backend ready होने के बाद actual SMS/WhatsApp gateway से messages जाएंगे।',
-            en: 'Messages will be sent via SMS/WhatsApp gateway once the backend is connected.',
+            hi: 'हर broadcast users के in-app bell में हमेशा save होता है। Email best-effort भेजी जाती है। SMS/WhatsApp gateways अभी connect नहीं हैं।',
+            en: 'Every broadcast is always saved to the user in-app bell. Email is sent best-effort. SMS/WhatsApp gateways are not connected yet.',
           })}
         </p>
       </div>

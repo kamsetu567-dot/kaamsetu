@@ -5,6 +5,7 @@ import { ok, error, unauthorized } from "@/lib/utils/apiResponse";
 import { createRateLimit } from "@/lib/middleware/rateLimit";
 import { comparePassword } from "@/lib/utils/password";
 import { logger } from "@/lib/utils/logger";
+import { isMobileBlocked } from "@/lib/utils/fraudList";
 
 const limiter = createRateLimit(10, 15 * 60 * 1000); // 10 attempts / 15 min per mobile
 
@@ -25,6 +26,13 @@ export async function POST(request) {
     }
 
     await connectDB();
+
+    // Admin-curated fraud list — refuse before bcrypt compare so a blocked
+    // number can't even fingerprint valid passwords. Same check lives in
+    // send-otp for the OTP login/signup path.
+    if (await isMobileBlocked(mobile)) {
+      return error("This number has been blocked. Please contact support.", 403);
+    }
 
     // Allow any User row that has 'client' among their roles to log in here.
     const user = await User.findOne({

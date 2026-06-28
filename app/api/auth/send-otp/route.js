@@ -6,6 +6,7 @@ import { ok, error } from "@/lib/utils/apiResponse";
 import { createRateLimit } from "@/lib/middleware/rateLimit";
 import { logger } from "@/lib/utils/logger";
 import { sendOTPEmail } from "@/lib/utils/email";
+import { isMobileBlocked } from "@/lib/utils/fraudList";
 
 const limiter = createRateLimit(3, 60 * 60 * 1000); // 3 per hour per mobile
 
@@ -27,6 +28,13 @@ export async function POST(request) {
     }
 
     await connectDB();
+
+    // Admin-curated fraud list: if this mobile is blocked, refuse before
+    // sending the OTP. Same check is repeated at the password-login endpoint
+    // since that path doesn't go through OTP.
+    if (await isMobileBlocked(mobile)) {
+      return error("This number has been blocked. Please contact support.", 403);
+    }
 
     // For login: verify the user is registered AND the submitted email is
     // the one bound to that mobile. Without this, anyone who knows a

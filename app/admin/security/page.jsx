@@ -198,14 +198,14 @@ export default function AdminSecurityPage() {
         )}
       </div>
 
-      {/* Warning banner — settings persist now, but enforcement (admin OTP
-          flow, fraud-list check on signup/login) isn't wired in yet. */}
-      <div className="flex items-start gap-3 bg-yellow-50 border-2 border-accent-yellow rounded-2xl px-4 py-3">
-        <AlertTriangle size={18} className="text-yellow-600 flex-shrink-0 mt-0.5" />
-        <p className="text-yellow-700 text-sm" style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>
+      {/* Status banner — fraud-list mobile blocks ARE enforced at signup
+          and login. Admin OTP toggle is still cosmetic. */}
+      <div className="flex items-start gap-3 bg-blue-50 border-2 border-blue-200 rounded-2xl px-4 py-3">
+        <AlertTriangle size={18} className="text-blue-600 flex-shrink-0 mt-0.5" />
+        <p className="text-blue-700 text-sm" style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>
           {t({
-            hi: 'सेटिंग्स save हो जाएँगी। Enforcement (Admin OTP और fraud list checks) अभी wired नहीं हैं।',
-            en: 'Settings will be saved. Enforcement (Admin OTP flow and fraud-list checks at signup/login) is not wired in yet.',
+            hi: 'Fraud list में जोड़े गए mobile numbers signup और login पर block हो जाते हैं। (सिर्फ़ 10-अंकों के mobile match होते हैं; User IDs अभी नहीं।) Admin OTP toggle अभी enforce नहीं होता।',
+            en: 'Mobile numbers added to the fraud list are blocked at signup and login. (Only 10-digit mobile numbers are matched — User IDs are not yet.) The Admin OTP toggle is not enforced yet.',
           })}
         </p>
       </div>

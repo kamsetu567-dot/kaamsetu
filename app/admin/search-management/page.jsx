@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import { useState, useEffect } from "react";
-import { Search, PlusCircle, X, TrendingUp } from "lucide-react";
+import { Search, PlusCircle, X, TrendingUp, AlertTriangle } from "lucide-react";
 import { useT } from "@/lib/i18n/useT";
 
 function authHeaders() {
@@ -71,6 +71,24 @@ export default function AdminSearchManagementPage() {
 
   return (
     <div className="space-y-5 max-w-2xl">
+      {/* Honest status banner — keywords save fine, but the homepage hero
+          search uses CATEGORIES + approved custom-category names. The
+          SearchKeyword model isn't read by any public surface yet. */}
+      <div className="flex items-start gap-3 bg-yellow-50 border-2 border-accent-yellow rounded-2xl px-4 py-3">
+        <AlertTriangle size={18} className="text-yellow-700 flex-shrink-0 mt-0.5" />
+        <div className="text-yellow-800 text-sm">
+          <p className="font-bold" style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>
+            {t({ hi: 'Coming soon — abhi users को नहीं दिखते', en: 'Coming soon — not visible to users yet' })}
+          </p>
+          <p className="text-xs mt-0.5">
+            {t({
+              hi: 'Keywords save हो रहे हैं, पर homepage search अभी built-in categories और admin-approved custom categories से ही suggestions दिखाता है। यह सूची अभी consume नहीं होती।',
+              en: 'Keywords save successfully, but the homepage search still uses only built-in categories + admin-approved custom categories for suggestions. This list is not consumed yet.',
+            })}
+          </p>
+        </div>
+      </div>
+
       <div>
         <h1
           className="text-2xl font-black text-brand-navy"
