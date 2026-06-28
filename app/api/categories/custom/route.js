@@ -8,13 +8,17 @@ const limiter = createRateLimit(5, 60 * 60 * 1000); // 5 per hour per user
 
 export async function GET(request) {
   try {
+    // Admin token (or any logged-in user with admin role) sees the full list
+    // including pending/rejected. Anyone else gets only approved categories so
+    // signup/search/dropdown surfaces can render them without leaking moderation
+    // state.
     const token = getTokenFromRequest(request);
-    if (!token) return unauthorized();
-    const payload = verifyToken(token);
-    if (!payload || payload.role !== "admin") return unauthorized();
+    const payload = token ? verifyToken(token) : null;
+    const isAdmin = payload?.role === "admin";
 
     await connectDB();
-    const categories = await CustomCategory.find().sort({ createdAt: -1 }).lean();
+    const filter = isAdmin ? {} : { status: "approved" };
+    const categories = await CustomCategory.find(filter).sort({ createdAt: -1 }).lean();
     return ok({ categories });
   } catch (err) {
     console.error("GET custom categories error:", err);

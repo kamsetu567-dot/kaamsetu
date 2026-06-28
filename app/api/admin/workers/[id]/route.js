@@ -2,6 +2,7 @@ import { connectDB } from "@/lib/db/mongoose";
 import Worker from "@/lib/models/Worker";
 import User from "@/lib/models/User";
 import JobRequest from "@/lib/models/JobRequest";
+import AdminSettings from "@/lib/models/AdminSettings";
 import { verifyToken, getTokenFromRequest } from "@/lib/utils/jwt";
 import { ok, error, unauthorized, notFound } from "@/lib/utils/apiResponse";
 import { sendApprovalEmail } from "@/lib/utils/email";
@@ -35,9 +36,19 @@ export async function PATCH(request, { params }) {
     }
 
     if (action === "unblock") {
-      await Worker.findByIdAndUpdate(id, { status: "approved" });
+      // Same subscription-window logic as approve/activate — without it an
+      // unblocked worker with a past/null expiry still sees an empty job feed
+      // and the unblock looks broken to them.
+      const setting = await AdminSettings.findOne({ key: "approval_trial_days" }).lean();
+      const trialDays = Number(setting?.value) > 0 ? Math.floor(Number(setting.value)) : 30;
+      const now = new Date();
+      const base = worker.subscriptionExpiry && worker.subscriptionExpiry > now
+        ? worker.subscriptionExpiry
+        : now;
+      const subscriptionExpiry = new Date(base.getTime() + trialDays * 24 * 60 * 60 * 1000);
+      await Worker.findByIdAndUpdate(id, { status: "approved", subscriptionExpiry });
       await User.findByIdAndUpdate(worker.user, { status: "active" });
-      return ok({ message: "Worker unblocked", status: "approved" });
+      return ok({ message: "Worker unblocked", status: "approved", subscriptionExpiry });
     }
 
     if (action === "delete") {
@@ -81,7 +92,26 @@ export async function PATCH(request, { params }) {
     const update = actionMap[action];
     if (!update) return error("Invalid action");
 
-    await Worker.findByIdAndUpdate(id, { status: update.status });
+    // Approving (or re-activating) a worker should also start/keep their
+    // subscription window — otherwise the worker dashboard hides incoming
+    // jobs ("/api/jobs" returns [] when subscriptionExpiry is null/past) and
+    // it looks like approval didn't take. Default trial = 30 days; honor an
+    // admin-configured override stored in AdminSettings.key="approval_trial_days".
+    let subscriptionExpiry;
+    if (action === "approve" || action === "activate") {
+      const setting = await AdminSettings.findOne({ key: "approval_trial_days" }).lean();
+      const trialDays = Number(setting?.value) > 0 ? Math.floor(Number(setting.value)) : 30;
+      const now = new Date();
+      const base = worker.subscriptionExpiry && worker.subscriptionExpiry > now
+        ? worker.subscriptionExpiry
+        : now;
+      subscriptionExpiry = new Date(base.getTime() + trialDays * 24 * 60 * 60 * 1000);
+    }
+
+    await Worker.findByIdAndUpdate(id, {
+      status: update.status,
+      ...(subscriptionExpiry ? { subscriptionExpiry } : {}),
+    });
 
     if (action === "approve") {
       const user = await User.findById(worker.user).select("email name").lean();
@@ -90,7 +120,11 @@ export async function PATCH(request, { params }) {
       }
     }
 
-    return ok({ message: `Worker ${action}d`, status: update.status });
+    return ok({
+      message: `Worker ${action}d`,
+      status: update.status,
+      ...(subscriptionExpiry ? { subscriptionExpiry } : {}),
+    });
   } catch (err) {
     console.error("admin PATCH worker error:", err);
     return error("Server error", 500);

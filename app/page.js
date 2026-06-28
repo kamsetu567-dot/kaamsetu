@@ -10,6 +10,7 @@ import AdSlot from '@/components/AdSlot';
 import { useLang } from '@/lib/context/LanguageContext';
 import { useT } from '@/lib/i18n/useT';
 import { CATEGORIES } from '@/lib/data/categories';
+import { getAllCategoriesForSearch } from '@/lib/api/categories';
 
 // Flat list of all searchable terms — category names + every subcategory
 const SEARCH_SUGGESTIONS = [
@@ -210,10 +211,26 @@ export default function HomePage() {
   // Shuffle workers client-side after mount so SSR HTML matches the initial
   // server render; the random sample appears on the next paint.
   const [topWorkers, setTopWorkers] = useState(() => TOP_WORKERS_POOL.slice(0, TOP_WORKERS_VISIBLE));
+  // Admin-approved custom categories appended to the static search index so
+  // freshly-added trades (e.g. "Road Accident and Rescue") become searchable
+  // from the homepage hero without a code change.
+  const [extraSuggestions, setExtraSuggestions] = useState([]);
   const suggestionsRef = useRef(null);
 
   useEffect(() => {
     setTopWorkers(shuffleAndPick(TOP_WORKERS_POOL, TOP_WORKERS_VISIBLE));
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    getAllCategoriesForSearch({ force: true }).then(list => {
+      if (cancelled) return;
+      setExtraSuggestions(list.filter(c => c.custom).map(c => ({
+        label: `${c.nameHi} / ${c.nameEn}`,
+        query: c.nameEn,
+      })));
+    });
+    return () => { cancelled = true; };
   }, []);
 
   // Auto-rotate the testimonials carousel every 6s; pause on hover.
@@ -255,7 +272,10 @@ export default function HomePage() {
       return;
     }
     const q = val.toLowerCase();
-    const matches = SEARCH_SUGGESTIONS.filter(s =>
+    // Static built-in list + admin-approved customs. Built-ins are checked
+    // first so familiar terms stay at the top.
+    const pool = [...SEARCH_SUGGESTIONS, ...extraSuggestions];
+    const matches = pool.filter(s =>
       s.label.toLowerCase().includes(q) || s.query.toLowerCase().includes(q)
     ).slice(0, 8);
     setSuggestions(matches);

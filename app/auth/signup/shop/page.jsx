@@ -1,11 +1,12 @@
 'use client';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ChevronLeft, Store, RefreshCw, Wrench } from 'lucide-react';
 import { useToast } from '@/components/Toast';
 import { useT } from '@/lib/i18n/useT';
 import { CATEGORIES } from '@/lib/data/categories';
+import { getAllCategoriesForSearch } from '@/lib/api/categories';
 
 export default function ShopSignupPage() {
   const router = useRouter();
@@ -31,6 +32,17 @@ export default function ShopSignupPage() {
   // Step 3 — Business Details
   const [category, setCategory] = useState('');
   const [description, setDescription] = useState('');
+  // Built-ins + admin-approved customs so shops can register under new
+  // categories the moment admin approves them.
+  const [allCategories, setAllCategories] = useState(CATEGORIES);
+
+  useEffect(() => {
+    let cancelled = false;
+    getAllCategoriesForSearch({ force: true }).then(list => {
+      if (!cancelled) setAllCategories(list);
+    });
+    return () => { cancelled = true; };
+  }, []);
 
   const [loading, setLoading] = useState(false);
   const submitRef = useRef(false);
@@ -254,13 +266,16 @@ export default function ShopSignupPage() {
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2 font-hindi">Business Category *</label>
                 <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto">
-                  {CATEGORIES.map(cat => (
-                    <button key={cat.id} type="button" onClick={() => setCategory(cat.id)}
-                      className={`p-3 rounded-xl border-2 text-left transition-colors ${category === cat.id ? 'border-brand-navy bg-blue-50' : 'border-gray-200'}`}>
-                      <p className="text-xs font-bold text-brand-navy font-hindi leading-tight">{cat.nameHi}</p>
-                      <p className="text-xs text-gray-400">{cat.nameEn}</p>
-                    </button>
-                  ))}
+                  {allCategories.map(cat => {
+                    const key = cat.id || cat.slug;
+                    return (
+                      <button key={key} type="button" onClick={() => setCategory(key)}
+                        className={`p-3 rounded-xl border-2 text-left transition-colors ${category === key ? 'border-brand-navy bg-blue-50' : 'border-gray-200'}`}>
+                        <p className="text-xs font-bold text-brand-navy font-hindi leading-tight">{cat.nameHi}</p>
+                        <p className="text-xs text-gray-400">{cat.nameEn}</p>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 

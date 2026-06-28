@@ -1,14 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CATEGORIES } from "@/lib/data/categories";
+import { getAllCategoriesForSearch } from "@/lib/api/categories";
 import { ChevronDown } from "lucide-react";
 
-// Reusable category dropdown with built-in "Other / अन्य" support
+// Reusable category dropdown with built-in "Other / अन्य" support.
+// Pass an explicit `categories` array to lock the list (e.g. an admin form
+// editing only built-ins); leave it undefined to auto-load built-ins + admin-
+// approved custom categories on mount so newly-approved trades appear here.
 export default function CategorySelect({
   value = "",
   onChange,
-  categories = CATEGORIES,
+  categories, // undefined → auto-load merged list
   level = "main", // "main" | "sub"
   parentSlug = "", // used when level = "sub" to filter subcategories
   placeholder,
@@ -18,11 +22,22 @@ export default function CategorySelect({
 }) {
   const [showOtherInput, setShowOtherInput] = useState(false);
   const [otherText, setOtherText] = useState("");
+  const [autoCategories, setAutoCategories] = useState(CATEGORIES);
 
+  useEffect(() => {
+    if (categories) return; // explicit list — don't fetch
+    let cancelled = false;
+    getAllCategoriesForSearch({ force: true }).then(list => {
+      if (!cancelled) setAutoCategories(list);
+    });
+    return () => { cancelled = true; };
+  }, [categories]);
+
+  const effective = categories || autoCategories;
   const options =
     level === "main"
-      ? categories.map(c => ({ value: c.slug, labelHi: c.nameHi, labelEn: c.nameEn }))
-      : (categories.find(c => c.slug === parentSlug)?.subcategories || []).map(s => ({
+      ? effective.map(c => ({ value: c.slug, labelHi: c.nameHi, labelEn: c.nameEn }))
+      : (effective.find(c => c.slug === parentSlug)?.subcategories || []).map(s => ({
           value: s,
           labelHi: s,
           labelEn: s,

@@ -8,6 +8,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useToast } from "@/components/Toast";
 import { CATEGORIES } from "@/lib/data/categories";
+import { getAllCategoriesForSearch } from "@/lib/api/categories";
 import { useRoleGuard } from "@/lib/auth/useRoleGuard";
 import AddressAutocomplete from "@/components/AddressAutocomplete";
 
@@ -27,8 +28,21 @@ function RequestForm() {
   const [stage, setStage] = useState("form"); // "form" | "searching" | "success"
   const [searchProgress, setSearchProgress] = useState(0);
   const [submitting, setSubmitting] = useState(false);
+  // Built-ins + approved customs so clients can request services that workers
+  // have just registered under (e.g. "Road Accident and Rescue").
+  const [allCategories, setAllCategories] = useState(CATEGORIES);
 
-  const selectedCategoryData = CATEGORIES.find(c => c.id === category);
+  useEffect(() => {
+    let cancelled = false;
+    getAllCategoriesForSearch({ force: true }).then(list => {
+      if (!cancelled) setAllCategories(list);
+    });
+    return () => { cancelled = true; };
+  }, []);
+
+  // Match against both id (built-in shape) and slug (custom shape) so the
+  // subcategory dropdown stays hidden for custom categories that have none.
+  const selectedCategoryData = allCategories.find(c => c.id === category || c.slug === category);
 
   useEffect(() => {
     if (typeof navigator === 'undefined' || !navigator.geolocation) return;
@@ -164,7 +178,10 @@ function RequestForm() {
         <select value={category} onChange={e => { setCategory(e.target.value); setSubcategory(''); }}
           className="w-full px-4 py-3.5 border border-gray-200 rounded-xl focus:outline-none focus:border-brand-navy text-base bg-white">
           <option value="">-- Category चुनें --</option>
-          {CATEGORIES.map(c => <option key={c.id} value={c.id}>{c.nameHi} / {c.nameEn}</option>)}
+          {allCategories.map(c => {
+            const key = c.id || c.slug;
+            return <option key={key} value={key}>{c.nameHi} / {c.nameEn}</option>;
+          })}
         </select>
       </div>
 

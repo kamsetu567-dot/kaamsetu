@@ -1,11 +1,12 @@
 'use client';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ChevronLeft, Wrench, RefreshCw, Upload, X } from 'lucide-react';
+import { ChevronLeft, Wrench, RefreshCw, Upload, X, Tag } from 'lucide-react';
 import { useToast } from '@/components/Toast';
 import { useT } from '@/lib/i18n/useT';
 import { CATEGORIES } from '@/lib/data/categories';
+import { getAllCategoriesForSearch } from '@/lib/api/categories';
 import { compressImage } from '@/lib/utils/compressImage';
 import AddressAutocomplete from '@/components/AddressAutocomplete';
 
@@ -40,6 +41,18 @@ export default function WorkerSignupPage() {
   const [category, setCategory] = useState('');
   const [subcategory, setSubcategory] = useState('');
   const [serviceType, setServiceType] = useState('');
+  // Built-ins + admin-approved custom categories. Defaults to the static
+  // built-in list so the picker renders instantly; customs append once fetch
+  // resolves. Refresh on every mount so a freshly-approved category appears.
+  const [allCategories, setAllCategories] = useState(CATEGORIES);
+
+  useEffect(() => {
+    let cancelled = false;
+    getAllCategoriesForSearch({ force: true }).then(list => {
+      if (!cancelled) setAllCategories(list);
+    });
+    return () => { cancelled = true; };
+  }, []);
 
   // Step 4 — Documents
   const [profilePhoto, setProfilePhoto] = useState(null);
@@ -201,7 +214,11 @@ export default function WorkerSignupPage() {
     } finally { clearTimeout(slowTimer); setLoading(false); submitRef.current = false; setUploadProgress(''); }
   }
 
-  const selectedCategoryData = CATEGORIES.find(c => c.id === category);
+  // Match the picked category against the full merged list so custom
+  // categories don't get treated as "not found" and lose their (empty)
+  // subcategory list. Both id and slug are checked for back-compat with the
+  // built-in shape (id === slug for built-ins).
+  const selectedCategoryData = allCategories.find(c => c.id === category || c.slug === category);
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
@@ -366,13 +383,18 @@ export default function WorkerSignupPage() {
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-3 font-hindi">Category चुनें *</label>
                 <div className="grid grid-cols-2 gap-2">
-                  {CATEGORIES.map(cat => (
-                    <button key={cat.id} type="button" onClick={() => { setCategory(cat.id); setSubcategory(''); }}
-                      className={`p-3 rounded-xl border-2 text-left transition-colors ${category === cat.id ? 'border-brand-navy bg-blue-50' : 'border-gray-200'}`}>
-                      <span className="text-xl">{ICONS[cat.icon] || '🔧'}</span>
-                      <p className="text-xs font-bold text-brand-navy mt-1 font-hindi leading-tight">{cat.nameHi}</p>
-                    </button>
-                  ))}
+                  {allCategories.map(cat => {
+                    const key = cat.id || cat.slug;
+                    return (
+                      <button key={key} type="button" onClick={() => { setCategory(key); setSubcategory(''); }}
+                        className={`p-3 rounded-xl border-2 text-left transition-colors ${category === key ? 'border-brand-navy bg-blue-50' : 'border-gray-200'}`}>
+                        {cat.custom
+                          ? <Tag size={20} className="text-brand-navy" />
+                          : <span className="text-xl">{ICONS[cat.icon] || '🔧'}</span>}
+                        <p className="text-xs font-bold text-brand-navy mt-1 font-hindi leading-tight">{cat.nameHi}</p>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 

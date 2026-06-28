@@ -1,12 +1,17 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Search, X } from "lucide-react";
 import Fuse from "fuse.js";
 import { CATEGORIES, getAllSubcategories } from "@/lib/data/categories";
+import { getAllCategoriesForSearch } from "@/lib/api/categories";
 
-const allSearchItems = [
+// Built-in items are always present. Custom (admin-approved) categories get
+// appended on mount and treated as searchable keywords — they don't have a
+// standalone /categories/[slug] page, so the click target is the generic
+// /search?q=… results page.
+const builtInItems = [
   ...CATEGORIES.map(c => ({ type: "category", label: c.nameEn, labelHi: c.nameHi, href: `/categories/${c.slug}` })),
   ...getAllSubcategories().map(s => ({
     type: "subcategory",
@@ -17,13 +22,30 @@ const allSearchItems = [
   })),
 ];
 
-const fuse = new Fuse(allSearchItems, {
-  keys: ["label", "labelHi", "category"],
-  threshold: 0.4,
-  includeScore: true,
-});
-
 export default function HeroSearch({ initialQuery = "", onQueryChange }) {
+  const [customItems, setCustomItems] = useState([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    getAllCategoriesForSearch({ force: true }).then(list => {
+      if (cancelled) return;
+      const customs = list.filter(c => c.custom).map(c => ({
+        type: "category",
+        label: c.nameEn,
+        labelHi: c.nameHi,
+        // No standalone landing page for custom categories — open generic search.
+        href: `/search?q=${encodeURIComponent(c.nameEn)}`,
+      }));
+      setCustomItems(customs);
+    });
+    return () => { cancelled = true; };
+  }, []);
+
+  const fuse = useMemo(() => new Fuse([...builtInItems, ...customItems], {
+    keys: ["label", "labelHi", "category"],
+    threshold: 0.4,
+    includeScore: true,
+  }), [customItems]);
   const [query, setQuery] = useState(initialQuery);
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
