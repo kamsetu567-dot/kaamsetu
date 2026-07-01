@@ -49,9 +49,14 @@ export async function PATCH(request, { params }) {
     // Worker self-update allow-list. workStatus deliberately excluded — must go through
     // /api/workers/status which enforces the "no active job" guard, otherwise a worker could
     // self-flip to "free" and accept multiple jobs in parallel.
+    // Aadhaar fields (aadharNumber/aadharFrontUrl/aadharBackUrl) are deliberately
+    // excluded too — they're captured + required at signup and must be immutable
+    // afterward. Admins get them back below so admin tooling can still correct them.
     // Admins can still flip workStatus via the admin worker patch endpoint.
-    const baseAllowed = ["name", "photo", "bio", "experience", "serviceType", "location", "languages", "skills", "biodata", "employmentType", "category", "subcategory", "gender", "aadharNumber", "aadharFrontUrl", "aadharBackUrl", "workPhotos"];
-    const allowed = payload.role === "admin" ? [...baseAllowed, "workStatus", "status"] : baseAllowed;
+    const baseAllowed = ["name", "photo", "bio", "experience", "serviceType", "location", "languages", "skills", "biodata", "employmentType", "category", "subcategory", "gender", "workPhotos"];
+    const allowed = payload.role === "admin"
+      ? [...baseAllowed, "workStatus", "status", "aadharNumber", "aadharFrontUrl", "aadharBackUrl"]
+      : baseAllowed;
     const updates = {};
     for (const key of allowed) {
       if (body[key] !== undefined) updates[key] = body[key];
