@@ -3,6 +3,36 @@
 import { useEffect, useRef, useState } from "react";
 import { Megaphone, Phone, Store, ChevronLeft, ChevronRight } from "lucide-react";
 
+// Fire-and-forget ad analytics beacon. Uses sendBeacon when available so it
+// survives navigation (e.g. the tel: dialer opening on click) and never
+// blocks render; falls back to keepalive fetch. Failures are ignored — a
+// dropped beacon must never affect the page.
+function trackAd(adId, event) {
+  if (!adId) return;
+  const url = `/api/ads/${adId}/track`;
+  const body = JSON.stringify({ event });
+  try {
+    if (typeof navigator !== "undefined" && navigator.sendBeacon) {
+      navigator.sendBeacon(url, new Blob([body], { type: "application/json" }));
+      return;
+    }
+  } catch { /* fall through to fetch */ }
+  try {
+    fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body, keepalive: true }).catch(() => {});
+  } catch { /* ignore */ }
+}
+
+// Module-level set of ad ids that have already logged an impression this page
+// load. The wide-carousel duplicates the ad array ([...ads, ...ads]) for a
+// seamless marquee, so without this each ad would double-count on render.
+const impressed = new Set();
+
+function trackImpressionOnce(adId) {
+  if (!adId || impressed.has(adId)) return;
+  impressed.add(adId);
+  trackAd(adId, "impression");
+}
+
 // Three rendering variants:
 //   banner-wide    — full-width banner (homepage, category page top)
 //   banner-narrow  — compact card (client dashboard)
@@ -31,7 +61,11 @@ export default function AdSlot({
     fetch(`/api/ads/active?${params.toString()}`)
       .then(r => r.json())
       .then(data => {
-        if (data.success && Array.isArray(data.ads)) setAds(data.ads);
+        if (data.success && Array.isArray(data.ads)) {
+          setAds(data.ads);
+          // Count one impression per unique ad that will actually render.
+          data.ads.forEach(ad => trackImpressionOnce(String(ad.id)));
+        }
       })
       .catch(() => {})
       .finally(() => setLoaded(true));
@@ -261,6 +295,7 @@ function WideBanner({ ad }) {
         {shop?.mobile && (
           <a
             href={`tel:+91${shop.mobile}`}
+            onClick={() => trackAd(String(ad.id), "click")}
             className="flex items-center gap-1.5 bg-primary-green text-white text-sm font-bold px-4 py-2 rounded-xl hover:bg-green-700 transition-colors flex-shrink-0"
             aria-label={`Call ${shop.shopName || "shop"}`}
           >
@@ -291,6 +326,7 @@ function NarrowBanner({ ad }) {
         {shop?.mobile && (
           <a
             href={`tel:+91${shop.mobile}`}
+            onClick={() => trackAd(String(ad.id), "click")}
             className="flex items-center gap-1.5 bg-primary-green text-white text-sm font-bold px-4 py-2 rounded-xl hover:bg-green-700 transition-colors flex-shrink-0"
             aria-label={`Call ${shop.shopName || "shop"}`}
           >
@@ -307,6 +343,7 @@ function FeaturedAdCard({ ad }) {
   return (
     <a
       href={shop?.mobile ? `tel:+91${shop.mobile}` : "#"}
+      onClick={() => shop?.mobile && trackAd(String(ad.id), "click")}
       className="bg-white rounded-2xl border-2 border-brand-yellow p-4 hover:shadow-md transition-shadow block"
     >
       <div className="flex gap-3 mb-3">

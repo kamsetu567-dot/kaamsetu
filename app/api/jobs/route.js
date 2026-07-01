@@ -5,6 +5,7 @@ import Client from "@/lib/models/Client";
 import { ok, error, created, unauthorized } from "@/lib/utils/apiResponse";
 import { getTokenFromRequest, verifyToken } from "@/lib/utils/jwt";
 import { sendAdminNewJobEmail } from "@/lib/utils/email";
+import { cityRegex } from "@/lib/utils/cityMatch";
 
 export async function GET(request) {
   try {
@@ -95,7 +96,8 @@ export async function GET(request) {
           filter.category = workerProfile.category;
         }
         if (workerProfile.location?.city) {
-          filter["location.city"] = { $regex: workerProfile.location.city, $options: "i" };
+          const cr = cityRegex(workerProfile.location.city);
+          if (cr) filter["location.city"] = cr;
         }
       } else {
         // Job history: return jobs assigned to this worker (any status)

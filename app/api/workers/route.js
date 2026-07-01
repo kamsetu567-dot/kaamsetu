@@ -1,6 +1,7 @@
 import { connectDB } from "@/lib/db/mongoose";
 import Worker from "@/lib/models/Worker";
 import { ok, error } from "@/lib/utils/apiResponse";
+import { cityRegex } from "@/lib/utils/cityMatch";
 
 export async function GET(request) {
   try {
@@ -31,7 +32,7 @@ export async function GET(request) {
     if (experienceLevel === "fresher") filter.experience = 0;
     if (experienceLevel === "experienced") filter.experience = { $gt: 0 };
     if (rating > 0) filter.rating = { $gte: rating };
-    if (city) filter["location.city"] = { $regex: city, $options: "i" };
+    if (city) { const cr = cityRegex(city); if (cr) filter["location.city"] = cr; }
 
     if (query) {
       filter.$or = [
@@ -57,7 +58,8 @@ export async function GET(request) {
     // also catches workers who typed their address rather than tapping GPS.
     const hasCityFallback = !hasGeo && distance > 0 && city;
     if (hasCityFallback) {
-      filter["location.city"] = { $regex: city, $options: "i" };
+      const cr = cityRegex(city);
+      if (cr) filter["location.city"] = cr;
     }
     const now = new Date();
 
@@ -95,7 +97,7 @@ export async function GET(request) {
         const cityOnly = await Worker.find({
           ...filter,
           _id: { $nin: workers.map(w => w._id) },
-          "location.city": { $regex: city, $options: "i" },
+          "location.city": cityRegex(city) || { $regex: "", $options: "i" },
           $or: [
             { "location.coordinates": { $exists: false } },
             { "location.coordinates": null },

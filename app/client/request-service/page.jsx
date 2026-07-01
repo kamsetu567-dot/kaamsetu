@@ -28,6 +28,9 @@ function RequestForm() {
   const [stage, setStage] = useState("form"); // "form" | "searching" | "success"
   const [searchProgress, setSearchProgress] = useState(0);
   const [submitting, setSubmitting] = useState(false);
+  // One-time GPS nudge: a job posted without coordinates only matches workers
+  // by city name. Warn once, re-try GPS, but never block the request.
+  const [gpsNudged, setGpsNudged] = useState(false);
   // Built-ins + approved customs so clients can request services that workers
   // have just registered under (e.g. "Road Accident and Rescue").
   const [allCategories, setAllCategories] = useState(CATEGORIES);
@@ -77,11 +80,40 @@ function RequestForm() {
     }
   }, []);
 
+  // Re-attempt GPS capture and write coords into `location` so the posted job
+  // carries lat/lng. Best-effort — used by the one-time submit nudge.
+  function retryGps() {
+    if (typeof navigator === "undefined" || !navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        try {
+          const res = await fetch(`/api/places/reverse?lat=${lat}&lng=${lng}`);
+          const data = await res.json();
+          if (data?.result?.address) setLocation(data.result);
+          else setLocation(prev => ({ ...(prev || {}), lat, lng }));
+        } catch {
+          setLocation(prev => ({ ...(prev || {}), lat, lng }));
+        }
+      },
+      () => {},
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     if (!name.trim()) { toast.error("नाम डालें"); return; }
     if (!category) { toast.error("Category चुनें"); return; }
     if (!location?.city && !location?.address) { toast.error("अपनी लोकेशन चुनें / Pick your location"); return; }
+    // GPS nudge (non-blocking): without coords the job matches by city only.
+    if ((location?.lat == null || location?.lng == null) && !gpsNudged) {
+      setGpsNudged(true);
+      retryGps();
+      toast.error('सटीक nearby workers के लिए location में "My Location" tap करें / Tap "My Location" for accurate matching. (Press again to send)');
+      return;
+    }
     if (submitting) return;
 
     setSubmitting(true);

@@ -68,6 +68,9 @@ export default function WorkerSignupPage() {
 
   const [loading, setLoading] = useState(false);
   const submitRef = useRef(false);
+  // Tracks whether we've already shown the one-time GPS nudge at step 2, so a
+  // worker who genuinely can't share GPS isn't stuck on the location step.
+  const gpsNudgedRef = useRef(false);
 
   function detectLocation() {
     if (typeof navigator === 'undefined' || !navigator.geolocation) return;
@@ -141,6 +144,16 @@ export default function WorkerSignupPage() {
     if (!name.trim()) { toast.error('नाम डालें'); return; }
     if (!location?.city && !location?.address) { toast.error('अपनी लोकेशन चुनें / Pick your location'); return; }
     if (!gender) { toast.error('Gender चुनें'); return; }
+    // GPS nudge: without coordinates a worker only matches by city name and
+    // gets far fewer nearby jobs. Warn once and re-try GPS, but don't block —
+    // GPS can be legitimately denied. The second tap of "Next" proceeds.
+    const hasCoords = (location?.lat != null && location?.lng != null) || (lat != null && lng != null);
+    if (!hasCoords && !gpsNudgedRef.current) {
+      gpsNudgedRef.current = true;
+      detectLocation();
+      toast.error('बेहतर nearby jobs के लिए "My Location" पर tap करें / Tap "My Location" for accurate nearby jobs. (Press Next again to continue)');
+      return;
+    }
     setStep(3);
   }
 
