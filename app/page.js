@@ -107,11 +107,15 @@ const ACTION_CARDS = [
     illustration: '/illustrations/team-illustration.png',
     title: { hi: 'टीम / पार्टनर', en: 'Join as Partner' },
     desc: { hi: 'टीम लीडर बनें या पार्टनर के तौर पर जुड़ें', en: 'Lead a team or partner with us' },
-    btn: { hi: 'अभी शुरू करें', en: 'Get Started' },
+    btn: { hi: 'जल्द आ रहा है', en: 'Coming Soon' },
     btnColor: 'bg-purple-600 text-white',
     role: 'worker',
-    signupHref: '/auth/signup/worker?as=partner',
-    dashboardHref: '/worker/dashboard',
+    // No partner/team logic exists yet — the tile lands on a coming-soon page
+    // instead of dumping users into normal worker signup (which ignored the
+    // ?as=partner param anyway).
+    comingSoon: true,
+    signupHref: '/coming-soon?feature=partner',
+    dashboardHref: '/coming-soon?feature=partner',
     imgW: 180, imgH: 200,
     Icon: Users, iconBg: 'bg-purple-100', iconColor: 'text-purple-600',
     subtitle: { en: 'Join as Partner' },
@@ -136,6 +140,9 @@ const ACTION_CARDS = [
 // that role → signup page for the new role (multi-role User supports
 // adding additional roles to one account).
 function tileHref(card, role, roles) {
+  // Features without real logic yet always go to the coming-soon page,
+  // regardless of who's logged in.
+  if (card.comingSoon) return card.signupHref;
   if (!role) return card.signupHref; // guest
   const hasRole = Array.isArray(roles) ? roles.includes(card.role) : role === card.role;
   return hasRole ? card.dashboardHref : card.signupHref;
