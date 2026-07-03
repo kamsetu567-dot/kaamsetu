@@ -9,6 +9,7 @@
 ## Third Party
 - [ ] Replace MSG91 test credentials with client's account credentials
 - [ ] Replace Razorpay TEST keys (rzp_test_) with LIVE keys (rzp_live_)
+- [ ] Register Razorpay webhook (payment.captured → /api/payments/webhook) and set RAZORPAY_WEBHOOK_SECRET
 - [ ] Complete DLT registration for SMS
 - [ ] Replace MongoDB URI with client's Atlas account
 

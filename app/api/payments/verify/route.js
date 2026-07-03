@@ -1,9 +1,8 @@
 import { connectDB } from "@/lib/db/mongoose";
-import Worker from "@/lib/models/Worker";
-import Ad from "@/lib/models/Ad";
 import Payment from "@/lib/models/Payment";
 import { getTokenFromRequest, verifyToken } from "@/lib/utils/jwt";
 import { verifySignature } from "@/lib/utils/razorpay";
+import { activatePayment } from "@/lib/utils/activatePayment";
 import { ok, error, unauthorized, notFound } from "@/lib/utils/apiResponse";
 
 export async function POST(request) {
@@ -29,7 +28,8 @@ export async function POST(request) {
       return unauthorized("This payment does not belong to you");
     }
 
-    // Idempotent: a repeated verify (double-submit, retry) must not re-apply.
+    // Idempotent: a repeated verify (double-submit, retry, or webhook already
+    // applied it) must not re-apply.
     if (payment.status === "paid") {
       return ok({ message: "Payment already verified", purpose: payment.purpose, alreadyProcessed: true });
     }
@@ -41,42 +41,17 @@ export async function POST(request) {
       return error("Payment signature verification failed", 400);
     }
 
-    payment.status = "paid";
     payment.razorpayPaymentId = razorpayPaymentId;
     payment.razorpaySignature = razorpaySignature;
 
-    if (payment.purpose === "subscription") {
-      // Extend subscription using the same "stack on future expiry" rule the
-      // admin extend action uses (app/api/admin/workers/[id]/route.js).
-      const days = Number(payment.meta?.days) > 0 ? Math.floor(Number(payment.meta.days)) : 30;
-      const worker = await Worker.findById(payment.worker);
-      if (!worker) { await payment.save(); return notFound("Worker not found"); }
-      const now = new Date();
-      const base = worker.subscriptionExpiry && worker.subscriptionExpiry > now
-        ? worker.subscriptionExpiry
-        : now;
-      const newExpiry = new Date(base.getTime() + days * 24 * 60 * 60 * 1000);
-      await Worker.findByIdAndUpdate(worker._id, { subscriptionExpiry: newExpiry });
-      await payment.save();
-      return ok({ message: "Subscription activated", purpose: "subscription", expiresAt: newExpiry });
-    }
+    const result = await activatePayment(payment);
+    if (result.error === "worker_not_found") return notFound("Worker not found");
 
-    // purpose === "ad": create the ad now that payment is confirmed. It still
-    // starts as "pending" so admin reviews the creative before it goes live.
-    const m = payment.meta || {};
-    const ad = await Ad.create({
-      shop: payment.shop,
-      shopUser: payment.user,
-      type: m.type || "banner",
-      category: m.category,
-      duration: m.duration,
-      budget: payment.amount,
-      creative: m.creative || null,
-      status: "pending",
-    });
-    payment.ad = ad._id;
-    await payment.save();
-    return ok({ message: "Payment received. Ad submitted for review.", purpose: "ad", adId: String(ad._id) });
+    return ok(
+      result.purpose === "subscription"
+        ? { message: "Subscription activated", purpose: "subscription", expiresAt: result.expiresAt }
+        : { message: "Payment received. Ad submitted for review.", purpose: "ad", adId: result.adId }
+    );
   } catch (err) {
     console.error("POST /api/payments/verify error:", err);
     return error("Server error", 500);
