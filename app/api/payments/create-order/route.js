@@ -80,8 +80,20 @@ export async function POST(request) {
         notes: { purpose, userId: String(payload.id) },
       });
     } catch (rzErr) {
-      console.error("razorpay order create failed:", rzErr?.message || rzErr);
-      return error("Could not start payment. Please try again.", 502);
+      // Surface Razorpay's actual reason to the server logs so a mis-set key
+      // (wrong/mismatched RAZORPAY_KEY_ID/SECRET in the deploy env) is
+      // diagnosable instead of an opaque 502. Razorpay SDK errors carry the
+      // detail under .error.description / statusCode.
+      const detail = rzErr?.error?.description || rzErr?.message || String(rzErr);
+      const rzStatus = rzErr?.statusCode || rzErr?.error?.code || "";
+      console.error("razorpay order create failed:", rzStatus, detail);
+      const isAuth = String(rzStatus) === "401" || /authentication|key/i.test(detail);
+      return error(
+        isAuth
+          ? "Payment gateway keys are invalid. Please contact support."
+          : "Could not start payment. Please try again.",
+        502
+      );
     }
 
     const paymentDoc = await Payment.create({
