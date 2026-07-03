@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import {
   PlusCircle, X, Upload, CheckCircle, Eye,
   MousePointerClick, TrendingUp, Trash2, Megaphone,
-  Loader2, Copy, Smartphone, ChevronLeft,
+  Loader2, ChevronLeft,
 } from "lucide-react";
 import CategorySelect from "@/components/CategorySelect";
 import EmptyState from "@/components/EmptyState";
@@ -12,6 +12,8 @@ import LoadingSkeleton from "@/components/LoadingSkeleton";
 import { useRoleGuard } from "@/lib/auth/useRoleGuard";
 import { useToast } from "@/components/Toast";
 import { compressImage } from "@/lib/utils/compressImage";
+import { loadRazorpay } from "@/lib/utils/loadRazorpay";
+import { createAdPayment, verifyPayment } from "@/lib/api/payments";
 
 const AD_TYPES = [
   { value: "banner",   hi: "Banner Ad",        en: "Full-width banner on category page", icon: Megaphone, tag: "Most Popular" },
@@ -64,28 +66,54 @@ function CreateAdForm({ onCreated, onCancel }) {
     setStage("payment");
   }
 
-  // Called from <AdPaymentScreen> after the shop hits "I have paid via UPI".
-  // This is where the ad finally lands in the DB with status: "pending".
-  // When PayU/Razorpay is wired in the future, the gateway's success
-  // webhook will call this same code path instead of the manual button.
+  // Razorpay payment. The server prices the order (₹100/day) and, on a verified
+  // signature, the /api/payments/verify route creates the Ad as status:pending
+  // for admin review. The ad is NOT created until payment is confirmed.
   async function confirmPayment() {
+    if (loading) return;
     setLoading(true);
     try {
-      const token = localStorage.getItem("kaamsetu_token");
-      const res = await fetch("/api/shop/ads", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ type: adType, category, duration: daysNum, budget: totalCost, creative }),
+      const sdkOk = await loadRazorpay();
+      if (!sdkOk) { toast.error("Payment SDK load नहीं हुआ / Couldn't load payment. Check your connection."); setStage("form"); return; }
+
+      const order = await createAdPayment({ type: adType, category, duration: daysNum, creative });
+      if (!order?.orderId) { toast.error(order?.message || "Payment शुरू नहीं हो पाई / Could not start payment"); setStage("form"); return; }
+
+      const rzp = new window.Razorpay({
+        key: order.keyId,
+        amount: order.amountPaise,
+        currency: order.currency,
+        name: "KaamSetu",
+        description: `Ad — ${daysNum} day${daysNum === 1 ? "" : "s"} (₹${order.amount})`,
+        order_id: order.orderId,
+        theme: { color: "#0f172a" },
+        handler: async (resp) => {
+          try {
+            const v = await verifyPayment({
+              razorpayOrderId: resp.razorpay_order_id,
+              razorpayPaymentId: resp.razorpay_payment_id,
+              razorpaySignature: resp.razorpay_signature,
+            });
+            if (v?.success) {
+              setSubmitted(true);
+            } else {
+              toast.error(v?.message || "Verification failed. If charged, contact support.");
+              setStage("form");
+            }
+          } catch {
+            toast.error("Verification error. If money was deducted, contact support.");
+            setStage("form");
+          }
+        },
+        modal: { ondismiss: () => { setLoading(false); } },
       });
-      const data = await res.json();
-      if (data.success) {
-        setSubmitted(true);
-      } else {
-        toast.error(data.message || "Ad submit failed");
+      rzp.on("payment.failed", (resp) => {
+        toast.error(resp?.error?.description || "Payment failed. Please try again.");
         setStage("form");
-      }
+      });
+      rzp.open();
     } catch {
-      toast.error("Network error");
+      toast.error("कुछ गड़बड़ हुई / Something went wrong. Please try again.");
       setStage("form");
     } finally {
       setLoading(false);
@@ -250,36 +278,10 @@ function CreateAdForm({ onCreated, onCancel }) {
   );
 }
 
-// Manual UPI payment screen. Shown after the shop fills the form and
-// before the ad lands in the DB. When PayU/Razorpay is wired later,
-// this whole component gets replaced with a gateway redirect — the rest
-// of the flow (onPaid -> confirmPayment -> POST /api/shop/ads) stays.
+// Razorpay payment confirmation screen. Shows the amount, then "Pay" opens the
+// Razorpay checkout (onPaid → confirmPayment). The ad is created only after a
+// verified payment, then goes to admin review.
 function AdPaymentScreen({ amount, days, onPaid, onBack, submitting }) {
-  const toast = useToast();
-  const [config, setConfig] = useState({ upiId: "", qrCodeUrl: "" });
-  const [copied, setCopied] = useState(false);
-
-  useEffect(() => {
-    fetch("/api/payment-config")
-      .then(r => r.json())
-      .then(data => {
-        if (data.success) setConfig({ upiId: data.upiId || "", qrCodeUrl: data.qrCodeUrl || "" });
-      })
-      .catch(() => {});
-  }, []);
-
-  function copyUpi() {
-    if (!config.upiId) return;
-    navigator.clipboard?.writeText(config.upiId).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
-  }
-
-  const upiDeepLink = config.upiId
-    ? `upi://pay?pa=${encodeURIComponent(config.upiId)}&pn=KaamSetu&am=${amount}&cu=INR&tn=${encodeURIComponent(`Ad for ${days} days`)}`
-    : null;
-
   return (
     <div className="bg-white rounded-3xl border-2 border-brand-navy p-6 space-y-5">
       <div className="flex items-center justify-between">
@@ -300,62 +302,23 @@ function AdPaymentScreen({ amount, days, onPaid, onBack, submitting }) {
         </p>
       </div>
 
-      {/* QR */}
-      <div className="text-center">
-        <p className="text-xs font-semibold text-gray-500 mb-2 font-hindi">QR Code scan करें / Scan QR</p>
-        <div className="inline-block bg-white border-2 border-gray-200 rounded-2xl p-3">
-          {config.qrCodeUrl ? (
-            <img src={config.qrCodeUrl} alt="UPI QR" className="w-48 h-48 object-contain" />
-          ) : (
-            <div className="w-48 h-48 bg-gray-100 rounded-xl flex items-center justify-center text-gray-400 text-xs text-center px-4">
-              QR not set by admin yet — use UPI ID below
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* UPI ID */}
-      {config.upiId && (
-        <div className="bg-brand-bg border-2 border-gray-200 rounded-2xl px-4 py-3 flex items-center justify-between gap-3">
-          <div className="min-w-0">
-            <p className="text-xs text-gray-500">UPI ID</p>
-            <p className="font-bold text-brand-navy text-base truncate">{config.upiId}</p>
-          </div>
-          <button type="button" onClick={copyUpi}
-            className="flex items-center gap-1.5 bg-brand-navy text-white font-semibold text-sm px-3 py-2 rounded-lg hover:opacity-90 flex-shrink-0">
-            <Copy size={14} />
-            {copied ? "Copied!" : "Copy"}
-          </button>
-        </div>
-      )}
-
-      {/* Mobile UPI app deep-link */}
-      {upiDeepLink && (
-        <a href={upiDeepLink}
-          className="flex items-center justify-center gap-2 w-full bg-blue-600 text-white font-bold py-3.5 rounded-2xl hover:bg-blue-700 transition-colors">
-          <Smartphone size={18} />
-          <span className="font-hindi">UPI app में खोलें / Open in UPI app</span>
-        </a>
-      )}
-
       {/* Steps */}
       <ol className="text-xs text-gray-600 space-y-1 list-decimal list-inside bg-gray-50 rounded-xl p-3">
-        <li>QR scan करें या UPI ID copy करके payment app में paste करें</li>
-        <li>Exactly ₹{amount} pay करें</li>
-        <li>Payment हो जाने पर नीचे "I have paid" button दबाएँ</li>
-        <li>Admin verification के बाद आपका ad live हो जाएगा</li>
+        <li>नीचे "Pay" दबाएँ — UPI / Card / Netbanking से सुरक्षित payment करें</li>
+        <li>Payment होते ही आपका ad admin review के लिए submit हो जाएगा</li>
+        <li>Admin approval के बाद आपका ad live हो जाएगा</li>
       </ol>
 
-      {/* Confirm */}
+      {/* Pay */}
       <button type="button" onClick={onPaid} disabled={submitting}
         className="w-full bg-green-600 text-white font-black text-lg py-4 rounded-2xl hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 font-hindi">
         {submitting
-          ? (<><Loader2 size={20} className="animate-spin" /> Submit हो रहा है...</>)
-          : (<><CheckCircle size={20} /> Payment हो गई / I have paid</>)}
+          ? (<><Loader2 size={20} className="animate-spin" /> Processing…</>)
+          : (<><CheckCircle size={20} /> ₹{amount} Pay करें / Pay Now</>)}
       </button>
 
       <p className="text-[11px] text-gray-400 text-center">
-        Auto payment verification coming soon. Right now admin manually approves.
+        🔒 Secured by Razorpay · UPI / Card / Netbanking
       </p>
     </div>
   );

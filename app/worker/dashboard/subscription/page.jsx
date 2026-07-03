@@ -1,31 +1,33 @@
 ﻿"use client";
 
 import { useState, useEffect } from "react";
-import { CreditCard, CheckCircle, Clock, AlertCircle, Copy } from "lucide-react";
+import { CreditCard, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
 import { useRoleGuard } from "@/lib/auth/useRoleGuard";
+import { useToast } from "@/components/Toast";
 import EmptyState from "@/components/EmptyState";
 import SubscriptionCountdown from "@/components/SubscriptionCountdown";
-
-// UPI details shown to worker for manual payment (backend will verify later)
-const UPI_ID = "kaamsetu@upi";
-const QR_PLACEHOLDER = "https://picsum.photos/seed/qr/200/200";
+import { loadRazorpay } from "@/lib/utils/loadRazorpay";
+import { createSubscription, verifyPayment } from "@/lib/api/payments";
 
 export default function WorkerSubscriptionPage() {
   useRoleGuard("worker");
-  const [copied, setCopied] = useState(false);
+  const toast = useToast();
   const [worker, setWorker] = useState(null);
   const [loaded, setLoaded] = useState(false);
   const [price, setPrice] = useState(199);
+  const [paying, setPaying] = useState(false);
 
-  useEffect(() => {
+  async function loadWorker() {
     const token = typeof window !== "undefined" ? localStorage.getItem("kaamsetu_token") : null;
     if (!token) { setLoaded(true); return; }
-    fetch("/api/workers/me", { headers: { Authorization: `Bearer ${token}` } })
-      .then(r => r.json())
-      .then(data => { if (data.success && data.worker) setWorker(data.worker); })
-      .catch(() => {})
-      .finally(() => setLoaded(true));
-  }, []);
+    try {
+      const res = await fetch("/api/workers/me", { headers: { Authorization: `Bearer ${token}` } });
+      const data = await res.json();
+      if (data.success && data.worker) setWorker(data.worker);
+    } catch {} finally { setLoaded(true); }
+  }
+
+  useEffect(() => { loadWorker(); }, []);
 
   // Admin-configurable subscription price (from /api/settings/public)
   useEffect(() => {
@@ -35,11 +37,53 @@ export default function WorkerSubscriptionPage() {
       .catch(() => {});
   }, []);
 
-  function copyUPI() {
-    navigator.clipboard?.writeText(UPI_ID).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
+  async function handlePay() {
+    if (paying) return;
+    setPaying(true);
+    try {
+      const sdkOk = await loadRazorpay();
+      if (!sdkOk) { toast.error("Payment SDK load नहीं हुआ / Couldn't load payment. Check your connection."); return; }
+
+      const order = await createSubscription();
+      if (!order?.orderId) { toast.error(order?.message || "Payment शुरू नहीं हो पाई / Could not start payment"); return; }
+
+      const rzp = new window.Razorpay({
+        key: order.keyId,
+        amount: order.amountPaise,
+        currency: order.currency,
+        name: "KaamSetu",
+        description: `Worker Subscription — ${order.amount} ₹ / month`,
+        order_id: order.orderId,
+        prefill: { name: worker?.name || "", contact: worker?.mobile || "" },
+        theme: { color: "#0f172a" },
+        handler: async (resp) => {
+          try {
+            const v = await verifyPayment({
+              razorpayOrderId: resp.razorpay_order_id,
+              razorpayPaymentId: resp.razorpay_payment_id,
+              razorpaySignature: resp.razorpay_signature,
+            });
+            if (v?.success) {
+              toast.success("Subscription activate हो गई! / Subscription activated!");
+              await loadWorker();
+            } else {
+              toast.error(v?.message || "Verification failed. Contact support if charged.");
+            }
+          } catch {
+            toast.error("Verification error. If money was deducted, contact support.");
+          }
+        },
+        modal: { ondismiss: () => setPaying(false) },
+      });
+      rzp.on("payment.failed", (resp) => {
+        toast.error(resp?.error?.description || "Payment failed. Please try again.");
+      });
+      rzp.open();
+    } catch {
+      toast.error("कुछ गड़बड़ हुई / Something went wrong. Please try again.");
+    } finally {
+      setPaying(false);
+    }
   }
 
   const expiresAt = worker?.subscriptionExpiry;
@@ -137,68 +181,39 @@ export default function WorkerSubscriptionPage() {
         </ul>
       </div>
 
-      {/* Payment section */}
+      {/* Payment section — Razorpay */}
       <div className="bg-white rounded-3xl border-2 border-gray-200 p-6">
         <h3
-          className="font-black text-brand-navy mb-4"
+          className="font-black text-brand-navy mb-2 flex items-center gap-2"
           style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
         >
+          <CreditCard size={18} className="text-green-600" />
           भुगतान करें / Make Payment
         </h3>
+        <p className="text-gray-500 text-sm mb-5">
+          {isActive
+            ? "अभी renew करने पर दिन आपकी मौजूदा validity में जुड़ जाएंगे। / Renewing now adds days on top of your current validity."
+            : "Secure payment via UPI, card, or netbanking. Subscription instantly activate होगी।"}
+        </p>
 
-        {/* QR code */}
-        <div className="flex flex-col items-center mb-5">
-          <div className="w-40 h-40 bg-gray-100 rounded-2xl overflow-hidden border-2 border-gray-200 mb-3">
-            <img
-              src={QR_PLACEHOLDER}
-              alt="UPI QR Code for payment"
-              className="w-full h-full object-cover"
-            />
-          </div>
-          <p className="text-gray-500 text-sm text-center">
-            <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>QR Code scan करें</span>
-            {" / Scan to pay"}
-          </p>
-        </div>
-
-        {/* UPI ID */}
-        <div className="flex items-center justify-between bg-brand-bg border-2 border-gray-200 rounded-xl px-4 py-3 mb-5">
-          <div>
-            <p className="text-xs text-gray-500 mb-0.5">UPI ID</p>
-            <p className="font-bold text-brand-navy text-base">{UPI_ID}</p>
-          </div>
-          <button
-            onClick={copyUPI}
-            className="flex items-center gap-1.5 bg-blue-600 text-white font-semibold text-sm px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-            aria-label="Copy UPI ID"
-          >
-            <Copy size={14} />
-            {copied ? "Copied!" : "Copy"}
-          </button>
-        </div>
-
-        {/* Instructions */}
-        <ol className="space-y-2 text-sm text-gray-500 list-decimal list-inside">
-          <li>UPI ID copy करें या QR scan करें</li>
-          <li>₹{price} pay करें</li>
-          <li>
-            <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>
-              Payment screenshot Admin को WhatsApp करें
-            </span>
-          </li>
-          <li>Admin approval के बाद subscription activate होगी</li>
-        </ol>
-
-        {/* Renew button */}
         <button
-          className="mt-5 w-full bg-green-600 text-white font-black text-lg py-4 rounded-2xl hover:bg-green-700 transition-colors min-h-14"
-          aria-label="Renew subscription"
-          onClick={() => alert("Payment details ऊपर दिए गए हैं। UPI से pay करें। / Pay via UPI details shown above.")}
+          onClick={handlePay}
+          disabled={paying}
+          aria-label="Pay for subscription"
+          className="w-full bg-green-600 text-white font-black text-lg py-4 rounded-2xl hover:bg-green-700 transition-colors min-h-14 disabled:opacity-60 flex items-center justify-center gap-2"
         >
-          <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>
-            {isActive ? "नवीनीकरण करें / Renew" : `₹${price} Pay करें / Pay Now`}
-          </span>
+          {paying ? (
+            <><Loader2 size={20} className="animate-spin" /> <span>Processing…</span></>
+          ) : (
+            <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>
+              {isActive ? `₹${price} — नवीनीकरण करें / Renew` : `₹${price} Pay करें / Pay Now`}
+            </span>
+          )}
         </button>
+
+        <p className="text-[11px] text-gray-400 text-center mt-3">
+          🔒 Secured by Razorpay · UPI / Card / Netbanking
+        </p>
       </div>
 
       {/* Payment history */}
