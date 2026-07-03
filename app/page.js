@@ -206,7 +206,6 @@ export default function HomePage() {
   const { lang } = useLang();
   const t = useT();
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchCity, setSearchCity] = useState('');
   const [searchCategory, setSearchCategory] = useState('');
   const [role, setRole] = useState(null);
   const [roles, setRoles] = useState([]);
@@ -296,7 +295,6 @@ export default function HomePage() {
     // Auto-submit
     const params = new URLSearchParams();
     params.set('q', item.query);
-    if (searchCity) params.set('city', searchCity);
     if (searchCategory) params.set('category', searchCategory);
     router.push(`/workers?${params.toString()}`);
   }
@@ -322,7 +320,6 @@ export default function HomePage() {
     setShowSuggestions(false);
     const params = new URLSearchParams();
     if (searchQuery) params.set('q', searchQuery);
-    if (searchCity) params.set('city', searchCity);
     if (searchCategory) params.set('category', searchCategory);
     router.push(`/workers?${params.toString()}`);
   }
@@ -401,18 +398,10 @@ export default function HomePage() {
                   )}
                 </div>
 
-                <div className="flex gap-2 md:gap-3">
-                  <div className="relative">
-                    <MapPin size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                    <input type="text" value={searchCity} onChange={e => setSearchCity(e.target.value)}
-                      placeholder={t({ hi: 'आपका शहर', en: 'Your city' })}
-                      className="w-32 md:w-40 pl-10 pr-3 py-2 md:py-2.5 rounded-xl border border-gray-100 bg-gray-50 text-sm focus:outline-none focus:border-brand-navy font-hindi" />
-                  </div>
-                  <button type="submit"
-                    className="bg-brand-yellow text-brand-navy font-black px-6 md:px-7 py-2 md:py-2.5 rounded-xl hover:bg-amber-400 transition-colors font-hindi text-sm whitespace-nowrap">
-                    {t({ hi: 'खोजें', en: 'Search' })}
-                  </button>
-                </div>
+                <button type="submit"
+                  className="bg-brand-yellow text-brand-navy font-black px-6 md:px-7 py-2 md:py-2.5 rounded-xl hover:bg-amber-400 transition-colors font-hindi text-sm whitespace-nowrap">
+                  {t({ hi: 'खोजें', en: 'Search' })}
+                </button>
               </form>
 
               {/* Quick action tiles. Each tile smart-routes via tileHref():
