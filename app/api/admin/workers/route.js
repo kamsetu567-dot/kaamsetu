@@ -16,7 +16,10 @@ export async function GET(request) {
     const status = searchParams.get("status");
     const search = searchParams.get("search");
     const page = Math.max(1, parseInt(searchParams.get("page")) || 1);
-    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit")) || 20));
+    // Cap raised to 2000: the admin panel filters/searches client-side over the
+    // full set, so it must receive every worker — otherwise pending signups
+    // beyond the old 20-row default silently vanished from the approval list.
+    const limit = Math.min(2000, Math.max(1, parseInt(searchParams.get("limit")) || 20));
     const skip = (page - 1) * limit;
 
     const filter = {};

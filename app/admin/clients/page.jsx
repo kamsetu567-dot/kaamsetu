@@ -16,7 +16,7 @@ export default function AdminClientsPage() {
 
   function load() {
     setLoading(true);
-    getAllClients().then(data => { setClients(data); setLoading(false); });
+    getAllClients({ limit: 2000 }).then(data => { setClients(data); setLoading(false); });
   }
 
   useEffect(() => { load(); }, []);

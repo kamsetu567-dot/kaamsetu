@@ -10,6 +10,7 @@ export default function AdminSettingsPage() {
   const t = useT();
   const [saved, setSaved] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm();
 
@@ -23,15 +24,26 @@ export default function AdminSettingsPage() {
   }, [reset]);
 
   async function onSubmit(data) {
+    if (submitting) return;
     setSubmitting(true);
+    setErrorMsg("");
     const payload = {
       subscriptionPrice: Number(data.subscriptionPrice),
       defaultRadius: Number(data.defaultRadius),
     };
-    await updateSettings(payload);
-    setSubmitting(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+    try {
+      const res = await updateSettings(payload);
+      // apiFetch throws on non-2xx, so reaching here means success unless the
+      // wrapper returned an explicit failure flag.
+      if (res && res.success === false) throw new Error(res.message || "Save failed");
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (err) {
+      // Never leave the button stuck on "Saving…" — surface the failure.
+      setErrorMsg(err?.message || t({ hi: 'सेव नहीं हो पाया, दोबारा कोशिश करें', en: 'Could not save. Please try again.' }));
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -92,6 +104,10 @@ export default function AdminSettingsPage() {
             </div>
           </div>
         </div>
+
+        {errorMsg && (
+          <p className="text-red-600 text-sm bg-red-50 border border-red-200 rounded-xl px-4 py-2.5">{errorMsg}</p>
+        )}
 
         <button
           type="submit"

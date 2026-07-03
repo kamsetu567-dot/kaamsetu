@@ -185,7 +185,10 @@ export default function AdminWorkersPage() {
 
   function load() {
     setLoading(true);
-    getAllWorkers().then(data => { setWorkers(data); setLoading(false); });
+    // Fetch the full set (panel filters/searches client-side). Without an
+    // explicit high limit the API returns only the newest 20, hiding older
+    // pending workers from the approval list.
+    getAllWorkers({ limit: 2000 }).then(data => { setWorkers(data); setLoading(false); });
   }
 
   useEffect(() => { load(); }, []);

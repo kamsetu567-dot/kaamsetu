@@ -23,7 +23,7 @@ export default function AdminJobsPage() {
 
   function load() {
     setLoading(true);
-    getAllJobs().then(data => { setJobs(data); setLoading(false); });
+    getAllJobs({ limit: 2000 }).then(data => { setJobs(data); setLoading(false); });
   }
 
   useEffect(() => { load(); }, []);

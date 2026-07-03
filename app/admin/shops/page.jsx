@@ -22,7 +22,7 @@ export default function AdminShopsPage() {
 
   function load() {
     setLoading(true);
-    getAllShops({ status: statusFilter !== "all" ? statusFilter : undefined, search: search || undefined })
+    getAllShops({ status: statusFilter !== "all" ? statusFilter : undefined, search: search || undefined, limit: 2000 })
       .then(data => { setShops(data); setLoading(false); });
   }
 
