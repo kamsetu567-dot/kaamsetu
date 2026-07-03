@@ -16,6 +16,15 @@ const STATUS_BADGE = {
   deactivated: "bg-orange-100 text-orange-600",
 };
 
+// Subscription payment status shown per worker so admin can tell a paying
+// worker from a comp/trial or a lapsed one at a glance.
+const PAYMENT_BADGE = {
+  paid:    { label: "💰 Paid",    cls: "bg-green-100 text-green-700" },
+  trial:   { label: "Trial/Comp", cls: "bg-blue-100 text-blue-700" },
+  expired: { label: "Expired",    cls: "bg-orange-100 text-orange-600" },
+  none:    { label: "Unpaid",     cls: "bg-gray-100 text-gray-500" },
+};
+
 function ActionBtn({ label, onClick, color = "blue", icon: Icon, disabled = false }) {
   const cls = {
     green:  "bg-green-100 text-green-700 hover:bg-green-200",
@@ -304,7 +313,7 @@ export default function AdminWorkersPage() {
           <table className="w-full text-sm min-w-[900px]">
             <thead>
               <tr className="border-b border-gray-100 bg-brand-bg">
-                {["Name", "Mobile", "Category", "Gender", "Service", "Status", "Work", "Rating", "Sub Expiry", "Actions"].map(h => (
+                {["Name", "Mobile", "Category", "Gender", "Service", "Status", "Work", "Rating", "Subscription", "Actions"].map(h => (
                   <th key={h} className="text-left px-4 py-3 text-gray-400 font-semibold text-xs whitespace-nowrap">{h}</th>
                 ))}
               </tr>
@@ -343,8 +352,14 @@ export default function AdminWorkersPage() {
                         ? <>{Number(w.rating || 0).toFixed(1)} <span className="text-amber-500">★</span> <span className="text-gray-400 font-normal text-xs">({w.totalRatings})</span></>
                         : <span className="text-gray-400 font-normal text-xs">No ratings</span>}
                     </td>
-                    <td className="px-4 py-3 text-gray-400 text-xs">
-                      {w.subscriptionExpiry ? new Date(w.subscriptionExpiry).toLocaleDateString("en-IN") : "—"}
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      {(() => {
+                        const p = PAYMENT_BADGE[w.paymentStatus] || PAYMENT_BADGE.none;
+                        return <span className={`text-xs font-semibold px-2 py-1 rounded-full ${p.cls}`}>{p.label}</span>;
+                      })()}
+                      <div className="text-gray-400 text-xs mt-1">
+                        {w.subscriptionExpiry ? new Date(w.subscriptionExpiry).toLocaleDateString("en-IN") : "—"}
+                      </div>
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex flex-wrap gap-1">

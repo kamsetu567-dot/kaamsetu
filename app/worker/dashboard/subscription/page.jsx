@@ -14,7 +14,9 @@ export default function WorkerSubscriptionPage() {
   const toast = useToast();
   const [worker, setWorker] = useState(null);
   const [loaded, setLoaded] = useState(false);
-  const [price, setPrice] = useState(199);
+  // null until the real admin-configured price loads, so we never flash a
+  // hardcoded default (e.g. 199) before correcting to the actual value.
+  const [price, setPrice] = useState(null);
   const [paying, setPaying] = useState(false);
 
   async function loadWorker() {
@@ -88,6 +90,8 @@ export default function WorkerSubscriptionPage() {
 
   const expiresAt = worker?.subscriptionExpiry;
   const isActive = expiresAt && new Date(expiresAt) > new Date();
+  // "…" while the real price is still loading — avoids flashing a wrong number.
+  const priceLabel = price == null ? "…" : price;
 
   return (
     <div className="space-y-5">
@@ -99,7 +103,7 @@ export default function WorkerSubscriptionPage() {
         >
           सब्सक्रिप्शन
         </h2>
-        <p className="text-gray-500 text-sm mt-0.5">Subscription Plan — ₹{price}/month</p>
+        <p className="text-gray-500 text-sm mt-0.5">Subscription Plan — ₹{priceLabel}/month</p>
       </div>
 
       {/* Current status card */}
@@ -159,7 +163,7 @@ export default function WorkerSubscriptionPage() {
             <p className="text-gray-500 text-sm">मासिक प्लान</p>
           </div>
           <div className="text-right">
-            <p className="text-3xl font-black text-green-600">₹{price}</p>
+            <p className="text-3xl font-black text-green-600">₹{priceLabel}</p>
             <p className="text-gray-500 text-xs">/month · प्रति माह</p>
           </div>
         </div>
@@ -198,7 +202,7 @@ export default function WorkerSubscriptionPage() {
 
         <button
           onClick={handlePay}
-          disabled={paying}
+          disabled={paying || price == null}
           aria-label="Pay for subscription"
           className="w-full bg-green-600 text-white font-black text-lg py-4 rounded-2xl hover:bg-green-700 transition-colors min-h-14 disabled:opacity-60 flex items-center justify-center gap-2"
         >
@@ -206,7 +210,7 @@ export default function WorkerSubscriptionPage() {
             <><Loader2 size={20} className="animate-spin" /> <span>Processing…</span></>
           ) : (
             <span style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>
-              {isActive ? `₹${price} — नवीनीकरण करें / Renew` : `₹${price} Pay करें / Pay Now`}
+              {isActive ? `₹${priceLabel} — नवीनीकरण करें / Renew` : `₹${priceLabel} Pay करें / Pay Now`}
             </span>
           )}
         </button>

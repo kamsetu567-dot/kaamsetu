@@ -1,5 +1,6 @@
 import { connectDB } from "@/lib/db/mongoose";
 import Worker from "@/lib/models/Worker";
+import Payment from "@/lib/models/Payment";
 import { verifyToken, getTokenFromRequest } from "@/lib/utils/jwt";
 import { ok, error, unauthorized } from "@/lib/utils/apiResponse";
 
@@ -36,6 +37,31 @@ export async function GET(request) {
       Worker.countDocuments(filter),
     ]);
 
+    // Which of these workers have ever made a real (paid) subscription payment?
+    // Used to distinguish a paid subscription from a free/comp window.
+    const workerIds = workers.map(w => w._id);
+    const paidWorkerIds = new Set(
+      (await Payment.find({
+        purpose: "subscription",
+        status: "paid",
+        worker: { $in: workerIds },
+      }).distinct("worker")).map(String)
+    );
+
+    const now = new Date();
+    // paymentStatus per worker:
+    //   paid    — active subscription AND has a paid payment on record
+    //   trial   — active subscription but never paid (legacy trial / admin comp)
+    //   expired — had a subscription window that has now passed
+    //   none    — never had a subscription (default after approval; must pay)
+    function paymentStatus(w) {
+      const exp = w.subscriptionExpiry ? new Date(w.subscriptionExpiry) : null;
+      const active = exp && exp > now;
+      if (active) return paidWorkerIds.has(String(w._id)) ? "paid" : "trial";
+      if (exp) return "expired";
+      return paidWorkerIds.has(String(w._id)) ? "expired" : "none";
+    }
+
     const formatted = workers.map(w => ({
       id: w._id,
       name: w.name,
@@ -49,6 +75,8 @@ export async function GET(request) {
       rating: w.rating,
       totalRatings: w.totalRatings || 0,
       subscriptionExpiry: w.subscriptionExpiry,
+      paymentStatus: paymentStatus(w),
+      hasPaid: paidWorkerIds.has(String(w._id)),
       createdAt: w.createdAt,
       aadharNumber: w.aadharNumber || null,
       aadharFrontUrl: w.aadharFrontUrl || null,
