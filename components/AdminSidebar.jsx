@@ -18,9 +18,13 @@ const NAV_ITEMS = [
   { href: "/admin/ads",   hi: "विज्ञापन", en: "Ads Review", icon: Megaphone },
   { href: "/admin/jobs", hi: "जॉब्स", en: "Jobs", icon: Briefcase },
   { href: "/admin/pending-requests", hi: "Requests", en: "Pending Requests", icon: Briefcase },
+  { href: "/admin/notifications", hi: "सूचनाएँ", en: "Notifications", icon: Bell },
   { href: "/admin/payments", hi: "भुगतान", en: "Payments", icon: CreditCard },
   { href: "/admin/reports", hi: "रिपोर्ट्स", en: "Reports", icon: AlertTriangle },
   { href: "/admin/categories", hi: "कैटेगरी", en: "Categories", icon: FolderOpen },
+  { href: "/admin/offers", hi: "ऑफर", en: "Offers", icon: Tag },
+  { href: "/admin/search-management", hi: "सर्च", en: "Search Management", icon: Search },
+  { href: "/admin/security", hi: "सुरक्षा", en: "Security", icon: Shield },
   { href: "/admin/analytics", hi: "विश्लेषण", en: "Analytics", icon: BarChart3 },
   { href: "/admin/settings", hi: "सेटिंग्स", en: "Settings", icon: Settings },
 ];

@@ -7,6 +7,9 @@ import {
 } from "lucide-react";
 import { getAllWorkers, approveWorker, rejectWorker, activateWorker, deactivateWorker, blockUser, boostWorker, extendWorkerSubscription } from "@/lib/api/admin";
 import { useToast } from "@/components/Toast";
+import Pagination, { paginate } from "@/components/Pagination";
+
+const PER_PAGE = 20;
 
 const STATUS_BADGE = {
   pending:     "bg-yellow-100 text-yellow-700",
@@ -188,9 +191,14 @@ export default function AdminWorkersPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [page, setPage] = useState(1);
   const [actionInProgress, setActionInProgress] = useState(null);
   const [aadharWorker, setAadharWorker] = useState(null);
   const [extendWorker, setExtendWorker] = useState(null);
+
+  // Reset to page 1 whenever the filter/search changes so you don't land on an
+  // empty page.
+  useEffect(() => { setPage(1); }, [search, statusFilter]);
 
   function load() {
     setLoading(true);
@@ -262,6 +270,7 @@ export default function AdminWorkersPage() {
     return matchSearch && matchStatus;
   });
 
+  const { pageItems, pageProps } = paginate(filtered, page, PER_PAGE);
   const pendingCount = workers.filter(w => w.status === "pending").length;
 
   return (
@@ -330,7 +339,7 @@ export default function AdminWorkersPage() {
               ) : filtered.length === 0 ? (
                 <tr><td colSpan={10} className="py-12 text-center text-gray-400">No workers found</td></tr>
               ) : (
-                filtered.map(w => (
+                pageItems.map(w => (
                   <tr key={w.id} className="border-b border-gray-50 hover:bg-brand-bg last:border-0 transition-colors">
                     <td className="px-4 py-3 font-semibold text-brand-navy">{w.name ?? "—"}</td>
                     <td className="px-4 py-3 text-gray-500">{w.mobile ?? "—"}</td>
@@ -387,9 +396,7 @@ export default function AdminWorkersPage() {
           </table>
         </div>
         {!loading && filtered.length > 0 && (
-          <div className="px-4 py-3 border-t border-gray-50 bg-brand-bg text-xs text-gray-400">
-            {filtered.length} worker{filtered.length !== 1 ? "s" : ""} shown
-          </div>
+          <Pagination {...pageProps} onPageChange={setPage} />
         )}
       </div>
     </div>

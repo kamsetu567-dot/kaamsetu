@@ -4,6 +4,9 @@ import { useState, useEffect } from "react";
 import { Search, RefreshCw, CheckCircle, XCircle, Ban, ShieldCheck, Megaphone, MegaphoneOff, Trash2 } from "lucide-react";
 import { getAllShops, approveShop, rejectShop, blockShop, unblockShop, enableShopAd, disableShopAd, deleteShop } from "@/lib/api/admin";
 import { useToast } from "@/components/Toast";
+import Pagination, { paginate } from "@/components/Pagination";
+
+const PER_PAGE = 20;
 
 const STATUS_COLORS = {
   pending:  "bg-yellow-100 text-yellow-700",
@@ -18,7 +21,10 @@ export default function AdminShopsPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [page, setPage] = useState(1);
   const [actionInProgress, setActionInProgress] = useState(null);
+
+  useEffect(() => { setPage(1); }, [search, statusFilter]);
 
   function load() {
     setLoading(true);
@@ -49,6 +55,8 @@ export default function AdminShopsPage() {
     s.ownerName?.toLowerCase().includes(search.toLowerCase()) ||
     s.mobile?.includes(search)
   );
+
+  const { pageItems, pageProps } = paginate(filtered, page, PER_PAGE);
 
   return (
     <div className="space-y-5">
@@ -102,7 +110,7 @@ export default function AdminShopsPage() {
               ) : filtered.length === 0 ? (
                 <tr><td colSpan={7} className="py-12 text-center text-gray-400">No shops found</td></tr>
               ) : (
-                filtered.map(s => (
+                pageItems.map(s => (
                   <tr key={s.id} className="border-b border-gray-50 hover:bg-brand-bg last:border-0 transition-colors">
                     <td className="px-4 py-3 font-semibold text-brand-navy">{s.shopName ?? "—"}</td>
                     <td className="px-4 py-3">
@@ -176,9 +184,12 @@ export default function AdminShopsPage() {
           </table>
         </div>
         {!loading && filtered.length > 0 && (
-          <div className="px-4 py-3 border-t border-gray-50 bg-brand-bg text-xs text-gray-400">
-            {filtered.length} shop{filtered.length !== 1 ? "s" : ""} · {filtered.filter(s => s.adActive).length} ads live
-          </div>
+          <>
+            <div className="px-4 pt-3 text-xs text-gray-400">
+              {filtered.length} shop{filtered.length !== 1 ? "s" : ""} · {filtered.filter(s => s.adActive).length} ads live
+            </div>
+            <Pagination {...pageProps} onPageChange={setPage} />
+          </>
         )}
       </div>
     </div>

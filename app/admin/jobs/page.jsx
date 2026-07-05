@@ -4,6 +4,9 @@ import { useState, useEffect } from "react";
 import { Search, RefreshCw } from "lucide-react";
 import { getAllJobs } from "@/lib/api/admin";
 import { useT } from "@/lib/i18n/useT";
+import Pagination, { paginate } from "@/components/Pagination";
+
+const PER_PAGE = 20;
 
 const STATUS_BADGE = {
   pending:   "bg-yellow-100 text-yellow-700",
@@ -20,6 +23,9 @@ export default function AdminJobsPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [page, setPage] = useState(1);
+
+  useEffect(() => { setPage(1); }, [search, statusFilter]);
 
   function load() {
     setLoading(true);
@@ -38,6 +44,8 @@ export default function AdminJobsPage() {
       (j.city || j.location?.city || "").toLowerCase().includes(q);
     return matchStatus && matchSearch;
   });
+
+  const { pageItems, pageProps } = paginate(filtered, page, PER_PAGE);
 
   return (
     <div className="space-y-5">
@@ -98,7 +106,7 @@ export default function AdminJobsPage() {
               ) : filtered.length === 0 ? (
                 <tr><td colSpan={7} className="py-12 text-center text-gray-400">{t({ hi: 'कोई जॉब नहीं मिली', en: 'No jobs found' })}</td></tr>
               ) : (
-                filtered.map(j => (
+                pageItems.map(j => (
                   <tr key={j._id || j.id} className="border-b border-gray-50 hover:bg-brand-bg last:border-0 transition-colors">
                     <td className="px-4 py-3 font-mono text-xs text-gray-400 truncate max-w-[90px]">
                       {String(j._id || j.id).slice(-8)}
@@ -125,9 +133,7 @@ export default function AdminJobsPage() {
           </table>
         </div>
         {!loading && filtered.length > 0 && (
-          <div className="px-4 py-3 border-t border-gray-50 bg-brand-bg text-xs text-gray-400">
-            {t({ hi: `${filtered.length} जॉब्स दिखाई जा रही हैं`, en: `${filtered.length} job${filtered.length !== 1 ? 's' : ''} shown` })}
-          </div>
+          <Pagination {...pageProps} onPageChange={setPage} />
         )}
       </div>
     </div>

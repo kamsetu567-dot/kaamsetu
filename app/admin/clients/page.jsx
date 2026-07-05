@@ -5,6 +5,9 @@ import { Ban, Search, RefreshCw, ShieldCheck, Trash2 } from "lucide-react";
 import { getAllClients, blockUser, unblockClient, deleteClient } from "@/lib/api/admin";
 import { useToast } from "@/components/Toast";
 import { useT } from "@/lib/i18n/useT";
+import Pagination, { paginate } from "@/components/Pagination";
+
+const PER_PAGE = 20;
 
 export default function AdminClientsPage() {
   const toast = useToast();
@@ -12,7 +15,10 @@ export default function AdminClientsPage() {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
   const [actionInProgress, setActionInProgress] = useState(null);
+
+  useEffect(() => { setPage(1); }, [search]);
 
   function load() {
     setLoading(true);
@@ -41,6 +47,8 @@ export default function AdminClientsPage() {
     c.name?.toLowerCase().includes(search.toLowerCase()) ||
     c.mobile?.includes(search)
   );
+
+  const { pageItems, pageProps } = paginate(filtered, page, PER_PAGE);
 
   return (
     <div className="space-y-5">
@@ -91,7 +99,7 @@ export default function AdminClientsPage() {
               ) : filtered.length === 0 ? (
                 <tr><td colSpan={7} className="py-12 text-center text-gray-400">{t({ hi: 'कोई क्लाइंट नहीं मिला', en: 'No clients found' })}</td></tr>
               ) : (
-                filtered.map(c => (
+                pageItems.map(c => (
                   <tr key={c.id} className="border-b border-gray-50 hover:bg-brand-bg last:border-0 transition-colors">
                     <td className="px-4 py-3 font-semibold text-brand-navy">{c.name ?? "—"}</td>
                     <td className="px-4 py-3 text-gray-500">{c.mobile ?? "—"}</td>
@@ -131,12 +139,15 @@ export default function AdminClientsPage() {
           </table>
         </div>
         {!loading && filtered.length > 0 && (
-          <div className="px-4 py-3 border-t border-gray-50 bg-brand-bg text-xs text-gray-400">
-            {t({
-              hi: `${filtered.length} क्लाइंट दिखाए जा रहे हैं · ${filtered.filter(c => c.status === 'blocked').length} ब्लॉक्ड`,
-              en: `${filtered.length} client${filtered.length !== 1 ? 's' : ''} shown · ${filtered.filter(c => c.status === 'blocked').length} blocked`,
-            })}
-          </div>
+          <>
+            <div className="px-4 pt-3 text-xs text-gray-400">
+              {t({
+                hi: `कुल ${filtered.length} क्लाइंट · ${filtered.filter(c => c.status === 'blocked').length} ब्लॉक्ड`,
+                en: `${filtered.length} client${filtered.length !== 1 ? 's' : ''} total · ${filtered.filter(c => c.status === 'blocked').length} blocked`,
+              })}
+            </div>
+            <Pagination {...pageProps} onPageChange={setPage} />
+          </>
         )}
       </div>
     </div>
