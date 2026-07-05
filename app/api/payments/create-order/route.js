@@ -76,11 +76,13 @@ export async function POST(request) {
       order = await razorpay.orders.create({
         amount: amount * 100,
         currency: "INR",
-        receipt: `${purpose}_${payload.id}_${Date.now()}`,
+        // Razorpay caps receipt at 40 chars. purpose(≤12) + "_" + timestamp(13)
+        // stays well under; the full user id lives in notes instead.
+        receipt: `${purpose.slice(0, 12)}_${Date.now()}`,
         notes: { purpose, userId: String(payload.id) },
       });
     } catch (rzErr) {
-      // Surface Razorpay's actual reason. The SDK wraps errors under
+      // Log Razorpay's actual reason server-side. The SDK wraps errors under
       // rzErr.error (Razorpay's body) with .description/.code, plus .statusCode.
       const detail =
         rzErr?.error?.description ||
@@ -90,16 +92,10 @@ export async function POST(request) {
       const rzStatus = rzErr?.statusCode || rzErr?.error?.code || rzErr?.status || "";
       console.error("razorpay order create failed:", rzStatus, detail);
       const isAuth = String(rzStatus) === "401" || /authentication|key|unauthor/i.test(detail);
-      // TEMP diagnostic: include the real Razorpay reason in the response so a
-      // misconfigured deploy is visible without server-log access. No secrets
-      // are exposed — only Razorpay's own error text + a hint about which env
-      // key id the server actually loaded (last 4 chars only).
-      const idTail = (process.env.RAZORPAY_KEY_ID || "").slice(-4) || "unset";
       return error(
-        (isAuth
-          ? "Payment gateway keys are invalid. "
-          : "Could not start payment. ") +
-          `[diag: rz=${rzStatus || "?"} idTail=${idTail} reason=${String(detail).slice(0, 120)}]`,
+        isAuth
+          ? "Payment gateway keys are invalid. Please contact support."
+          : "Could not start payment. Please try again.",
         502
       );
     }
