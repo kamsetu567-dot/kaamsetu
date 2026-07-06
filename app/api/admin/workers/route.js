@@ -37,16 +37,22 @@ export async function GET(request) {
       Worker.countDocuments(filter),
     ]);
 
-    // Which of these workers have ever made a real (paid) subscription payment?
-    // Used to distinguish a paid subscription from a free/comp window.
+    // Which of these workers have ever made a real (paid) subscription payment,
+    // and WHEN did they last pay? updatedAt is when the Payment flipped to
+    // "paid" (verify route sets status:"paid"; timestamps:true on the model).
     const workerIds = workers.map(w => w._id);
-    const paidWorkerIds = new Set(
-      (await Payment.find({
-        purpose: "subscription",
-        status: "paid",
-        worker: { $in: workerIds },
-      }).distinct("worker")).map(String)
-    );
+    const paidPayments = await Payment.find({
+      purpose: "subscription",
+      status: "paid",
+      worker: { $in: workerIds },
+    }).select("worker updatedAt").sort({ updatedAt: -1 }).lean();
+
+    const lastPaidByWorker = new Map(); // workerId → most-recent paid date
+    for (const p of paidPayments) {
+      const k = String(p.worker);
+      if (!lastPaidByWorker.has(k)) lastPaidByWorker.set(k, p.updatedAt); // first seen = newest (sorted desc)
+    }
+    const paidWorkerIds = new Set(lastPaidByWorker.keys());
 
     const now = new Date();
     // paymentStatus per worker:
@@ -77,6 +83,7 @@ export async function GET(request) {
       subscriptionExpiry: w.subscriptionExpiry,
       paymentStatus: paymentStatus(w),
       hasPaid: paidWorkerIds.has(String(w._id)),
+      lastPaidAt: lastPaidByWorker.get(String(w._id)) || null,
       createdAt: w.createdAt,
       aadharNumber: w.aadharNumber || null,
       aadharFrontUrl: w.aadharFrontUrl || null,

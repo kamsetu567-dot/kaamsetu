@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from "react";
 import {
-  CheckCircle, XCircle, ShieldOff, ShieldCheck,
-  Ban, Star, CalendarCheck, Search, RefreshCw, IdCard, X,
+  CheckCircle, XCircle, ShieldCheck,
+  Ban, CalendarCheck, Search, RefreshCw, IdCard, X,
 } from "lucide-react";
-import { getAllWorkers, approveWorker, rejectWorker, activateWorker, deactivateWorker, blockUser, boostWorker, extendWorkerSubscription } from "@/lib/api/admin";
+import { getAllWorkers, approveWorker, rejectWorker, activateWorker, blockUser, boostWorker, extendWorkerSubscription } from "@/lib/api/admin";
 import { useToast } from "@/components/Toast";
 import Pagination, { paginate } from "@/components/Pagination";
 
@@ -211,13 +211,13 @@ export default function AdminWorkersPage() {
   useEffect(() => { load(); }, []);
 
   async function handleAction(action, id) {
-    const fns = { approve: approveWorker, reject: rejectWorker, activate: activateWorker, deactivate: deactivateWorker };
+    const fns = { approve: approveWorker, reject: rejectWorker, activate: activateWorker };
     if (!fns[action] || actionInProgress) return;
     setActionInProgress(`${action}-${id}`);
     try {
       await fns[action](id);
       load();
-      const labels = { approve: "Approved", reject: "Rejected", activate: "Activated", deactivate: "Deactivated" };
+      const labels = { approve: "Approved", reject: "Rejected", activate: "Activated" };
       toast.success(`Worker ${labels[action] || action}!`);
     } catch (err) {
       toast.error(err?.message || "Action failed");
@@ -290,7 +290,7 @@ export default function AdminWorkersPage() {
               <span className="ml-2 bg-yellow-400 text-brand-navy text-sm font-bold px-2 py-0.5 rounded-full">{pendingCount} pending</span>
             )}
           </h1>
-          <p className="text-gray-400 text-sm mt-0.5">Approve, activate, block, and manage all workers</p>
+          <p className="text-gray-400 text-sm mt-0.5">Approve, block, and manage all workers</p>
         </div>
         <button onClick={load} disabled={loading} className="flex items-center gap-1 text-brand-navy text-sm font-semibold hover:opacity-70 disabled:opacity-40 min-h-0">
           <RefreshCw size={14} className={loading ? "animate-spin" : ""} /> Refresh
@@ -311,7 +311,6 @@ export default function AdminWorkersPage() {
           <option value="pending">Pending</option>
           <option value="approved">Approved</option>
           <option value="rejected">Rejected</option>
-          <option value="deactivated">Deactivated</option>
           <option value="blocked">Blocked</option>
         </select>
       </div>
@@ -366,8 +365,13 @@ export default function AdminWorkersPage() {
                         const p = PAYMENT_BADGE[w.paymentStatus] || PAYMENT_BADGE.none;
                         return <span className={`text-xs font-semibold px-2 py-1 rounded-full ${p.cls}`}>{p.label}</span>;
                       })()}
-                      <div className="text-gray-400 text-xs mt-1">
-                        {w.subscriptionExpiry ? new Date(w.subscriptionExpiry).toLocaleDateString("en-IN") : "—"}
+                      {w.lastPaidAt && (
+                        <div className="text-gray-500 text-xs mt-1">
+                          Paid: {new Date(w.lastPaidAt).toLocaleDateString("en-IN")}
+                        </div>
+                      )}
+                      <div className="text-gray-400 text-xs mt-0.5">
+                        {w.subscriptionExpiry ? `Expires: ${new Date(w.subscriptionExpiry).toLocaleDateString("en-IN")}` : "—"}
                       </div>
                     </td>
                     <td className="px-4 py-3">
@@ -378,10 +382,7 @@ export default function AdminWorkersPage() {
                             <ActionBtn label="Reject"  icon={XCircle}     color="red"   onClick={() => handleAction("reject",  w.id)} disabled={!!actionInProgress} />
                           </>
                         )}
-                        {w.status === "approved" && (
-                          <ActionBtn label="Deactivate" icon={ShieldOff} color="yellow" onClick={() => handleAction("deactivate", w.id)} disabled={!!actionInProgress} />
-                        )}
-                        {(w.status === "rejected" || w.status === "deactivated") && (
+                        {w.status === "rejected" && (
                           <ActionBtn label="Activate" icon={ShieldCheck} color="green" onClick={() => handleAction("activate", w.id)} disabled={!!actionInProgress} />
                         )}
                         <ActionBtn label="Aadhar"  icon={IdCard}        color="blue" onClick={() => setAadharWorker(w)} disabled={!!actionInProgress} />

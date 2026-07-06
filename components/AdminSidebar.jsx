@@ -4,8 +4,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
-  LayoutDashboard, Users, UserCheck, Briefcase, CreditCard,
-  Tag, Bell, BarChart3, Settings, Shield, Megaphone, Search, LogOut, Store,
+  LayoutDashboard, Users, UserCheck, Briefcase,
+  Bell, Settings, Megaphone, Search, LogOut, Store,
   AlertTriangle, FolderOpen,
 } from "lucide-react";
 import { adminLogout } from "@/lib/utils/adminAuth";
@@ -19,13 +19,9 @@ const NAV_ITEMS = [
   { href: "/admin/jobs", hi: "जॉब्स", en: "Jobs", icon: Briefcase },
   { href: "/admin/pending-requests", hi: "Requests", en: "Pending Requests", icon: Briefcase },
   { href: "/admin/notifications", hi: "सूचनाएँ", en: "Notifications", icon: Bell },
-  { href: "/admin/payments", hi: "भुगतान", en: "Payments", icon: CreditCard },
   { href: "/admin/reports", hi: "रिपोर्ट्स", en: "Reports", icon: AlertTriangle },
   { href: "/admin/categories", hi: "कैटेगरी", en: "Categories", icon: FolderOpen },
-  { href: "/admin/offers", hi: "ऑफर", en: "Offers", icon: Tag },
   { href: "/admin/search-management", hi: "सर्च", en: "Search Management", icon: Search },
-  { href: "/admin/security", hi: "सुरक्षा", en: "Security", icon: Shield },
-  { href: "/admin/analytics", hi: "विश्लेषण", en: "Analytics", icon: BarChart3 },
   { href: "/admin/settings", hi: "सेटिंग्स", en: "Settings", icon: Settings },
 ];
 
