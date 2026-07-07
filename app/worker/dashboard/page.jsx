@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { User, Star, CreditCard, Briefcase, LogOut, CheckCircle, Clock, Play, Trophy, MapPin } from "lucide-react";
+import { User, Star, CreditCard, Briefcase, LogOut, CheckCircle, Clock, Play, Trophy, MapPin, Phone, MessageCircle } from "lucide-react";
 import { useToast } from "@/components/Toast";
 import SubscriptionCountdown from "@/components/SubscriptionCountdown";
 import { getJobHistory } from "@/lib/api/jobs";
@@ -277,10 +277,28 @@ export default function WorkerDashboardOverview() {
           <div className="bg-white rounded-2xl p-4 border border-orange-200">
             <p className="font-bold text-brand-navy">{activeJob.subcategory || activeJob.category}</p>
             <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
-              <MapPin size={12} /> {activeJob.location || "—"}
+              <MapPin size={12} /> {[activeJob.clientAddress, activeJob.clientCity].filter(Boolean).join(", ") || activeJob.location || "—"}
             </p>
             {activeJob.description && (
               <p className="text-sm text-gray-600 mt-2 bg-gray-50 rounded-lg px-3 py-2">{activeJob.description}</p>
+            )}
+
+            {/* Client contact — the worker can call/WhatsApp the client directly */}
+            {activeJob.clientMobile && (
+              <div className="mt-3 pt-3 border-t border-gray-100">
+                <p className="text-[11px] text-gray-400 uppercase tracking-wide font-semibold">Client / ग्राहक</p>
+                <p className="font-semibold text-brand-navy text-sm mt-0.5">{activeJob.clientName || "Client"}</p>
+                <div className="flex gap-2 mt-2">
+                  <a href={`tel:+91${activeJob.clientMobile}`}
+                    className="flex-1 flex items-center justify-center gap-1.5 bg-green-600 text-white text-sm font-bold py-2.5 rounded-xl hover:bg-green-700 transition-colors">
+                    <Phone size={15} /> Call
+                  </a>
+                  <a href={`https://wa.me/91${activeJob.clientMobile}`} target="_blank" rel="noopener noreferrer"
+                    className="flex-1 flex items-center justify-center gap-1.5 bg-[#25D366] text-white text-sm font-bold py-2.5 rounded-xl hover:opacity-90 transition-opacity">
+                    <MessageCircle size={15} /> WhatsApp
+                  </a>
+                </div>
+              </div>
             )}
           </div>
           {activeJob.status === "accepted" ? (

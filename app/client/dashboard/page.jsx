@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { PlusCircle, LogOut, Star, User, ShieldCheck, ExternalLink } from "lucide-react";
+import { PlusCircle, LogOut, Star, User, ShieldCheck, ExternalLink, Phone, MessageCircle } from "lucide-react";
 import AdSlot from "@/components/AdSlot";
 
 const STATUS_CONFIG = {
@@ -239,6 +239,20 @@ export default function ClientDashboardPage() {
                       </p>
                     </div>
                   </div>
+                  {/* Direct contact — shown once a worker is assigned so the
+                      client can reach them without digging into email/profile. */}
+                  {(req.status === "accepted" || req.status === "in_progress") && req.workerDetails.mobile && (
+                    <div className="flex gap-2 mb-2">
+                      <a href={`tel:+91${req.workerDetails.mobile}`}
+                        className="flex-1 inline-flex items-center justify-center gap-1.5 bg-green-600 text-white font-bold text-sm py-2.5 rounded-xl hover:bg-green-700 transition-colors">
+                        <Phone size={14} /> Call Worker
+                      </a>
+                      <a href={`https://wa.me/91${req.workerDetails.mobile}`} target="_blank" rel="noopener noreferrer"
+                        className="flex-1 inline-flex items-center justify-center gap-1.5 bg-[#25D366] text-white font-bold text-sm py-2.5 rounded-xl hover:opacity-90 transition-opacity">
+                        <MessageCircle size={14} /> WhatsApp
+                      </a>
+                    </div>
+                  )}
                   <Link
                     href={`/workers/${req.workerDetails.id}`}
                     className="w-full inline-flex items-center justify-center gap-1.5 bg-brand-navy text-white font-bold text-sm py-2.5 rounded-xl hover:opacity-90 transition-opacity"

@@ -18,6 +18,11 @@ export async function GET(request) {
     const filter = {};
     if (status) filter.status = status;
 
+    // True only for the worker's own job history (assigned jobs). In that case
+    // the worker may see the client's contact — it's their own client to reach.
+    // The open-feed (pending) branch must NOT expose contact before accepting.
+    let isOwnHistory = false;
+
     if (workerId) {
       if (status === "pending") {
         const workerProfile = await Worker.findOne({ user: workerId }).lean();
@@ -104,6 +109,7 @@ export async function GET(request) {
         const workerProfile = await Worker.findOne({ user: workerId }).lean();
         if (!workerProfile) return ok({ jobs: [] });
         filter.worker = workerProfile._id;
+        isOwnHistory = true;
       }
     }
 
@@ -123,7 +129,14 @@ export async function GET(request) {
         source: j.source,
         worker: j.worker,
         createdAt: j.createdAt,
-        // clientMobile and clientName intentionally omitted — exposed only on job accept
+        // Client contact is exposed ONLY on the worker's own history (their
+        // assigned jobs) — never on the open pending feed before acceptance.
+        ...(isOwnHistory ? {
+          clientName: j.clientName || null,
+          clientMobile: j.clientMobile || null,
+          clientAddress: j.location?.address || "",
+          clientCity: j.location?.city || "",
+        } : {}),
       })),
     });
   } catch (err) {

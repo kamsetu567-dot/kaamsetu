@@ -6,7 +6,7 @@ import Client from "@/lib/models/Client";
 import User from "@/lib/models/User";
 import { verifyToken, getTokenFromRequest } from "@/lib/utils/jwt";
 import { ok, error, unauthorized, notFound } from "@/lib/utils/apiResponse";
-import { sendJobAcceptedEmail } from "@/lib/utils/email";
+import { sendJobAcceptedEmail, sendClientDetailsEmail } from "@/lib/utils/email";
 
 export async function POST(request, { params }) {
   try {
@@ -43,7 +43,8 @@ export async function POST(request, { params }) {
       return error("Job is no longer available.", 409);
     }
 
-    // Fire-and-forget: email the client that their job was accepted
+    // Fire-and-forget: email the client that their job was accepted (they get
+    // the worker's name + phone).
     if (job.clientId) {
       Client.findById(job.clientId).lean().then(async clientDoc => {
         if (!clientDoc?.user) return;
@@ -61,8 +62,23 @@ export async function POST(request, { params }) {
       }).catch(() => {});
     }
 
+    // Fire-and-forget: email the WORKER the client's details + job info so they
+    // can reach out. (No start code — that's given in person.)
+    User.findById(worker.user).select("email").lean().then(workerUser => {
+      if (!workerUser?.email) return;
+      sendClientDetailsEmail(workerUser.email, worker.name, {
+        clientName: job.clientName,
+        clientMobile: job.clientMobile,
+        address: job.location?.address,
+        city: job.location?.city,
+        category: job.category,
+        subcategory: job.subcategory,
+        description: job.description,
+      }).catch(() => {});
+    }).catch(() => {});
+
     return ok({
-      message: "Job accepted. The client will call you shortly.",
+      message: "Job accepted. Client details sent to your email.",
     });
   } catch (err) {
     console.error("POST /api/jobs/[id]/accept error:", err);
