@@ -10,7 +10,16 @@ import { getAllCategoriesForSearch } from '@/lib/api/categories';
 import { compressImage } from '@/lib/utils/compressImage';
 import AddressAutocomplete from '@/components/AddressAutocomplete';
 
-const ICONS = { Hammer: '🔨', Home: '🏠', PartyPopper: '🎉', GraduationCap: '🎓', Sparkles: '✨', Car: '🚗', Store: '🏪', Settings: '⚙️', Heart: '❤️', Shield: '🛡️', Package: '📦' };
+const ICONS = {
+  Hammer: '🔨', Home: '🏠', PartyPopper: '🎉', GraduationCap: '🎓', Sparkles: '✨',
+  Car: '🚗', Store: '🏪', Settings: '⚙️', Heart: '❤️', Shield: '🛡️', Package: '📦',
+  Briefcase2: '💼',
+  // New categories (2026 expansion)
+  Stethoscope: '🩺', Factory: '🏭', Wheat: '🌾', PawPrint: '🐾', Laptop: '💻',
+  Presentation: '📊', Scale: '⚖️', Building: '🏢', UtensilsCrossed: '🍽️', Music: '🎵',
+  Megaphone: '📣', SprayCan: '🧴', Siren: '🚨', Wallet: '💰', Plane: '✈️',
+  KeyRound: '🔑', FileText: '📄', Recycle: '♻️',
+};
 
 export default function WorkerSignupPage() {
   const router = useRouter();
