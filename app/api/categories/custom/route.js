@@ -1,5 +1,6 @@
 import { connectDB } from "@/lib/db/mongoose";
 import CustomCategory from "@/lib/models/CustomCategory";
+import { CATEGORIES } from "@/lib/data/categories";
 import { verifyToken, getTokenFromRequest } from "@/lib/utils/jwt";
 import { ok, error, created, unauthorized } from "@/lib/utils/apiResponse";
 import { createRateLimit } from "@/lib/middleware/rateLimit";
@@ -54,6 +55,16 @@ export async function POST(request) {
     const slug = cleanNameEn.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
     if (!slug) return error("Category name must contain alphanumeric characters");
 
+    // Don't let a custom category shadow a built-in one — it would show up as a
+    // confusing duplicate in every dropdown/search. Match on slug or name.
+    const nameLc = cleanNameEn.toLowerCase();
+    const clashesBuiltin = CATEGORIES.some(
+      c => c.slug === slug || c.nameEn.toLowerCase() === nameLc
+    );
+    if (clashesBuiltin) {
+      return error("This category already exists as a built-in category");
+    }
+
     await connectDB();
 
     const existing = await CustomCategory.findOne({ slug });
@@ -70,6 +81,12 @@ export async function POST(request) {
 
     return created({ message: "Category request submitted", category });
   } catch (err) {
+    // A duplicate-key error (E11000) means the category already exists — surface
+    // it as a clean 400 instead of a generic 500. (Also shields against any
+    // stale/legacy unique index lingering on the collection.)
+    if (err?.code === 11000) {
+      return error("Category with this name already exists");
+    }
     console.error("POST custom categories error:", err);
     return error("Server error", 500);
   }

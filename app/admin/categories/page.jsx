@@ -5,10 +5,12 @@ import { Tag, Trash2, CheckCircle, Clock, PlusCircle } from "lucide-react";
 import { apiGet, apiPatch, apiPost } from "@/lib/api/client";
 import { CATEGORIES } from "@/lib/data/categories";
 import EmptyState from "@/components/EmptyState";
+import { useToast } from "@/components/Toast";
 import { useT } from "@/lib/i18n/useT";
 
 export default function AdminCategoriesPage() {
   const t = useT();
+  const toast = useToast();
   const [custom, setCustom] = useState([]);
   const [loading, setLoading] = useState(true);
   const [newName, setNewName] = useState("");
@@ -29,16 +31,22 @@ export default function AdminCategoriesPage() {
   async function handleApprove(id) {
     try {
       await apiPatch(`/api/categories/custom/${id}`, { status: "approved" });
+      toast.success(t({ hi: 'कैटेगरी अप्रूव हो गई', en: 'Category approved' }));
       await loadCustom();
-    } catch {}
+    } catch (err) {
+      toast.error(err?.message || t({ hi: 'अप्रूव नहीं हो सका', en: 'Could not approve' }));
+    }
   }
 
   async function handleDelete(id) {
     if (!confirm(t({ hi: 'इस कैटेगरी को delete करें?', en: 'Delete this category?' }))) return;
     try {
       await apiPatch(`/api/categories/custom/${id}`, { status: "deleted" });
+      toast.success(t({ hi: 'कैटेगरी delete हो गई', en: 'Category deleted' }));
       await loadCustom();
-    } catch {}
+    } catch (err) {
+      toast.error(err?.message || t({ hi: 'delete नहीं हो सका', en: 'Could not delete' }));
+    }
   }
 
   async function handleAddNew(e) {
@@ -49,8 +57,13 @@ export default function AdminCategoriesPage() {
       await apiPost("/api/categories/custom", { nameEn: newName.trim(), nameHi: newNameHi.trim() || newName.trim() });
       setNewName("");
       setNewNameHi("");
+      toast.success(t({ hi: 'नई कैटेगरी जुड़ गई', en: 'Category added' }));
       await loadCustom();
-    } catch {}
+    } catch (err) {
+      // Surface the real reason (duplicate, validation, network) instead of
+      // silently doing nothing.
+      toast.error(err?.message || t({ hi: 'कैटेगरी नहीं जुड़ सकी', en: 'Could not add category' }));
+    }
     setAdding(false);
   }
 
