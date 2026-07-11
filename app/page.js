@@ -37,37 +37,44 @@ const SEARCH_SUGGESTIONS = [
 // Single static hero illustration — no rotation, no fade, no glow.
 const HERO_IMAGE = '/illustrations/hero-group.png';
 
-// Category icon tiles — one per top-level service category
-const SERVICE_TILES = [
-  // ── Top row: 12 broad categories (PNG icons already in /public/icons) ──
-  { icon: '/icons/construction-repair.png',  hi: 'निर्माण और मरम्मत',     en: 'Construction & Repair',   bg: 'bg-orange-50',  href: '/categories/construction-repair' },
-  { icon: '/icons/home-services.png',        hi: 'घरेलू सेवाएँ',           en: 'Home Services',           bg: 'bg-blue-50',    href: '/categories/home-services' },
-  { icon: '/icons/event-services.png',       hi: 'इवेंट सेवाएँ',           en: 'Event Services',          bg: 'bg-violet-50',  href: '/categories/event-services' },
-  { icon: '/icons/talent-training.png',      hi: 'हुनर और प्रशिक्षण',     en: 'Talent & Training',       bg: 'bg-purple-50',  href: '/categories/talent-training' },
-  { icon: '/icons/beauty-personal-care.png', hi: 'सौंदर्य सेवाएँ',          en: 'Beauty & Personal Care',  bg: 'bg-rose-50',    href: '/categories/beauty-personal-care' },
-  { icon: '/icons/vehicle-travel.png',       hi: 'वाहन और यात्रा',         en: 'Vehicle & Travel',        bg: 'bg-cyan-50',    href: '/categories/vehicle-travel' },
-  { icon: '/icons/shop-retail.png',          hi: 'दुकानें और सामग्री',     en: 'Shops & Materials',       bg: 'bg-yellow-50',  href: '/categories/shops-materials' },
-  { icon: '/icons/repair-technical.png',     hi: 'मरम्मत और तकनीकी',       en: 'Repair & Technical',      bg: 'bg-slate-50',   href: '/categories/repair-technical' },
-  { icon: '/icons/home-care.png',            hi: 'होम केयर',               en: 'Home Care & Living',      bg: 'bg-red-50',     href: '/categories/home-care-living' },
-  { icon: '/icons/security-services.png',    hi: 'सुरक्षा सेवाएँ',         en: 'Security Services',       bg: 'bg-indigo-50',  href: '/categories/security-event-safety' },
-  { icon: '/icons/packing-logistics.png',    hi: 'पैकिंग और लॉजिस्टिक्स',   en: 'Packing & Logistics',     bg: 'bg-teal-50',    href: '/categories/packing-logistics' },
-  { icon: '/icons/office-work.png',          hi: 'जॉब्स / स्टाफ / ऑफिस',   en: 'Jobs / Staff / Office',   bg: 'bg-emerald-50', href: '/categories/jobs-staff-office' },
-  // ── Next 12: popular specific services. Drop matching PNGs into /public/icons/.
-  // Each links straight to the category page with a subcategory pre-filter so the
-  // worker list opens scoped to that exact trade. ──
-  { icon: '/icons/plumber.png',         hi: 'प्लंबर',              en: 'Plumber',          bg: 'bg-sky-50',     href: '/categories/construction-repair?subcategory=Plumber' },
-  { icon: '/icons/electrician.png',     hi: 'इलेक्ट्रीशियन',        en: 'Electrician',      bg: 'bg-amber-50',   href: '/categories/construction-repair?subcategory=Electrician' },
-  { icon: '/icons/carpenter.png',       hi: 'कारपेंटर',             en: 'Carpenter',        bg: 'bg-yellow-50',  href: '/categories/construction-repair?subcategory=Carpenter' },
-  { icon: '/icons/painter.png',         hi: 'पेंटर',               en: 'Painter',          bg: 'bg-fuchsia-50', href: '/categories/construction-repair?subcategory=Painter' },
-  { icon: '/icons/ac-repair.png',       hi: 'AC रिपेयर',           en: 'AC Repair',        bg: 'bg-cyan-50',    href: '/categories/repair-technical?subcategory=AC%20Repair' },
-  { icon: '/icons/mobile-repair.png',   hi: 'मोबाइल रिपेयर',        en: 'Mobile Repair',    bg: 'bg-lime-50',    href: '/categories/repair-technical?subcategory=Mobile%20Repair' },
-  { icon: '/icons/maid.png',            hi: 'कामवाली / मेड',        en: 'Maid',             bg: 'bg-pink-50',    href: '/categories/home-services?subcategory=Maid' },
-  { icon: '/icons/cook.png',            hi: 'रसोइया / कुक',         en: 'Cook',             bg: 'bg-orange-50',  href: '/categories/home-services?subcategory=Cook' },
-  { icon: '/icons/driver.png',          hi: 'ड्राइवर',              en: 'Driver',           bg: 'bg-blue-50',    href: '/categories/vehicle-travel?subcategory=Driver' },
-  { icon: '/icons/photographer.png',    hi: 'फोटोग्राफर',           en: 'Photographer',     bg: 'bg-rose-50',    href: '/categories/event-services?subcategory=Photographer' },
-  { icon: '/icons/bridal-makeup.png',   hi: 'ब्राइडल मेकअप',         en: 'Bridal Makeup',    bg: 'bg-pink-50',    href: '/categories/beauty-personal-care?subcategory=Bridal%20Makeup' },
-  { icon: '/icons/tutor.png',           hi: 'ट्यूशन / ट्यूटर',       en: 'Tutor',            bg: 'bg-purple-50',  href: '/categories/talent-training?subcategory=Tuition' },
-];
+// Emoji per category `icon` key — used for tiles that don't have a PNG.
+const CATEGORY_EMOJI = {
+  Hammer: '🔨', Home: '🏠', PartyPopper: '🎉', GraduationCap: '🎓', Sparkles: '✨',
+  Car: '🚗', Store: '🏪', Settings: '⚙️', Heart: '❤️', Shield: '🛡️', Package: '📦',
+  Briefcase2: '💼', Stethoscope: '🩺', Factory: '🏭', Wheat: '🌾', PawPrint: '🐾',
+  Laptop: '💻', Presentation: '📊', Scale: '⚖️', Building: '🏢', UtensilsCrossed: '🍽️',
+  Music: '🎵', Megaphone: '📣', SprayCan: '🧴', Siren: '🚨', Wallet: '💰', Plane: '✈️',
+  KeyRound: '🔑', FileText: '📄', Recycle: '♻️',
+};
+
+// The 12 original categories ship a PNG icon in /public/icons. New categories
+// don't have one → they render the CATEGORY_EMOJI fallback instead. `bg` is a
+// light tint derived from the category's tailwind `color`.
+const CATEGORY_PNG = {
+  'construction-repair': '/icons/construction-repair.png',
+  'home-services': '/icons/home-services.png',
+  'event-services': '/icons/event-services.png',
+  'talent-training': '/icons/talent-training.png',
+  'beauty-personal-care': '/icons/beauty-personal-care.png',
+  'vehicle-travel': '/icons/vehicle-travel.png',
+  'shops-materials': '/icons/shop-retail.png',
+  'repair-technical': '/icons/repair-technical.png',
+  'home-care-living': '/icons/home-care.png',
+  'security-event-safety': '/icons/security-services.png',
+  'packing-logistics': '/icons/packing-logistics.png',
+  'jobs-staff-office': '/icons/office-work.png',
+};
+
+// Category icon tiles — ONE PER CATEGORY, derived from the master CATEGORIES
+// list so every category (incl. newly added ones) appears on the homepage.
+const SERVICE_TILES = CATEGORIES.map(c => ({
+  icon: CATEGORY_PNG[c.slug] || null,          // PNG if we have one, else null → emoji
+  emoji: CATEGORY_EMOJI[c.icon] || '🔧',
+  hi: c.nameHi,
+  en: c.nameEn,
+  bg: (c.color?.match(/bg-[a-z]+-\d+/)?.[0].replace(/-\d+$/, '-50')) || 'bg-gray-50',
+  href: `/categories/${c.slug}`,
+}));
 
 // Four homepage entry-points. All four land on /auth/select-role which
 // handles signed-in users (auto-routes by active role) and guests (role
@@ -214,6 +221,8 @@ export default function HomePage() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [testimonialPage, setTestimonialPage] = useState(0);
   const [testimonialPaused, setTestimonialPaused] = useState(false);
+  // Homepage service grid shows the first 12 categories; "Show More" reveals the rest.
+  const [showAllTiles, setShowAllTiles] = useState(false);
   // Shuffle workers client-side after mount so SSR HTML matches the initial
   // server render; the random sample appears on the next paint.
   const [topWorkers, setTopWorkers] = useState(() => TOP_WORKERS_POOL.slice(0, TOP_WORKERS_VISIBLE));
@@ -360,14 +369,9 @@ export default function HomePage() {
                 <select value={searchCategory} onChange={e => setSearchCategory(e.target.value)}
                   className="sm:w-48 px-3 py-2 md:py-2.5 rounded-xl border border-gray-100 text-gray-700 text-sm focus:outline-none focus:border-brand-navy bg-gray-50 font-hindi font-bold">
                   <option value="">{t({ hi: 'सभी कैटेगरी', en: 'All Categories' })}</option>
-                  <option value="construction-repair">{t({ hi: 'मिस्त्री / प्लंबर', en: 'Mistri / Plumber' })}</option>
-                  <option value="event-services">{t({ hi: 'इवेंट सेवाएँ', en: 'Event Services' })}</option>
-                  <option value="home-services">{t({ hi: 'घरेलू सेवाएँ', en: 'Home Services' })}</option>
-                  <option value="talent-training">{t({ hi: 'ट्यूटर / ट्रेनर', en: 'Tutor / Trainer' })}</option>
-                  <option value="vehicle-travel">{t({ hi: 'ड्राइवर / वाहन', en: 'Driver / Vehicle' })}</option>
-                  <option value="beauty-personal-care">{t({ hi: 'ब्यूटी सर्विस', en: 'Beauty Service' })}</option>
-                  <option value="repair-technical">{t({ hi: 'रिपेयर सेवाएँ', en: 'Repair Services' })}</option>
-                  <option value="jobs-staff-office">{t({ hi: 'जॉब्स / स्टाफ', en: 'Jobs / Staff' })}</option>
+                  {CATEGORIES.map(c => (
+                    <option key={c.slug} value={c.slug}>{lang === 'hi' ? c.nameHi : c.nameEn}</option>
+                  ))}
                 </select>
 
                 <div className="relative flex-1" ref={suggestionsRef}>
@@ -486,19 +490,35 @@ export default function HomePage() {
             <p className="text-gray-500 text-sm font-hindi">{t({ hi: 'अपनी ज़रूरत की सेवा चुनें', en: 'Pick the service you need' })}</p>
           </div>
           <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
-            {SERVICE_TILES.map(tile => (
+            {(showAllTiles ? SERVICE_TILES : SERVICE_TILES.slice(0, 12)).map(tile => (
               <Link
                 key={tile.en}
                 href={tile.href}
                 className={`${tile.bg} rounded-xl px-1.5 py-1.5 flex flex-col items-center text-center hover:shadow-md hover:-translate-y-0.5 transition-all border border-transparent hover:border-gray-200`}
               >
-                <div className="relative w-20 h-20 sm:w-24 sm:h-24">
-                  <Image src={tile.icon} alt={t(tile)} fill className="object-contain" sizes="96px" unoptimized />
+                <div className="relative w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center">
+                  {tile.icon ? (
+                    <Image src={tile.icon} alt={t(tile)} fill className="object-contain" sizes="96px" unoptimized />
+                  ) : (
+                    <span className="text-4xl sm:text-5xl" role="img" aria-label={tile.en}>{tile.emoji}</span>
+                  )}
                 </div>
                 <p className="text-[11px] sm:text-xs font-bold text-brand-navy font-hindi leading-tight mt-0.5">{t(tile)}</p>
               </Link>
             ))}
           </div>
+          {SERVICE_TILES.length > 12 && (
+            <div className="text-center mt-6">
+              <button
+                onClick={() => setShowAllTiles(v => !v)}
+                className="inline-flex items-center gap-1.5 bg-brand-navy text-white font-bold text-sm px-6 py-3 rounded-xl hover:opacity-90 transition-opacity font-hindi"
+              >
+                {showAllTiles
+                  ? t({ hi: 'कम दिखाएं', en: 'Show Less' })
+                  : t({ hi: `और देखें (${SERVICE_TILES.length - 12}+)`, en: `Show More (${SERVICE_TILES.length - 12}+)` })}
+              </button>
+            </div>
+          )}
         </div>
       </section>
 
