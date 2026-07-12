@@ -98,12 +98,19 @@ function WorkerList() {
   const [clientCity, setClientCity] = useState(""); // saved city for fallback when no GPS
   const [coordsResolved, setCoordsResolved] = useState(false); // true once we know whether client has GPS
 
-  // Pre-fill filters from URL params (e.g. from /categories/[slug])
+  // Sync filters FROM the URL params (e.g. from /categories/[slug] tiles).
+  // Must re-run whenever the query string changes — /workers is a client page,
+  // so navigating from one category tile to another reuses this mounted
+  // component and only swaps searchParams. With empty deps this ran only on
+  // first mount, leaving the previous category's filter in place → the page
+  // showed the previous tile's workers. Keying on the actual param values
+  // re-syncs on every navigation. The FilterContext persists across pages, so
+  // we also explicitly clear category/subcategory when the URL omits them.
+  const urlCategory = searchParams.get("category") || "";
+  const urlSubcategory = searchParams.get("subcategory") || "";
   useEffect(() => {
-    const cat = searchParams.get("category");
-    const sub = searchParams.get("subcategory");
-    if (cat || sub) updateFilters({ category: cat || "", subcategory: sub || "" });
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    updateFilters({ category: urlCategory, subcategory: urlSubcategory });
+  }, [urlCategory, urlSubcategory, updateFilters]);
 
   // Read role from localStorage + fetch client coordinates (for distance filter)
   useEffect(() => {
