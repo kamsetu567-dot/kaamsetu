@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -73,6 +73,8 @@ export default function Header() {
   // Bell dropdown
   const [bellOpen, setBellOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [mobileNotifOpen, setMobileNotifOpen] = useState(false);
   const bellRef = useRef(null);
 
   // Report modal
@@ -95,16 +97,70 @@ export default function Header() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Load notifications once we know the user is logged in.
-  useEffect(() => {
-    if (!user) return;
+  const loadNotifications = useCallback(async () => {
     const token = localStorage.getItem('kaamsetu_token');
     if (!token) return;
-    fetch('/api/notifications', { headers: { Authorization: `Bearer ${token}` } })
-      .then(r => r.json())
-      .then(d => { if (d?.notifications) setNotifications(d.notifications); })
-      .catch(() => {});
-  }, [user]);
+    try {
+      const res = await fetch('/api/notifications', { headers: { Authorization: `Bearer ${token}` } });
+      const d = await res.json();
+      if (d?.success) {
+        setNotifications(d.notifications || []);
+        setUnreadCount(d.unreadCount || 0);
+      }
+    } catch {}
+  }, []);
+
+  // Poll so a fresh admin broadcast shows up without a page reload. 60s (not the
+  // 10s the job feed uses) because broadcasts are rare and this Header mounts on
+  // every page. Paused while the tab is hidden; refetched the moment it's shown
+  // again, so returning to the tab surfaces the dot immediately.
+  useEffect(() => {
+    if (!user) return;
+    loadNotifications();
+    const id = setInterval(() => {
+      if (document.visibilityState === 'visible') loadNotifications();
+    }, 60_000);
+    const onVisible = () => { if (document.visibilityState === 'visible') loadNotifications(); };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      clearInterval(id);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+  }, [user, loadNotifications]);
+
+  // Marks everything read. The count is zeroed optimistically and deliberately
+  // NOT rolled back on failure — the server is the source of truth and the next
+  // poll restores the badge, whereas a rollback would flicker it back instantly
+  // and look broken.
+  const markAllRead = useCallback(() => {
+    setUnreadCount(prev => {
+      if (prev === 0) return 0;
+      const token = localStorage.getItem('kaamsetu_token');
+      if (token) {
+        fetch('/api/notifications/read', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+        }).catch(() => {});
+      }
+      return 0;
+    });
+    setNotifications(ns => ns.map(n => (n.unread ? { ...n, unread: false } : n)));
+  }, []);
+
+  function toggleBell() {
+    const opening = !bellOpen;
+    setBellOpen(opening);
+    if (opening) markAllRead();
+  }
+
+  // The mobile panel needs its own open-state: the click-outside handler below
+  // closes `bellOpen` on any mousedown outside the (desktop) bell, which would
+  // slam the mobile panel shut the instant you tapped it.
+  function toggleMobileNotif() {
+    const opening = !mobileNotifOpen;
+    setMobileNotifOpen(opening);
+    if (opening) markAllRead();
+  }
 
   function openReport() {
     setMenuOpen(false);
@@ -217,13 +273,15 @@ export default function Header() {
 
                 {/* Notification bell */}
                 <div className="relative" ref={bellRef}>
-                  <button onClick={() => setBellOpen(v => !v)}
+                  <button onClick={toggleBell}
                     className="relative flex items-center justify-center bg-white/10 hover:bg-white/20 text-white rounded-lg w-9 h-9 transition-colors min-h-0"
-                    aria-label={t({ hi: 'सूचनाएँ', en: 'Notifications' })}>
+                    aria-label={unreadCount > 0
+                      ? t({ hi: `सूचनाएँ — ${unreadCount} नई`, en: `Notifications — ${unreadCount} new` })
+                      : t({ hi: 'सूचनाएँ', en: 'Notifications' })}>
                     <Bell size={16} className="text-white/80" />
-                    {notifications.length > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-brand-yellow text-brand-navy text-[10px] font-black rounded-full min-w-[16px] h-[16px] px-1 flex items-center justify-center">
-                        {notifications.length}
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-black rounded-full min-w-[16px] h-[16px] px-1 flex items-center justify-center ring-2 ring-brand-navy">
+                        {unreadCount > 9 ? '9+' : unreadCount}
                       </span>
                     )}
                   </button>
@@ -238,8 +296,11 @@ export default function Header() {
                         </p>
                       ) : (
                         notifications.map(n => (
-                          <div key={n.id} className="px-4 py-3 hover:bg-gray-50 border-b last:border-b-0 border-gray-50">
-                            <p className="font-bold text-brand-navy text-sm">{n.title}</p>
+                          <div key={n.id} className={`px-4 py-3 hover:bg-gray-50 border-b last:border-b-0 border-gray-50 ${n.unread ? 'bg-red-50/60' : ''}`}>
+                            <p className="font-bold text-brand-navy text-sm flex items-center gap-1.5">
+                              {n.unread && <span className="w-2 h-2 rounded-full bg-red-500 flex-shrink-0" />}
+                              {n.title}
+                            </p>
                             {n.body && <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{n.body}</p>}
                             {n.href && (
                               <Link href={n.href} onClick={() => setBellOpen(false)}
@@ -306,8 +367,15 @@ export default function Header() {
               <span>{lang === 'hi' ? 'EN' : 'हिं'}</span>
             </button>
             <button onClick={() => setMenuOpen(true)}
-              className="text-white p-2 min-h-0" aria-label="Open menu">
+              className="relative text-white p-2 min-h-0"
+              aria-label={unreadCount > 0 ? `Open menu — ${unreadCount} new notifications` : 'Open menu'}>
               <Menu size={24} />
+              {/* The bell lives in the desktop bar only, so without this the
+                  unread signal would be invisible to mobile users — i.e. to
+                  almost every worker on this site. */}
+              {user && unreadCount > 0 && (
+                <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full ring-2 ring-brand-navy" />
+              )}
             </button>
           </div>
         </div>
@@ -339,6 +407,44 @@ export default function Header() {
             {user && (
               <>
                 <hr className="border-white/10 my-4" />
+
+                {/* Notifications — the desktop bell isn't rendered on mobile, so
+                    this is the only way phone users reach their announcements. */}
+                <button onClick={toggleMobileNotif}
+                  className="flex items-center gap-3 w-full py-3 px-4 text-white/90 hover:bg-white/5 rounded-xl min-h-0 font-hindi">
+                  <Bell size={18} />
+                  <span className="flex-1 text-left">{t({ hi: 'सूचनाएँ', en: 'Notifications' })}</span>
+                  {unreadCount > 0 && (
+                    <span className="bg-red-500 text-white text-[10px] font-black rounded-full min-w-[18px] h-[18px] px-1 flex items-center justify-center">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
+                  <ChevronDown size={16} className={`text-white/50 transition-transform ${mobileNotifOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {mobileNotifOpen && (
+                  <div className="mx-2 mb-2 bg-white/5 rounded-xl divide-y divide-white/10 max-h-64 overflow-y-auto">
+                    {notifications.length === 0 ? (
+                      <p className="px-4 py-4 text-center text-white/50 text-sm font-hindi">
+                        {t({ hi: 'अभी कोई सूचना नहीं', en: 'No notifications yet' })}
+                      </p>
+                    ) : notifications.map(n => (
+                      <div key={n.id} className="px-4 py-3">
+                        <p className="font-bold text-white text-sm flex items-center gap-1.5">
+                          {n.unread && <span className="w-2 h-2 rounded-full bg-red-500 flex-shrink-0" />}
+                          {n.title}
+                        </p>
+                        {n.body && <p className="text-xs text-white/60 mt-0.5">{n.body}</p>}
+                        {n.href && (
+                          <Link href={n.href} onClick={() => setMenuOpen(false)}
+                            className="inline-flex items-center gap-1 text-brand-yellow text-xs font-semibold mt-1">
+                            {t({ hi: 'देखें', en: 'View' })} <ExternalLink size={11} />
+                          </Link>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 {dropdownLinks.map(l => (
                   <Link key={l.href} href={l.href} onClick={() => setMenuOpen(false)}
                     className="flex items-center gap-3 py-3 px-4 text-white/90 hover:bg-white/5 rounded-xl min-h-0 font-hindi">

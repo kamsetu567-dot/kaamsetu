@@ -1,14 +1,36 @@
 ﻿"use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Bell, Info, Briefcase } from "lucide-react";
 import EmptyState from "@/components/EmptyState";
+import LoadingSkeleton from "@/components/LoadingSkeleton";
+import { apiGet, apiPost } from "@/lib/api/client";
 import { useRoleGuard } from "@/lib/auth/useRoleGuard";
 
 export default function WorkerNotificationsPage() {
   useRoleGuard("worker");
-  // TODO: Persist via API when backend is ready — fetch from notification service
-  const notifications = [];
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    apiGet("/api/notifications")
+      .then(data => {
+        if (cancelled) return;
+        setNotifications(
+          (data.notifications || []).map(n => ({
+            ...n,
+            time: n.createdAt ? new Date(n.createdAt).toLocaleString("en-IN") : "",
+          }))
+        );
+        // Viewing this tab counts as reading them — clears the bell badge too.
+        apiPost("/api/notifications/read").catch(() => {});
+      })
+      .catch(() => {})
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, []);
 
   return (
     <div className="space-y-5">
@@ -47,7 +69,9 @@ export default function WorkerNotificationsPage() {
         </p>
       </div>
 
-      {notifications.length === 0 ? (
+      {loading ? (
+        <LoadingSkeleton type="card" count={2} />
+      ) : notifications.length === 0 ? (
         <EmptyState
           icon="default"
           titleHi="कोई सूचना नहीं"

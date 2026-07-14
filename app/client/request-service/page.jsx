@@ -9,6 +9,7 @@ import Footer from "@/components/Footer";
 import { useToast } from "@/components/Toast";
 import { CATEGORIES } from "@/lib/data/categories";
 import { getAllCategoriesForSearch } from "@/lib/api/categories";
+import { apiGet } from "@/lib/api/client";
 import { useRoleGuard } from "@/lib/auth/useRoleGuard";
 import AddressAutocomplete from "@/components/AddressAutocomplete";
 
@@ -80,6 +81,19 @@ function RequestForm() {
     }
   }, []);
 
+  // The job's city decides which workers can see it, so make sure we have one.
+  // Seed it from the client's saved profile when the picker didn't supply it —
+  // the address autocomplete often returns an address with no city.
+  useEffect(() => {
+    apiGet("/api/client/me")
+      .then(data => {
+        const profileCity = data?.client?.location?.city;
+        if (!profileCity) return;
+        setLocation(prev => (prev?.city ? prev : { ...(prev || {}), city: profileCity }));
+      })
+      .catch(() => {});
+  }, []);
+
   // Re-attempt GPS capture and write coords into `location` so the posted job
   // carries lat/lng. Best-effort — used by the one-time submit nudge.
   function retryGps() {
@@ -106,7 +120,12 @@ function RequestForm() {
     e.preventDefault();
     if (!name.trim()) { toast.error("नाम डालें"); return; }
     if (!category) { toast.error("Category चुनें"); return; }
-    if (!location?.city && !location?.address) { toast.error("अपनी लोकेशन चुनें / Pick your location"); return; }
+    // City (not just an address) is mandatory: the job is shown only to workers
+    // in that city, so a job without one would be visible to nobody.
+    if (!location?.city?.trim()) {
+      toast.error("अपना शहर डालें / Enter your city — only workers in that city will see this request");
+      return;
+    }
     // GPS nudge (non-blocking): without coords the job matches by city only.
     if ((location?.lat == null || location?.lng == null) && !gpsNudged) {
       setGpsNudged(true);
@@ -231,6 +250,20 @@ function RequestForm() {
       <div>
         <label className="block text-sm font-semibold text-gray-700 mb-1.5 font-hindi">लोकेशन / Location *</label>
         <AddressAutocomplete value={location} onChange={setLocation} />
+        {/* The city is what routes this request. The picker can return an address
+            with no city, so it stays editable — otherwise the client would be
+            blocked with no way forward. */}
+        <input
+          value={location?.city || ""}
+          onChange={e => setLocation(prev => ({ ...(prev || {}), city: e.target.value }))}
+          placeholder="शहर / City (e.g. Jind) *"
+          className={`w-full mt-2 px-4 py-3.5 text-base border-2 rounded-xl focus:outline-none focus:border-brand-navy ${
+            location?.city ? "border-gray-200" : "border-red-300 bg-red-50"
+          }`}
+        />
+        <p className="text-xs text-gray-500 mt-1 font-hindi">
+          आपकी request सिर्फ इसी शहर के workers को दिखेगी / Only workers in this city will see this request.
+        </p>
       </div>
 
       <div>

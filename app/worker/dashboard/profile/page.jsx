@@ -234,8 +234,25 @@ export default function WorkerProfileEditPage() {
           </FieldWrapper>
           <FieldWrapper labelHi="लोकेशन" labelEn="Location">
             <AddressAutocomplete value={location} onChange={setLocation} />
+            {/* City is what actually routes jobs to this worker, and the address
+                picker can come back with coordinates but no city (reverse-geocode
+                fails). Without an editable field a worker in that state has no way
+                to fix it and would silently never receive a job. */}
+            <input
+              value={location?.city || ""}
+              onChange={e => setLocation(prev => ({ ...(prev || {}), city: e.target.value }))}
+              placeholder="शहर / City (e.g. Jind) *"
+              className={`w-full mt-2 px-4 py-4 text-base border-2 rounded-xl focus:outline-none focus:border-brand-navy ${
+                location?.city ? "border-gray-200" : "border-red-300 bg-red-50"
+              }`}
+            />
+            {!location?.city && (
+              <p className="text-red-600 text-xs mt-1 font-semibold font-hindi">
+                शहर जरूरी है — इसके बिना आपको कोई job नहीं दिखेगी / Required: you receive jobs only from your city.
+              </p>
+            )}
             <p className="text-xs text-gray-400 mt-1" style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>
-              सटीक nearby jobs के लिए "My Location" पर tap करें / Tap "My Location" for accurate nearby jobs
+              आपको सिर्फ अपने शहर की jobs दिखेंगी / You will only see jobs from your city
             </p>
           </FieldWrapper>
           <FieldWrapper labelHi="अनुभव (साल)" labelEn="Experience (years)">

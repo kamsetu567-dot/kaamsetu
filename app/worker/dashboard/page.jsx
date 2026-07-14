@@ -207,15 +207,42 @@ export default function WorkerDashboardOverview() {
         </button>
       </div>
 
-      {/* Missing-GPS banner — workers without coords fall back to fuzzy city
-          match and get far fewer jobs. Surface the fix here so it's recoverable. */}
-      {worker && !hasCoords && (
+      {/* Missing-CITY banner. Ranked above the GPS one because it's strictly
+          worse: jobs are matched by city, so no city means ZERO jobs — whereas
+          no GPS just means they aren't sorted by distance. */}
+      {worker && !worker.location?.city && (
+        <div className="bg-red-50 border-2 border-red-300 rounded-2xl p-4 space-y-3">
+          <div className="flex items-start gap-3">
+            <MapPin size={20} className="text-red-600 flex-shrink-0 mt-0.5" />
+            <div className="flex-1 min-w-0">
+              <p className="font-black text-red-700 font-hindi">आपका शहर सेट नहीं है — कोई job नहीं दिखेगी</p>
+              <p className="text-xs text-red-600 mt-0.5">
+                Jobs are matched by city. Until you add yours, you will not receive any.
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <button onClick={updateLocation} disabled={locationUpdating}
+              className="flex-1 bg-red-600 text-white text-xs font-bold px-3 py-2.5 rounded-lg hover:bg-red-700 disabled:opacity-60 min-h-0">
+              {locationUpdating ? "Updating…" : "Update Location"}
+            </button>
+            <Link href="/worker/dashboard/profile"
+              className="flex-1 text-center border-2 border-red-300 text-red-700 text-xs font-bold px-3 py-2.5 rounded-lg hover:bg-red-100">
+              Edit Profile →
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {/* Missing-GPS banner — workers without coords still get every job in their
+          city, they're just not sorted by distance. Lower priority than the above. */}
+      {worker && worker.location?.city && !hasCoords && (
         <div className="bg-yellow-50 border-2 border-yellow-300 rounded-2xl p-4 flex items-start gap-3">
           <MapPin size={20} className="text-yellow-700 flex-shrink-0 mt-0.5" />
           <div className="flex-1 min-w-0">
-            <p className="font-bold text-yellow-900 font-hindi">आपकी लोकेशन सेट नहीं है</p>
+            <p className="font-bold text-yellow-900 font-hindi">GPS लोकेशन सेट नहीं है</p>
             <p className="text-xs text-yellow-800 mt-0.5">
-              Without your location, you'll get fewer job notifications. Tap to enable.
+              You still get every job in your city — enable GPS to see the nearest ones first.
             </p>
           </div>
           <button onClick={updateLocation} disabled={locationUpdating}

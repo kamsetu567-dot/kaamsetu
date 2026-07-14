@@ -1,7 +1,8 @@
 ﻿"use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Bell, CheckCircle, Clock, AlertCircle, RefreshCw } from "lucide-react";
+import Link from "next/link";
+import { Bell, CheckCircle, Clock, AlertCircle, RefreshCw, MapPin } from "lucide-react";
 import JobNotificationCard from "@/components/JobNotificationCard";
 import EmptyState from "@/components/EmptyState";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
@@ -24,6 +25,10 @@ export default function WorkerJobsPage() {
   const [loading, setLoading] = useState(true);
   const [historyLoading, setHistoryLoading] = useState(true);
   const [fetchError, setFetchError] = useState(null);
+  // Set by the API when the worker has no city saved. Jobs are matched by city,
+  // so without one the feed is empty by design — say so instead of leaving them
+  // staring at "no jobs" forever.
+  const [cityMissing, setCityMissing] = useState(false);
   const pollRef = useRef(null);
   const workerIdRef = useRef(null);
 
@@ -43,6 +48,7 @@ export default function WorkerJobsPage() {
       try {
         const data = await apiGet("/api/jobs", { workerId, status: "pending" });
         setJobs(data.jobs || []);
+        setCityMissing(!!data.cityMissing);
         setFetchError(null);
       } catch (err) {
         setFetchError(err.message || "Connection error");
@@ -67,7 +73,7 @@ export default function WorkerJobsPage() {
   function manualRefresh() {
     setLoading(true);
     apiGet("/api/jobs", { workerId: workerIdRef.current, status: "pending" })
-      .then(data => { setJobs(data.jobs || []); setFetchError(null); })
+      .then(data => { setJobs(data.jobs || []); setCityMissing(!!data.cityMissing); setFetchError(null); })
       .catch(err => { setFetchError(err.message || "Connection error"); setJobs([]); })
       .finally(() => setLoading(false));
   }
@@ -126,6 +132,27 @@ export default function WorkerJobsPage() {
             <RefreshCw size={16} /> Retry / दोबारा कोशिश करें
           </button>
         </div>
+      ) : cityMissing ? (
+        // Jobs are matched by city. With no city saved this worker can never be
+        // shown one, so an "add your city" prompt is the only useful thing here.
+        <div className="bg-red-50 border-2 border-red-300 rounded-2xl p-5 space-y-3">
+          <div className="flex items-start gap-3">
+            <AlertCircle size={22} className="text-red-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-black text-red-700 font-hindi">आपका शहर सेट नहीं है</p>
+              <p className="text-red-600 text-sm mt-1 font-hindi">
+                जब तक आप अपना शहर नहीं जोड़ते, आपको कोई नई job नहीं दिखेगी — jobs शहर के हिसाब से भेजी जाती हैं।
+              </p>
+              <p className="text-red-500 text-xs mt-1">
+                Your city isn&apos;t set. Jobs are matched by city, so you will not receive any until you add it.
+              </p>
+            </div>
+          </div>
+          <Link href="/worker/dashboard/profile"
+            className="flex items-center justify-center gap-2 bg-red-600 text-white font-bold rounded-xl py-3 text-sm hover:bg-red-700 transition-colors">
+            <MapPin size={16} /> <span className="font-hindi">शहर जोड़ें / Add my city</span>
+          </Link>
+        </div>
       ) : jobs.length === 0 ? (
         <div className="space-y-3">
           <EmptyState
@@ -133,7 +160,7 @@ export default function WorkerJobsPage() {
             titleHi="अभी कोई जॉब नहीं"
             titleEn="No incoming jobs right now"
             descHi="जब कोई client request करेगा, job यहाँ दिखेगी।"
-            descEn="When a client sends a request near you, it will appear here."
+            descEn="When a client sends a request in your city, it will appear here."
           />
           <button
             onClick={manualRefresh}

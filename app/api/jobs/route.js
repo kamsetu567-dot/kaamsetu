@@ -5,7 +5,9 @@ import Client from "@/lib/models/Client";
 import { ok, error, created, unauthorized } from "@/lib/utils/apiResponse";
 import { getTokenFromRequest, verifyToken } from "@/lib/utils/jwt";
 import { sendAdminNewJobEmail } from "@/lib/utils/email";
-import { cityRegex } from "@/lib/utils/cityMatch";
+import { exactCityRegex, isUsableCity } from "@/lib/utils/cityMatch";
+import { haversineKm, coordsOf } from "@/lib/utils/geo";
+import { mapplsReverse } from "@/lib/utils/mappls";
 
 export async function GET(request) {
   try {
@@ -42,68 +44,84 @@ export async function GET(request) {
           return ok({ jobs: [] });
         }
 
-        const workerCoords = workerProfile.location?.coordinates?.coordinates;
-        const radiusKm = parseInt(searchParams.get("radius") || "50");
+        // ── City is the gate ────────────────────────────────────────────
+        // A job posted in Jind must reach Jind workers and nobody else. City is
+        // therefore a HARD filter on the open pool, and it FAILS CLOSED: a
+        // worker with no city saved sees nothing (previously the filter was
+        // simply skipped, so they saw every pending job in the country).
+        //
+        // Distance is NOT a gate. The old code ran $geoNear with a 50 km radius
+        // that ignored city entirely (a Jind worker saw Kaithal jobs), and
+        // $geoNear silently drops jobs that have no coordinates — so same-city
+        // jobs posted without GPS disappeared whenever one GPS job was in range.
+        // Distance is now computed in JS purely to order the results.
+        const cityCond = exactCityRegex(workerProfile.location?.city);
 
-        if (workerCoords?.length === 2) {
-          // Geospatial query when worker has GPS coordinates saved
-          const geoQuery = {
-            status: "pending",
-            dismissedBy: { $nin: [workerProfile._id] },
-            // Only show unassigned jobs OR jobs specifically routed to this worker
-            worker: { $in: [null, workerProfile._id] },
+        const feedFilter = {
+          status: "pending",
+          dismissedBy: { $nin: [workerProfile._id] },
+          $or: [
+            // Jobs the client routed to this worker by name always reach them,
+            // even from another city — the client picked them deliberately.
+            { worker: workerProfile._id },
+            // The open pool is city-gated. Omitted entirely when the worker has
+            // no city, which is what makes the feed fail closed.
+            ...(cityCond
+              ? [{
+                  worker: null,
+                  "location.city": cityCond,
+                  ...(workerProfile.category ? { category: workerProfile.category } : {}),
+                }]
+              : []),
+          ],
+        };
+
+        const docs = await JobRequest.find(feedFilter)
+          .sort({ createdAt: -1 })
+          .limit(100)
+          .lean();
+
+        const workerCoords = coordsOf(workerProfile.location);
+        const scored = docs.map(j => {
+          const jobCoords = coordsOf(j.location);
+          return {
+            job: j,
+            distanceKm: workerCoords && jobCoords
+              ? parseFloat(haversineKm(workerCoords, jobCoords).toFixed(1))
+              : null,
           };
-          if (workerProfile.category) {
-            geoQuery.category = workerProfile.category;
+        });
+
+        // Nearest first when both sides have GPS. Jobs with no distance sort
+        // after the located ones (newest-first among themselves) but are never
+        // dropped — that silent drop was the old bug.
+        scored.sort((a, b) => {
+          if (a.distanceKm == null && b.distanceKm == null) {
+            return new Date(b.job.createdAt) - new Date(a.job.createdAt);
           }
+          if (a.distanceKm == null) return 1;
+          if (b.distanceKm == null) return -1;
+          return a.distanceKm - b.distanceKm;
+        });
 
-          const pipeline = [
-            {
-              $geoNear: {
-                near: { type: "Point", coordinates: workerCoords },
-                distanceField: "distanceMeters",
-                maxDistance: radiusKm * 1000,
-                spherical: true,
-                query: geoQuery,
-              },
-            },
-            { $sort: { distanceMeters: 1 } },
-            { $limit: 50 },
-          ];
-
-          const geoJobs = await JobRequest.aggregate(pipeline);
-
-          // If geo found jobs, return them; otherwise fall through to city-based match
-          if (geoJobs.length > 0) {
-            return ok({
-              jobs: geoJobs.map((j) => ({
-                id: j._id,
-                category: j.category,
-                subcategory: j.subcategory,
-                description: j.description,
-                location: j.location?.city || j.location?.address || "",
-                locationAddress: j.location?.address || "",
-                distanceKm: j.distanceMeters ? parseFloat((j.distanceMeters / 1000).toFixed(1)) : null,
-                status: j.status,
-                source: j.source,
-                worker: j.worker,
-                createdAt: j.createdAt,
-              })),
-            });
-          }
-        }
-
-        // City-based fallback: used when no GPS saved OR geo returned 0 results
-        filter.dismissedBy = { $nin: [workerProfile._id] };
-        // Only show unassigned jobs OR jobs specifically routed to this worker
-        filter.worker = { $in: [null, workerProfile._id] };
-        if (workerProfile.category) {
-          filter.category = workerProfile.category;
-        }
-        if (workerProfile.location?.city) {
-          const cr = cityRegex(workerProfile.location.city);
-          if (cr) filter["location.city"] = cr;
-        }
+        return ok({
+          jobs: scored.slice(0, 50).map(({ job: j, distanceKm }) => ({
+            id: j._id,
+            category: j.category,
+            subcategory: j.subcategory,
+            description: j.description,
+            location: j.location?.city || j.location?.address || "",
+            locationAddress: j.location?.address || "",
+            distanceKm,
+            status: j.status,
+            source: j.source,
+            worker: j.worker,
+            createdAt: j.createdAt,
+          })),
+          // Drives the "add your city" banner — without it the worker just sees
+          // an empty feed and never learns why.
+          cityMissing: !cityCond,
+        });
       } else {
         // Job history: return jobs assigned to this worker (any status)
         const workerProfile = await Worker.findOne({ user: workerId }).lean();
@@ -173,10 +191,31 @@ export async function POST(request) {
     const legacyAddress = isStructuredLocation ? "" : (body.location || "");
     const latVal = loc.lat ?? body.lat;
     const lngVal = loc.lng ?? body.lng;
+
+    // The city decides who can see this job, so it has to be real. Resolve it:
+    // form → the client's saved profile city → reverse-geocode the posted GPS
+    // (the address picker can return coords but no city) → give up and reject.
+    // The old fallback was the literal string "Unknown", which produced jobs no
+    // worker could ever match — a silent black hole.
+    let city = [loc.city, body.city].find(isUsableCity)?.trim() || "";
+    if (!city && isUsableCity(clientDoc.location?.city)) {
+      city = clientDoc.location.city.trim();
+    }
+    if (!city && latVal && lngVal) {
+      const reversed = await mapplsReverse(parseFloat(latVal), parseFloat(lngVal)).catch(() => null);
+      if (isUsableCity(reversed?.city)) city = reversed.city.trim();
+    }
+    if (!city) {
+      return error(
+        "अपना शहर चुनें — request सिर्फ उसी शहर के workers को दिखेगी / Please pick a location with a city so nearby workers can see this request.",
+        400
+      );
+    }
+
     const jobLocation = {
       address: loc.address || legacyAddress || "",
       locality: loc.locality || "",
-      city: loc.city || body.city || "Unknown",
+      city,
       state: loc.state || "",
       pincode: loc.pincode || "",
       ...(latVal && lngVal && {
