@@ -18,7 +18,7 @@ const ICONS = {
   Stethoscope: '🩺', Factory: '🏭', Wheat: '🌾', PawPrint: '🐾', Laptop: '💻',
   Presentation: '📊', Scale: '⚖️', Building: '🏢', UtensilsCrossed: '🍽️', Music: '🎵',
   Megaphone: '📣', SprayCan: '🧴', Siren: '🚨', Wallet: '💰', Plane: '✈️',
-  KeyRound: '🔑', FileText: '📄', Recycle: '♻️',
+  KeyRound: '🔑', FileText: '📄', Recycle: '♻️', Shirt: '🧺', Baby: '👶', Truck: '🚛',
 };
 
 export default function WorkerSignupPage() {
@@ -54,12 +54,19 @@ export default function WorkerSignupPage() {
   // built-in list so the picker renders instantly; customs append once fetch
   // resolves. Refresh on every mount so a freshly-approved category appears.
   const [allCategories, setAllCategories] = useState(CATEGORIES);
+  // Admin-configurable subscription price, so the amounts shown here match what
+  // Razorpay actually charges (priced server-side from the same setting).
+  const [subscriptionPrice, setSubscriptionPrice] = useState(199);
 
   useEffect(() => {
     let cancelled = false;
     getAllCategoriesForSearch({ force: true }).then(list => {
       if (!cancelled) setAllCategories(list);
     });
+    fetch('/api/settings/public')
+      .then(r => r.json())
+      .then(d => { if (!cancelled && d?.subscriptionPrice) setSubscriptionPrice(d.subscriptionPrice); })
+      .catch(() => {});
     return () => { cancelled = true; };
   }, []);
 
@@ -256,7 +263,7 @@ export default function WorkerSignupPage() {
           {[
             { hi: 'रोज़ नए जॉब्स', en: 'New jobs daily' },
             { hi: 'सीधा क्लाइंट से संपर्क', en: 'Direct client contact' },
-            { hi: 'सिर्फ ₹199/महीना', en: 'Just ₹199/month' },
+            { hi: `सिर्फ ₹${subscriptionPrice}/महीना`, en: `Just ₹${subscriptionPrice}/month` },
           ].map(item => (
             <div key={item.en} className="flex items-center gap-2 text-white/80 text-sm font-hindi">
               <span className="text-brand-yellow">✓</span> {t(item)}
@@ -564,7 +571,7 @@ export default function WorkerSignupPage() {
 
               {/* Subscription notice */}
               <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
-                <p className="font-black text-brand-navy text-lg mb-0.5">₹199/month</p>
+                <p className="font-black text-brand-navy text-lg mb-0.5">₹{subscriptionPrice}/month</p>
                 <p className="text-yellow-700 text-xs font-hindi">Admin approval के बाद subscription start होगी।</p>
               </div>
 

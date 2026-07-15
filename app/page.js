@@ -44,7 +44,7 @@ const CATEGORY_EMOJI = {
   Briefcase2: '💼', Stethoscope: '🩺', Factory: '🏭', Wheat: '🌾', PawPrint: '🐾',
   Laptop: '💻', Presentation: '📊', Scale: '⚖️', Building: '🏢', UtensilsCrossed: '🍽️',
   Music: '🎵', Megaphone: '📣', SprayCan: '🧴', Siren: '🚨', Wallet: '💰', Plane: '✈️',
-  KeyRound: '🔑', FileText: '📄', Recycle: '♻️',
+  KeyRound: '🔑', FileText: '📄', Recycle: '♻️', Shirt: '🧺', Baby: '👶', Truck: '🚛',
 };
 
 // The 12 original categories ship a PNG icon in /public/icons. New categories
@@ -230,10 +230,21 @@ export default function HomePage() {
   // freshly-added trades (e.g. "Road Accident and Rescue") become searchable
   // from the homepage hero without a code change.
   const [extraSuggestions, setExtraSuggestions] = useState([]);
+  // Admin-configurable worker subscription price. The "Become a Worker" CTA
+  // showed a hardcoded ₹199 that didn't follow the admin setting; read it from
+  // the same public endpoint the subscription page uses so they stay in sync.
+  const [subscriptionPrice, setSubscriptionPrice] = useState(199);
   const suggestionsRef = useRef(null);
 
   useEffect(() => {
     setTopWorkers(shuffleAndPick(TOP_WORKERS_POOL, TOP_WORKERS_VISIBLE));
+  }, []);
+
+  useEffect(() => {
+    fetch('/api/settings/public')
+      .then(r => r.json())
+      .then(d => { if (d?.subscriptionPrice) setSubscriptionPrice(d.subscriptionPrice); })
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -809,7 +820,7 @@ export default function HomePage() {
             <div>
               <h2 className="text-3xl font-black text-brand-navy font-hindi mb-1">{t({ hi: 'वर्कर बनें और कमाई शुरू करें', en: 'Become a Worker & Start Earning' })}</h2>
               <p className="text-brand-navy/60 text-sm mb-1">{t({ hi: 'KaamSetu वर्कर बनें', en: 'Join KaamSetu Today' })}</p>
-              <p className="text-brand-navy font-bold text-lg mb-5 font-hindi">{t({ hi: 'सिर्फ ₹199 में पूरा महीना', en: 'Full month for just ₹199' })}</p>
+              <p className="text-brand-navy font-bold text-lg mb-5 font-hindi">{t({ hi: `सिर्फ ₹${subscriptionPrice} में पूरा महीना`, en: `Full month for just ₹${subscriptionPrice}` })}</p>
               <ul className="space-y-2 mb-6">
                 {[
                   { hi: 'रोज नए काम पाएँ', en: 'Get new work every day' },
