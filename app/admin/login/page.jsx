@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useT } from "@/lib/i18n/useT";
+import { clearImpersonationState } from "@/lib/utils/impersonation";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -31,6 +32,9 @@ export default function AdminLoginPage() {
       });
       const data = await res.json();
       if (res.ok && data.token) {
+        // A fresh admin session must never inherit an abandoned impersonation
+        // stash — its Exit would restore the stale token over this new one.
+        clearImpersonationState();
         localStorage.setItem("kaamsetu_admin_token", data.token);
         router.push("/admin");
       } else if (res.status === 401) {

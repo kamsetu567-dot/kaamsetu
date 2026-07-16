@@ -390,3 +390,15 @@ button, a, [role="button"] {
   0%   { transform: translate3d(0, 0, 0); }
   100% { transform: translate3d(-50%, 0, 0); }
 }
+
+/* Impersonation banner offset.
+   The banner is an in-flow `sticky top-0` bar at the top of <body>; the site
+   Header is also `sticky top-0`, so on scroll it would re-pin at viewport 0 —
+   underneath the banner — and lose ~40px of its height. Pushing the Header's
+   sticky origin down by the banner height (h-10 = 2.5rem) keeps both visible.
+   Deliberately UNLAYERED: Tailwind v4 emits utilities inside cascade layers,
+   and unlayered CSS wins over layered CSS regardless of specificity, so this
+   reliably beats the Header's own `top-0`. */
+body.ks-impersonating header.sticky {
+  top: 2.5rem;
+}

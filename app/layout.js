@@ -7,6 +7,7 @@ import { FilterProvider } from "@/lib/context/FilterContext";
 import { ToastProvider } from "@/components/Toast";
 import { LanguageProvider } from "@/lib/context/LanguageContext";
 import FloatingWhatsApp from "@/components/FloatingWhatsApp";
+import ImpersonationBanner from "@/components/ImpersonationBanner";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -42,6 +43,10 @@ export default function RootLayout({ children }) {
             <WorkerStatusProvider>
               <FilterProvider>
                 <ToastProvider>
+                  {/* First child of the body flex column so it sits above every
+                      page's Header in normal flow — see the component for why
+                      it must not be `fixed`. */}
+                  <ImpersonationBanner />
                   {children}
                   <FloatingWhatsApp />
                 </ToastProvider>
