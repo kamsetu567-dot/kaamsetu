@@ -412,7 +412,7 @@ export default function WorkerDashboardOverview() {
             { href: "/worker/dashboard/jobs", label: "Incoming Jobs", sub: "New notifications", icon: Briefcase, bg: "bg-brand-navy" },
             { href: "/worker/dashboard/subscription", label: "Subscription", sub: `₹${price}/month`, icon: CreditCard, bg: "bg-green-600" },
             { href: "/worker/dashboard/profile", label: "Edit Profile", sub: "Update details", icon: User, bg: "bg-amber-500" },
-            { href: "/worker/dashboard/referrals", label: "Referrals", sub: "Earn ₹20–₹50", icon: Star, bg: "bg-purple-600" },
+            { href: "/worker/dashboard/referrals", label: "Referrals", sub: "10 दिन फ्री पाएं", icon: Star, bg: "bg-purple-600" },
           ].map(link => (
             <Link key={link.href} href={link.href}
               className={`${link.bg} text-white rounded-2xl p-4 flex flex-col gap-2 hover:opacity-90 transition-opacity`}>

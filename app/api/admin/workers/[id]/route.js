@@ -5,6 +5,8 @@ import JobRequest from "@/lib/models/JobRequest";
 import { verifyToken, getTokenFromRequest } from "@/lib/utils/jwt";
 import { ok, error, unauthorized, notFound } from "@/lib/utils/apiResponse";
 import { sendApprovalEmail } from "@/lib/utils/email";
+import { computeNewExpiry } from "@/lib/utils/subscriptionDays";
+import { payoutReferralIfDue } from "@/lib/utils/referralPayout";
 
 export async function PATCH(request, { params }) {
   try {
@@ -72,11 +74,7 @@ export async function PATCH(request, { params }) {
       if (days < 1 || days > 365) {
         return error("Days must be an integer between 1 and 365", 400);
       }
-      const now = new Date();
-      const base = worker.subscriptionExpiry && worker.subscriptionExpiry > now
-        ? worker.subscriptionExpiry
-        : now;
-      const newExpiry = new Date(base.getTime() + days * 24 * 60 * 60 * 1000);
+      const newExpiry = computeNewExpiry(worker.subscriptionExpiry, days);
       await Worker.findByIdAndUpdate(id, { subscriptionExpiry: newExpiry });
       return ok({ message: `Subscription extended by ${days} days`, expiresAt: newExpiry, days });
     }
@@ -90,16 +88,26 @@ export async function PATCH(request, { params }) {
     // "extend" action as a fallback / comp.
     await Worker.findByIdAndUpdate(id, { status: update.status });
 
+    let referral = null;
     if (action === "approve") {
       const user = await User.findById(worker.user).select("email name").lean();
       if (user?.email) {
         sendApprovalEmail(user.email, worker.name || user.name).catch(() => {});
       }
+      // Approval is the referral fraud gate: if this worker came in on someone's
+      // code, THIS is the moment both sides earn their free days. No-ops unless
+      // a referral is actually pending. Awaited (not fire-and-forget) so a
+      // failure surfaces rather than silently losing someone's reward.
+      referral = await payoutReferralIfDue(id).catch(err => {
+        console.error("referral payout failed for", id, err);
+        return null;
+      });
     }
 
     return ok({
       message: `Worker ${action}d`,
       status: update.status,
+      ...(referral ? { referral } : {}),
     });
   } catch (err) {
     console.error("admin PATCH worker error:", err);
