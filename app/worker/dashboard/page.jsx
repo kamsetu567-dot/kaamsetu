@@ -20,6 +20,11 @@ export default function WorkerDashboardOverview() {
   const [startCodeInput, setStartCodeInput] = useState("");
   const [price, setPrice] = useState(199);
   const [locationUpdating, setLocationUpdating] = useState(false);
+  // Manual city entry — the fallback for workers who can't/won't use GPS. The
+  // GPS button is a dead end for anyone who denies the location prompt, so a
+  // typed city has to be reachable right here on the dashboard.
+  const [manualCity, setManualCity] = useState("");
+  const [savingCity, setSavingCity] = useState(false);
 
   useEffect(() => {
     fetch("/api/settings/public")
@@ -179,6 +184,42 @@ export default function WorkerDashboardOverview() {
     );
   }
 
+  async function saveManualCity() {
+    const city = manualCity.trim();
+    if (!city || savingCity) return;
+    setSavingCity(true);
+    try {
+      const token = localStorage.getItem("kaamsetu_token");
+      // Preserve the worker's existing address/coords; only change the city. The
+      // /me route replaces the whole location subdoc, so re-send what we want to
+      // keep — including coordinates as lat/lng so they aren't dropped. A
+      // non-empty city means the server won't reverse-geocode over it.
+      const existing = worker?.location || {};
+      const coords = existing.coordinates?.coordinates; // [lng, lat] | undefined
+      const res = await fetch("/api/workers/me", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ location: {
+          address: existing.address || "",
+          locality: existing.locality || "",
+          state: existing.state || "",
+          pincode: existing.pincode || "",
+          city,
+          ...(Array.isArray(coords) && coords.length === 2 ? { lat: coords[1], lng: coords[0] } : {}),
+        } }),
+      });
+      const data = await res.json();
+      if (res.ok && data.worker) {
+        setWorker(data.worker);
+        setManualCity("");
+        toast.success("शहर सेव हो गया / City saved");
+      } else {
+        toast.error(data?.message || "Could not save city");
+      }
+    } catch { toast.error("Network error"); }
+    finally { setSavingCity(false); }
+  }
+
   function handleLogout() {
     localStorage.removeItem("kaamsetu_token");
     localStorage.removeItem("kaamsetu_user");
@@ -217,17 +258,31 @@ export default function WorkerDashboardOverview() {
             <div className="flex-1 min-w-0">
               <p className="font-black text-red-700 font-hindi">आपका शहर सेट नहीं है — कोई job नहीं दिखेगी</p>
               <p className="text-xs text-red-600 mt-0.5">
-                Jobs are matched by city. Until you add yours, you will not receive any.
+                Jobs are matched by city. Type your city below — no GPS needed.
               </p>
             </div>
           </div>
-          <div className="flex gap-2">
+          {/* Manual city entry is the PRIMARY path: the GPS button is a dead end
+              for anyone who denied the location prompt. */}
+          <form onSubmit={e => { e.preventDefault(); saveManualCity(); }} className="flex gap-2">
+            <input
+              value={manualCity}
+              onChange={e => setManualCity(e.target.value)}
+              placeholder="अपना शहर / Your city (e.g. Jind)"
+              className="flex-1 border-2 border-red-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-red-500 min-w-0"
+            />
+            <button type="submit" disabled={savingCity || !manualCity.trim()}
+              className="bg-red-600 text-white text-sm font-bold px-4 py-2.5 rounded-lg hover:bg-red-700 disabled:opacity-50 whitespace-nowrap min-h-0">
+              {savingCity ? "Saving…" : "Save"}
+            </button>
+          </form>
+          <div className="flex items-center gap-2">
             <button onClick={updateLocation} disabled={locationUpdating}
-              className="flex-1 bg-red-600 text-white text-xs font-bold px-3 py-2.5 rounded-lg hover:bg-red-700 disabled:opacity-60 min-h-0">
-              {locationUpdating ? "Updating…" : "Update Location"}
+              className="flex items-center justify-center gap-1.5 flex-1 border-2 border-red-200 text-red-700 text-xs font-bold px-3 py-2 rounded-lg hover:bg-red-100 disabled:opacity-60 min-h-0">
+              <MapPin size={13} /> {locationUpdating ? "Detecting…" : "Detect via GPS"}
             </button>
             <Link href="/worker/dashboard/profile"
-              className="flex-1 text-center border-2 border-red-300 text-red-700 text-xs font-bold px-3 py-2.5 rounded-lg hover:bg-red-100">
+              className="flex-1 text-center border-2 border-red-200 text-red-700 text-xs font-bold px-3 py-2 rounded-lg hover:bg-red-100">
               Edit Profile →
             </Link>
           </div>
