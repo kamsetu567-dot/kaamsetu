@@ -6,6 +6,11 @@ import { ok, error, unauthorized } from "@/lib/utils/apiResponse";
 const DEFAULTS = {
   subscriptionPrice: 199,
   defaultRadius: 5,
+  // Manual-QR payment config (used while the Razorpay gateway is hidden).
+  paymentMode: "qr",       // "qr" = manual UPI QR flow, "razorpay" = gateway
+  paymentQrUrl: "",        // Cloudinary URL of the admin-uploaded UPI QR image
+  paymentUpiId: "",        // e.g. kaamsetu@upi — shown alongside the QR
+  paymentNote: "",         // instructions shown to the payer
   smsTemplates: {
     jobAlert: "नई job आई है {category} में। KaamSetu app खोलें।",
     welcome: "KaamSetu में आपका स्वागत है! आपकी profile अब live है।",
@@ -37,12 +42,17 @@ export async function PUT(request) {
     if (!adminGuard(request)) return unauthorized();
     const body = await request.json();
     await connectDB();
+    // MERGE into the existing blob — the settings UI saves in sections (platform
+    // config vs. payment/QR), so a full replace would wipe whatever the current
+    // form didn't include (e.g. the QR fields, or smsTemplates).
+    const existing = await AdminSettings.findOne({ key: "platform_settings" }).lean();
+    const merged = { ...(existing?.value || {}), ...body };
     await AdminSettings.findOneAndUpdate(
       { key: "platform_settings" },
-      { $set: { value: body } },
+      { $set: { value: merged } },
       { upsert: true, new: true }
     );
-    return ok({ message: "Settings saved", settings: body });
+    return ok({ message: "Settings saved", settings: merged });
   } catch (err) {
     console.error("PUT /api/admin/settings error:", err);
     return error("Server error", 500);

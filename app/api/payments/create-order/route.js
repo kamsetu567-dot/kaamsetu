@@ -1,23 +1,9 @@
 import { connectDB } from "@/lib/db/mongoose";
-import Worker from "@/lib/models/Worker";
-import Shop from "@/lib/models/Shop";
 import Payment from "@/lib/models/Payment";
-import AdminSettings from "@/lib/models/AdminSettings";
 import { getTokenFromRequest, verifyToken } from "@/lib/utils/jwt";
 import { getRazorpay, isRazorpayConfigured } from "@/lib/utils/razorpay";
-import { ok, created, error, unauthorized, forbidden } from "@/lib/utils/apiResponse";
-
-const AD_PRICE_PER_DAY = 100; // ₹/day — mirrors app/shop/ads/page.jsx
-const SUBSCRIPTION_DAYS = 30;
-const DEFAULT_SUBSCRIPTION_PRICE = 199;
-
-// Read the admin-configured monthly subscription price server-side. Never trust
-// a client-sent amount — the order is always priced here.
-async function getSubscriptionPrice() {
-  const doc = await AdminSettings.findOne({ key: "platform_settings" }).lean();
-  const v = Number(doc?.value?.subscriptionPrice);
-  return v > 0 ? v : DEFAULT_SUBSCRIPTION_PRICE;
-}
+import { buildPaymentDraft } from "@/lib/utils/paymentPricing";
+import { created, error, unauthorized } from "@/lib/utils/apiResponse";
 
 export async function POST(request) {
   try {
@@ -37,38 +23,11 @@ export async function POST(request) {
 
     await connectDB();
 
-    // Build the order server-side per purpose. `amount` is always computed
-    // here (rupees); paise = amount * 100 for the Razorpay order.
-    let amount, meta, workerRef, shopRef;
-
-    if (purpose === "subscription") {
-      if (payload.role !== "worker") return forbidden("Worker access required");
-      const worker = await Worker.findOne({ user: payload.id }).lean();
-      if (!worker) return error("Worker profile not found", 404);
-      amount = await getSubscriptionPrice();
-      meta = { days: SUBSCRIPTION_DAYS, plan: "monthly" };
-      workerRef = worker._id;
-    } else {
-      if (payload.role !== "shop") return forbidden("Shop access required");
-      const shop = await Shop.findOne({ user: payload.id }).lean();
-      if (!shop) return error("Shop profile not found", 404);
-      if (shop.status !== "approved") return forbidden("Shop must be approved before running ads");
-
-      const duration = Math.floor(Number(body.duration));
-      if (!Number.isFinite(duration) || duration < 1 || duration > 90) {
-        return error("duration must be between 1 and 90 days", 400);
-      }
-      if (!body.type || !body.category) return error("type and category are required", 400);
-
-      amount = duration * AD_PRICE_PER_DAY;
-      meta = {
-        type: body.type,
-        category: body.category,
-        duration,
-        creative: body.creative || null,
-      };
-      shopRef = shop._id;
-    }
+    // Price + validate the order server-side (shared with the manual-QR route).
+    // `amount` is always computed here (rupees); paise = amount * 100.
+    const draft = await buildPaymentDraft(purpose, payload, body);
+    if (!draft.ok) return error(draft.message, draft.status);
+    const { amount, meta, workerRef, shopRef } = draft;
 
     // Create the Razorpay order (amount in paise).
     let order;

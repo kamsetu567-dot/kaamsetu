@@ -103,7 +103,7 @@ export default function AdminDashboardPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
           { href: "/admin/workers",          label: "Workers देखें",   sub: "Approve / manage",   bg: "bg-brand-navy" },
-          { href: "/admin/pending-requests",  label: "Requests",        sub: "Pending service requests", bg: "bg-green-600" },
+          { href: "/admin/payments",         label: "Payments",         sub: "Approve UPI payments", bg: "bg-emerald-600" },
           { href: "/admin/jobs",             label: "Jobs देखें",      sub: "All job requests",   bg: "bg-amber-500" },
           { href: "/admin/clients",          label: "Clients",          sub: "Manage clients",     bg: "bg-purple-600" },
         ].map(a => (

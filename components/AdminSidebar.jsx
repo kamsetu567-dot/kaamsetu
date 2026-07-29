@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, Users, UserCheck, Briefcase,
   Bell, Settings, Megaphone, Search, LogOut, Store,
-  AlertTriangle, FolderOpen, UserCog,
+  AlertTriangle, FolderOpen, UserCog, IndianRupee,
 } from "lucide-react";
 import { adminLogout } from "@/lib/utils/adminAuth";
 
@@ -17,6 +17,7 @@ const NAV_ITEMS = [
   { href: "/admin/accounts", hi: "अकाउंट्स", en: "Accounts", icon: UserCog },
   { href: "/admin/shops", hi: "शॉप्स", en: "Shops", icon: Store },
   { href: "/admin/ads",   hi: "विज्ञापन", en: "Ads Review", icon: Megaphone },
+  { href: "/admin/payments", hi: "पेमेंट्स", en: "Payment Requests", icon: IndianRupee },
   { href: "/admin/jobs", hi: "जॉब्स", en: "Jobs", icon: Briefcase },
   { href: "/admin/pending-requests", hi: "Requests", en: "Pending Requests", icon: Briefcase },
   { href: "/admin/notifications", hi: "सूचनाएँ", en: "Notifications", icon: Bell },

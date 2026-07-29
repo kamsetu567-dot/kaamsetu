@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import {
   PlusCircle, X, Upload, CheckCircle, Eye,
   MousePointerClick, TrendingUp, Trash2, Megaphone,
-  Loader2, ChevronLeft,
+  Loader2, ChevronLeft, QrCode, Copy,
 } from "lucide-react";
 import CategorySelect from "@/components/CategorySelect";
 import EmptyState from "@/components/EmptyState";
@@ -13,7 +13,7 @@ import { useRoleGuard } from "@/lib/auth/useRoleGuard";
 import { useToast } from "@/components/Toast";
 import { compressImage } from "@/lib/utils/compressImage";
 import { loadRazorpay } from "@/lib/utils/loadRazorpay";
-import { createAdPayment, verifyPayment } from "@/lib/api/payments";
+import { createAdPayment, verifyPayment, submitManualPayment } from "@/lib/api/payments";
 
 const AD_TYPES = [
   { value: "banner",   hi: "Banner Ad",        en: "Full-width banner on category page", icon: Megaphone, tag: "Most Popular" },
@@ -35,9 +35,63 @@ function CreateAdForm({ onCreated, onCancel }) {
   const [submitted, setSubmitted] = useState(false);
   const [stage,     setStage]     = useState("form"); // "form" | "payment"
 
+  // Manual UPI-QR payment config + the uploaded payment screenshot.
+  const [payCfg,       setPayCfg]       = useState(null);
+  const [screenshot,   setScreenshot]   = useState(""); // base64 data URL
+  const [uploadingShot, setUploadingShot] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/settings/public")
+      .then(r => r.json())
+      .then(d => setPayCfg({
+        paymentMode: d?.paymentMode === "razorpay" ? "razorpay" : "qr",
+        paymentQrUrl: d?.paymentQrUrl || "",
+        paymentUpiId: d?.paymentUpiId || "",
+        paymentNote: d?.paymentNote || "",
+      }))
+      .catch(() => setPayCfg({ paymentMode: "qr", paymentQrUrl: "", paymentUpiId: "", paymentNote: "" }));
+  }, []);
+
   const daysNum = parseInt(days, 10);
   const validDays = Number.isFinite(daysNum) && daysNum >= MIN_DAYS && daysNum <= MAX_DAYS;
   const totalCost = validDays ? daysNum * PRICE_PER_DAY : 0;
+
+  async function onShotFile(e) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setUploadingShot(true);
+    try {
+      const b64 = await compressImage(file, { maxPx: 1200, quality: 0.7 });
+      setScreenshot(b64);
+    } catch (err) {
+      toast.error(err?.message === "IMAGE_TOO_BIG" ? "फोटो बहुत बड़ी है / Image too big" : "Image upload failed");
+    } finally {
+      setUploadingShot(false);
+    }
+  }
+
+  // Manual-QR: submit the ad draft + payment screenshot for admin approval. The
+  // Ad is created by activatePayment only once the admin approves the payment.
+  async function submitManualAd() {
+    if (loading) return;
+    if (!screenshot) { toast.error("Payment screenshot ज़रूरी है / Add a payment screenshot"); return; }
+    setLoading(true);
+    try {
+      const res = await submitManualPayment({
+        purpose: "ad", type: adType, category, duration: daysNum, creative, screenshotUrl: screenshot,
+      });
+      if (res?.success) {
+        setSubmitted(true);
+      } else {
+        toast.error(res?.message || "Submit नहीं हो पाया / Couldn't submit");
+      }
+    } catch (err) {
+      toast.error(err?.message || "कुछ गड़बड़ हुई / Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   async function handleCreativeUpload(e) {
     const file = e.target.files?.[0];
@@ -136,6 +190,24 @@ function CreateAdForm({ onCreated, onCancel }) {
   }
 
   if (stage === "payment") {
+    if (!payCfg) {
+      return <div className="bg-white rounded-3xl border-2 border-gray-200 p-6 h-64 animate-pulse" />;
+    }
+    if (payCfg.paymentMode !== "razorpay") {
+      return (
+        <AdQrPaymentScreen
+          amount={totalCost}
+          days={daysNum}
+          cfg={payCfg}
+          screenshot={screenshot}
+          uploading={uploadingShot}
+          onFile={onShotFile}
+          onSubmit={submitManualAd}
+          onBack={() => setStage("form")}
+          submitting={loading}
+        />
+      );
+    }
     return (
       <AdPaymentScreen
         amount={totalCost}
@@ -320,6 +392,75 @@ function AdPaymentScreen({ amount, days, onPaid, onBack, submitting }) {
       <p className="text-[11px] text-gray-400 text-center">
         🔒 Secured by Razorpay · UPI / Card / Netbanking
       </p>
+    </div>
+  );
+}
+
+// Manual UPI-QR payment screen (shown while the Razorpay gateway is hidden).
+// The shop scans the admin QR, pays, uploads a screenshot, and submits for
+// admin approval — the Ad is created only once the admin approves the payment.
+function AdQrPaymentScreen({ amount, days, cfg, screenshot, uploading, onFile, onSubmit, onBack, submitting }) {
+  const toast = useToast();
+  function copyUpi() {
+    if (!cfg.paymentUpiId) return;
+    navigator.clipboard?.writeText(cfg.paymentUpiId).then(() => toast.success("UPI ID copied"), () => {});
+  }
+  return (
+    <div className="bg-white rounded-3xl border-2 border-brand-navy p-6 space-y-5">
+      <div className="flex items-center justify-between">
+        <button type="button" onClick={onBack} disabled={submitting}
+          className="flex items-center gap-1 text-gray-500 hover:text-brand-navy text-sm font-semibold disabled:opacity-40">
+          <ChevronLeft size={16} /> Back
+        </button>
+        <h3 className="font-black text-brand-navy text-lg font-hindi">Payment</h3>
+        <span className="w-12" />
+      </div>
+
+      <div className="bg-green-50 border-2 border-green-200 rounded-2xl p-4 text-center">
+        <p className="text-xs text-green-700 font-semibold uppercase tracking-wide">Amount due</p>
+        <p className="text-4xl font-black text-green-700 mt-1">₹{amount}</p>
+        <p className="text-xs text-gray-500 mt-1 font-hindi">{days} {days === 1 ? "day" : "days"} × ₹{PRICE_PER_DAY}</p>
+      </div>
+
+      {cfg.paymentQrUrl ? (
+        <div className="flex flex-col items-center">
+          <img src={cfg.paymentQrUrl} alt="UPI QR" className="w-52 h-52 object-contain rounded-2xl border-2 border-gray-200 bg-white p-2" />
+          <p className="text-gray-500 text-xs mt-2 font-hindi">इस QR को scan करके ₹{amount} भेजें</p>
+        </div>
+      ) : (
+        <p className="text-sm text-gray-500 bg-gray-50 rounded-xl px-4 py-3">Admin ने अभी payment QR set नहीं किया है। कृपया बाद में कोशिश करें।</p>
+      )}
+
+      {cfg.paymentUpiId && (
+        <button type="button" onClick={copyUpi}
+          className="w-full flex items-center justify-center gap-2 bg-gray-50 border border-gray-200 rounded-xl py-2.5 text-sm font-semibold text-brand-navy hover:bg-gray-100 transition-colors">
+          <span>UPI ID: {cfg.paymentUpiId}</span><Copy size={14} className="text-gray-400" />
+        </button>
+      )}
+
+      {cfg.paymentNote && (
+        <p className="text-gray-600 text-sm bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 whitespace-pre-wrap">{cfg.paymentNote}</p>
+      )}
+
+      <div className="border-t border-gray-100 pt-4">
+        <p className="text-sm font-semibold text-brand-navy mb-2 font-hindi">Payment के बाद screenshot भेजें</p>
+        <div className="flex items-center gap-3 mb-3">
+          <div className="w-20 h-20 rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 flex items-center justify-center overflow-hidden flex-shrink-0">
+            {screenshot ? <img src={screenshot} alt="Screenshot" className="w-full h-full object-cover" /> : <QrCode size={20} className="text-gray-300" />}
+          </div>
+          <label className="inline-flex items-center gap-2 cursor-pointer bg-brand-navy text-white text-sm font-bold px-4 py-2.5 rounded-xl hover:opacity-90 transition-opacity">
+            <Upload size={15} />
+            {uploading ? "लोड हो रहा है…" : screenshot ? "बदलें / Change" : "Screenshot चुनें"}
+            <input type="file" accept="image/*" className="hidden" onChange={onFile} disabled={uploading} />
+          </label>
+        </div>
+
+        <button type="button" onClick={onSubmit} disabled={submitting || uploading || !screenshot || !cfg.paymentQrUrl}
+          className="w-full bg-green-600 text-white font-black text-lg py-4 rounded-2xl hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 font-hindi">
+          {submitting ? (<><Loader2 size={20} className="animate-spin" /> Submitting…</>) : (<><CheckCircle size={20} /> मैंने Payment कर दी / I&apos;ve Paid</>)}
+        </button>
+        <p className="text-[11px] text-gray-400 text-center mt-3 font-hindi">Admin के approve करने पर आपका ad review के लिए submit होगा।</p>
+      </div>
     </div>
   );
 }
