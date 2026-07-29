@@ -23,10 +23,10 @@ const notoDevanagari = Noto_Sans_Devanagari({
 });
 
 export const metadata = {
-  title: "KaamSetu — हर काम, हर जगह",
+  title: "Karvia — हर काम, हर जगह",
   description:
-    "KaamSetu — मिस्त्री, हलवाई, डांसर, ट्यूटर — सभी सेवाएँ एक ही जगह पर। India's Hindi-first local service marketplace.",
-  keywords: "plumber, halwai, dancer, tutor, mistri, electrician, kaamsetu",
+    "Karvia — मिस्त्री, हलवाई, डांसर, ट्यूटर — सभी सेवाएँ एक ही जगह पर। India's Hindi-first local service marketplace.",
+  keywords: "plumber, halwai, dancer, tutor, mistri, electrician, karvia",
 };
 
 export const viewport = {

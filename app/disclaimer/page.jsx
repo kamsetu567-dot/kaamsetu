@@ -3,8 +3,8 @@ import Footer from "@/components/Footer";
 import { AlertTriangle, Info, ShieldCheck } from "lucide-react";
 
 export const metadata = {
-  title: "Disclaimer | KaamSetu",
-  description: "KaamSetu disclaimer — connecting platform notice.",
+  title: "Disclaimer | Karvia",
+  description: "Karvia disclaimer — connecting platform notice.",
 };
 
 export default function DisclaimerPage() {
@@ -20,7 +20,7 @@ export default function DisclaimerPage() {
           >
             अस्वीकरण / Disclaimer
           </h1>
-          <p className="text-gray-500 text-sm mt-1">Please read this important notice about KaamSetu.</p>
+          <p className="text-gray-500 text-sm mt-1">Please read this important notice about Karvia.</p>
         </div>
 
         {/* Connecting platform notice */}
@@ -40,13 +40,13 @@ export default function DisclaimerPage() {
             className="text-gray-500 leading-relaxed"
             style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
           >
-            KaamSetu केवल एक technology platform है जो workers/service providers और clients को connect करता है।
+            Karvia केवल एक technology platform है जो workers/service providers और clients को connect करता है।
             यह platform किसी भी worker को employ नहीं करता, और किसी भी service की quality या outcome की
             guarantee नहीं देता।
           </p>
           <p className="text-gray-500 leading-relaxed text-sm mt-3">
-            KaamSetu is a technology platform that connects workers/service providers with clients only.
-            KaamSetu does not employ any worker, and does not guarantee the quality or outcome of any service provided.
+            Karvia is a technology platform that connects workers/service providers with clients only.
+            Karvia does not employ any worker, and does not guarantee the quality or outcome of any service provided.
           </p>
         </div>
 
@@ -67,12 +67,12 @@ export default function DisclaimerPage() {
             className="text-gray-500 leading-relaxed"
             style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
           >
-            सभी workers और service providers independent contractors हैं। KaamSetu उनके employees नहीं हैं।
-            उनके actions, work quality, या behavior के लिए KaamSetu legally responsible नहीं है।
+            सभी workers और service providers independent contractors हैं। Karvia उनके employees नहीं हैं।
+            उनके actions, work quality, या behavior के लिए Karvia legally responsible नहीं है।
           </p>
           <p className="text-gray-500 text-sm mt-3">
-            All workers and service providers are independent contractors, not employees of KaamSetu.
-            KaamSetu is not legally responsible for their actions, work quality, or behavior.
+            All workers and service providers are independent contractors, not employees of Karvia.
+            Karvia is not legally responsible for their actions, work quality, or behavior.
           </p>
         </div>
 

@@ -112,7 +112,7 @@ export default function ContactPage() {
             ))}
 
             <div className="bg-brand-navy rounded-2xl p-5 text-white mt-4">
-              <p className="font-black text-brand-yellow font-hindi mb-1">KaamSetu Support</p>
+              <p className="font-black text-brand-yellow font-hindi mb-1">Karvia Support</p>
               <p className="text-white/70 text-sm font-hindi">
                 किसी भी समस्या के लिए हमें संपर्क करें।
               </p>

@@ -64,7 +64,7 @@ export async function POST(request) {
     // the canonical record; email is best-effort delivery.
     const trimmed = message.trim();
     await Notification.create({
-      title: "KaamSetu Update",
+      title: "Karvia Update",
       body: trimmed,
       audience: audienceToBellEnum(audience),
       active: true,

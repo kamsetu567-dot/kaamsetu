@@ -2,8 +2,8 @@
 import Footer from "@/components/Footer";
 
 export const metadata = {
-  title: "Terms & Conditions | KaamSetu",
-  description: "KaamSetu terms and conditions of use.",
+  title: "Terms & Conditions | Karvia",
+  description: "Karvia terms and conditions of use.",
 };
 
 function Section({ num, hi, en, children }) {
@@ -49,20 +49,20 @@ export default function TermsPage() {
             className="text-orange-500 text-sm"
             style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
           >
-            KaamSetu use करके आप इन नियमों और शर्तों से सहमत होते हैं। कृपया ध्यान से पढ़ें।
+            Karvia use करके आप इन नियमों और शर्तों से सहमत होते हैं। कृपया ध्यान से पढ़ें।
           </p>
           <p className="text-orange-700 text-xs mt-1">
-            By using KaamSetu, you agree to these terms and conditions. Please read carefully.
+            By using Karvia, you agree to these terms and conditions. Please read carefully.
           </p>
         </div>
 
         <Section num="1" hi="Platform का उपयोग" en="Use of Platform">
           <p style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>
-            KaamSetu केवल 18 वर्ष से अधिक आयु के व्यक्तियों के लिए है। Platform का उपयोग केवल legal और ethical
+            Karvia केवल 18 वर्ष से अधिक आयु के व्यक्तियों के लिए है। Platform का उपयोग केवल legal और ethical
             कार्यों के लिए किया जाना चाहिए। Fraudulent या misleading profiles बनाना prohibited है।
           </p>
           <p className="mt-2">
-            KaamSetu is for users 18+ only. The platform must be used for legal and ethical purposes only.
+            Karvia is for users 18+ only. The platform must be used for legal and ethical purposes only.
             Creating fraudulent or misleading profiles is strictly prohibited.
           </p>
         </Section>
@@ -82,39 +82,39 @@ export default function TermsPage() {
         <Section num="3" hi="Client की जिम्मेदारी" en="Client Responsibilities">
           <p style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>
             Clients को workers के साथ respectfully deal करना होगा। Fake job requests डालना prohibited है।
-            KaamSetu payments का mediator नहीं है — payment directly worker को की जाती है।
+            Karvia payments का mediator नहीं है — payment directly worker को की जाती है।
           </p>
           <p className="mt-2 text-xs">
             Clients must interact respectfully with workers. Fake job requests are prohibited.
-            KaamSetu is not a payment mediator — payments are made directly to workers.
+            Karvia is not a payment mediator — payments are made directly to workers.
           </p>
         </Section>
 
         <Section num="4" hi="Subscription और Payment" en="Subscription &amp; Payment">
           <p style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>
             Worker subscription fees non-refundable हैं। Subscription expire होने के बाद profile hide हो जाती है।
-            Renewal के लिए payment required है। KaamSetu pricing कभी भी change कर सकता है।
+            Renewal के लिए payment required है। Karvia pricing कभी भी change कर सकता है।
           </p>
           <p className="mt-2 text-xs">
             Worker subscription fees are non-refundable. Profiles are hidden after subscription expiry.
-            KaamSetu reserves the right to change pricing at any time.
+            Karvia reserves the right to change pricing at any time.
           </p>
         </Section>
 
         <Section num="5" hi="Liability की सीमा" en="Limitation of Liability">
           <p style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>
-            KaamSetu केवल एक connecting platform है। Workers और clients के बीच किसी भी विवाद के लिए
-            KaamSetu responsible नहीं है। Service quality, payment disputes, या personal safety के लिए
+            Karvia केवल एक connecting platform है। Workers और clients के बीच किसी भी विवाद के लिए
+            Karvia responsible नहीं है। Service quality, payment disputes, या personal safety के लिए
             users खुद जिम्मेदार हैं।
           </p>
           <p className="mt-2 text-xs">
-            KaamSetu is a connecting platform only and is not liable for disputes between workers and clients,
+            Karvia is a connecting platform only and is not liable for disputes between workers and clients,
             service quality, payment issues, or personal safety.
           </p>
         </Section>
 
         <p className="text-center text-gray-500 text-xs pb-4">
-          KaamSetu reserves the right to modify these terms at any time. Continued use constitutes acceptance.
+          Karvia reserves the right to modify these terms at any time. Continued use constitutes acceptance.
         </p>
 
       </main>

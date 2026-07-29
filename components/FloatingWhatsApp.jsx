@@ -30,7 +30,7 @@ export default function FloatingWhatsApp() {
           href={COMMUNITY_URL}
           target="_blank"
           rel="noopener noreferrer"
-          aria-label="Join the KaamSetu WhatsApp community"
+          aria-label="Join the Karvia WhatsApp community"
           className="group relative w-14 h-14 bg-brand-navy rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
         >
           <WhatsAppIcon />
@@ -41,10 +41,10 @@ export default function FloatingWhatsApp() {
       )}
       {SUPPORT_NUMBER && (
         <a
-          href={`https://wa.me/${SUPPORT_NUMBER}?text=Hi%2C%20I%20need%20help%20with%20KaamSetu`}
+          href={`https://wa.me/${SUPPORT_NUMBER}?text=Hi%2C%20I%20need%20help%20with%20Karvia`}
           target="_blank"
           rel="noopener noreferrer"
-          aria-label="Chat with KaamSetu support on WhatsApp"
+          aria-label="Chat with Karvia support on WhatsApp"
           className="group relative w-14 h-14 bg-[#25D366] rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
         >
           <WhatsAppIcon />

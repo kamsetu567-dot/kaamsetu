@@ -42,14 +42,14 @@ export default function AdminSidebar() {
         <Link href="/admin" className="flex items-center gap-2">
           <Image
             src="/logo.png"
-            alt="KaamSetu"
+            alt="Karvia"
             width={56}
             height={56}
             className="w-14 h-14 rounded-xl object-contain flex-shrink-0"
             unoptimized
           />
           <div>
-            <span className="font-black text-white text-lg">KAAMSETU</span>
+            <span className="font-black text-white text-lg">KARVIA</span>
             <p className="text-white/50 text-xs">Admin Panel</p>
           </div>
         </Link>

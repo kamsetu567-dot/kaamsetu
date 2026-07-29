@@ -366,7 +366,7 @@ export default function WorkerProfilePage() {
                     ) : (
                       <>
                         <h3 className="font-black text-brand-navy mb-1 flex items-center gap-2"><Flag size={16} className="text-red-500" /> {t({ hi: 'वर्कर की रिपोर्ट करें', en: 'Report Worker' })}</h3>
-                        <p className="text-gray-500 text-xs mb-4">{t({ hi: 'KaamSetu को सुरक्षित बनाए रखने में मदद करें', en: 'Help us keep KaamSetu safe' })}</p>
+                        <p className="text-gray-500 text-xs mb-4">{t({ hi: 'Karvia को सुरक्षित बनाए रखने में मदद करें', en: 'Help us keep Karvia safe' })}</p>
                         <div className="space-y-2 mb-4">
                           {[
                             { value: "fake_profile",  hi: 'फेक प्रोफ़ाइल',          en: 'Fake Profile' },

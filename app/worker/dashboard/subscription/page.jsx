@@ -74,7 +74,7 @@ export default function WorkerSubscriptionPage() {
         key: order.keyId,
         amount: order.amountPaise,
         currency: order.currency,
-        name: "KaamSetu",
+        name: "Karvia",
         description: `Worker Subscription — ${order.amount} ₹ / month`,
         order_id: order.orderId,
         prefill: { name: worker?.name || "", contact: worker?.mobile || "" },

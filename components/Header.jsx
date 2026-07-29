@@ -233,7 +233,7 @@ export default function Header() {
           <Link href="/" className="flex items-center min-h-0 flex-shrink-0">
             <Image
               src="/logo.png"
-              alt="KaamSetu"
+              alt="Karvia"
               width={260}
               height={96}
               className="h-14 sm:h-16 lg:h-16 w-auto object-contain"
@@ -385,7 +385,7 @@ export default function Header() {
       {menuOpen && (
         <div className="fixed inset-0 z-50 bg-brand-navy flex flex-col">
           <div className="flex items-center justify-between px-4 h-20 border-b border-white/10">
-            <Image src="/logo.png" alt="KaamSetu" width={180} height={72} className="h-20 w-auto object-contain" unoptimized />
+            <Image src="/logo.png" alt="Karvia" width={180} height={72} className="h-20 w-auto object-contain" unoptimized />
             <button onClick={() => setMenuOpen(false)} className="text-white p-2 min-h-0" aria-label="Close menu">
               <X size={24} />
             </button>

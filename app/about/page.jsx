@@ -21,7 +21,7 @@ export default function AboutPage() {
             className="text-3xl font-black text-brand-navy"
             style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
           >
-            {t({ hi: 'KaamSetu के बारे में', en: 'About KaamSetu' })}
+            {t({ hi: 'Karvia के बारे में', en: 'About Karvia' })}
           </h1>
         </div>
 
@@ -43,8 +43,8 @@ export default function AboutPage() {
             style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
           >
             {t({
-              hi: 'KaamSetu एक Hindi-first डिजिटल platform है जो skilled workers और clients को connect करता है। हमारा लक्ष्य है कि हर कारीगर, मज़दूर, और service provider को digital economy का हिस्सा बनाया जाए — बिना किसी भाषा barrier के।',
-              en: "KaamSetu is a Hindi-first digital platform connecting skilled service providers with clients across India. Our mission is to bring every artisan, laborer, and service professional into the digital economy — without any language barrier.",
+              hi: 'Karvia एक Hindi-first डिजिटल platform है जो skilled workers और clients को connect करता है। हमारा लक्ष्य है कि हर कारीगर, मज़दूर, और service provider को digital economy का हिस्सा बनाया जाए — बिना किसी भाषा barrier के।',
+              en: "Karvia is a Hindi-first digital platform connecting skilled service providers with clients across India. Our mission is to bring every artisan, laborer, and service professional into the digital economy — without any language barrier.",
             })}
           </p>
         </div>

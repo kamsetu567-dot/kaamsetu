@@ -2,7 +2,7 @@
 import { ArrowLeft, Hammer, Briefcase, Store, Wrench } from "lucide-react";
 
 export const metadata = {
-  title: "साइनअप करें / Sign Up — KaamSetu",
+  title: "साइनअप करें / Sign Up — Karvia",
 };
 
 const ROLES = [

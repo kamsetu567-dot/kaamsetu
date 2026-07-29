@@ -35,7 +35,7 @@ export default function WorkerReferralsPage() {
   const code = data?.code || "";
   const days = data?.rewardDays ?? 10;
   const shareText =
-    `KaamSetu पर काम पाएं! मेरा referral code "${code}" अपने dashboard के Referral section में डालें — ` +
+    `Karvia पर काम पाएं! मेरा referral code "${code}" अपने dashboard के Referral section में डालें — ` +
     `हम दोनों को ${days} दिन की FREE subscription मिलेगी.`;
 
   function copyCode() {
@@ -47,7 +47,7 @@ export default function WorkerReferralsPage() {
 
   function shareCode() {
     if (navigator.share) {
-      navigator.share({ title: "KaamSetu — काम ढूंढो", text: shareText }).catch(() => {});
+      navigator.share({ title: "Karvia — काम ढूंढो", text: shareText }).catch(() => {});
     } else {
       navigator.clipboard?.writeText(shareText).then(() => {
         setCopied(true);

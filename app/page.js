@@ -200,7 +200,7 @@ const TESTIMONIALS = [
   { name: 'Anjali Verma', role: 'Client', city: 'Delhi',     rating: 5, quote: { hi: 'सिर्फ 30 मिनट में प्लंबर आ गया, बहुत अच्छा अनुभव!',                     en: 'Plumber arrived within 30 minutes — great experience!' } },
   { name: 'Mohit Singh',  role: 'Worker', city: 'Jaipur',    rating: 5, quote: { hi: 'पहले महीने में ही 12 जॉब्स मिलीं। ₹199 की सब्सक्रिप्शन वसूल हो गई।', en: 'Got 12 jobs in my first month. The ₹199 subscription paid for itself.' } },
   { name: 'Neha Sharma',  role: 'Client', city: 'Mumbai',    rating: 5, quote: { hi: 'घर के हर काम के लिए एक ही ऐप — कमाल का!',                                   en: 'One app for every home service — amazing!' } },
-  { name: 'Suresh Kumar', role: 'Worker', city: 'Bengaluru', rating: 5, quote: { hi: 'KaamSetu ने मेरा बिजनेस बदल दिया। रोज नए क्लाइंट मिलते हैं।',         en: 'KaamSetu changed my business. New clients every day.' } },
+  { name: 'Suresh Kumar', role: 'Worker', city: 'Bengaluru', rating: 5, quote: { hi: 'Karvia ने मेरा बिजनेस बदल दिया। रोज नए क्लाइंट मिलते हैं।',         en: 'Karvia changed my business. New clients every day.' } },
   { name: 'Pooja Mishra', role: 'Client', city: 'Lucknow',   rating: 5, quote: { hi: 'वर्कर वेरिफाइड थे, बिल्कुल सेफ लगा।',                                       en: 'Workers are verified — felt completely safe.' } },
   { name: 'Rohit Verma',  role: 'Worker', city: 'Pune',      rating: 5, quote: { hi: 'अब हर महीने ₹40k+ कमा लेता हूँ। बहुत आभार!',                                en: 'I earn ₹40k+ every month now. Thank you!' } },
 ];
@@ -481,7 +481,7 @@ export default function HomePage() {
             <div className="flex items-end justify-center xl:justify-end pt-2 xl:pt-0 xl:-mr-16 2xl:-mr-32">
               <img
                 src={HERO_IMAGE}
-                alt="KaamSetu workers"
+                alt="Karvia workers"
                 className="block w-full max-w-[420px] sm:max-w-[480px] md:max-w-[600px] lg:max-w-[680px] xl:max-w-[820px] 2xl:max-w-[900px] h-auto select-none pointer-events-none"
               />
             </div>
@@ -572,8 +572,8 @@ export default function HomePage() {
               </h2>
               <p className="text-gray-600 text-sm md:text-base mb-5 font-hindi leading-relaxed">
                 {t({
-                  hi: 'KaamSetu पर ऐड चलाएं और हज़ारों लोकल ग्राहकों तक पहुंचें। आपकी दुकान या सर्विस सबसे ऊपर दिखेगी — सिर्फ ₹100/दिन से।',
-                  en: 'Run an ad on KaamSetu and reach thousands of local customers. Your shop or service shows up front and center — from just ₹100/day.',
+                  hi: 'Karvia पर ऐड चलाएं और हज़ारों लोकल ग्राहकों तक पहुंचें। आपकी दुकान या सर्विस सबसे ऊपर दिखेगी — सिर्फ ₹100/दिन से।',
+                  en: 'Run an ad on Karvia and reach thousands of local customers. Your shop or service shows up front and center — from just ₹100/day.',
                 })}
               </p>
               <ul className="space-y-2.5 mb-6">
@@ -677,11 +677,11 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── WHY KAAMSETU ─────────────────────────────────────────── */}
+      {/* ── WHY KARVIA ─────────────────────────────────────────── */}
       <section className="bg-white py-14">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="text-center mb-10">
-            <h2 className="text-2xl md:text-3xl font-black text-brand-navy font-hindi mb-1">{t({ hi: 'KaamSetu क्यों चुनें?', en: 'Why Choose KaamSetu?' })}</h2>
+            <h2 className="text-2xl md:text-3xl font-black text-brand-navy font-hindi mb-1">{t({ hi: 'Karvia क्यों चुनें?', en: 'Why Choose Karvia?' })}</h2>
             <p className="text-gray-500 text-sm">{t({ hi: 'भरोसेमंद, तेज़, सुरक्षित', en: 'Trusted, Fast, Secure' })}</p>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -819,7 +819,7 @@ export default function HomePage() {
           <div className="grid md:grid-cols-2 gap-10 items-end">
             <div>
               <h2 className="text-3xl font-black text-brand-navy font-hindi mb-1">{t({ hi: 'वर्कर बनें और कमाई शुरू करें', en: 'Become a Worker & Start Earning' })}</h2>
-              <p className="text-brand-navy/60 text-sm mb-1">{t({ hi: 'KaamSetu वर्कर बनें', en: 'Join KaamSetu Today' })}</p>
+              <p className="text-brand-navy/60 text-sm mb-1">{t({ hi: 'Karvia वर्कर बनें', en: 'Join Karvia Today' })}</p>
               <p className="text-brand-navy font-bold text-lg mb-5 font-hindi">{t({ hi: `सिर्फ ₹${subscriptionPrice} में पूरा महीना`, en: `Full month for just ₹${subscriptionPrice}` })}</p>
               <ul className="space-y-2 mb-6">
                 {[

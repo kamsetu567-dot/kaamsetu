@@ -137,7 +137,7 @@ function CreateAdForm({ onCreated, onCancel }) {
         key: order.keyId,
         amount: order.amountPaise,
         currency: order.currency,
-        name: "KaamSetu",
+        name: "Karvia",
         description: `Ad — ${daysNum} day${daysNum === 1 ? "" : "s"} (₹${order.amount})`,
         order_id: order.orderId,
         theme: { color: "#0f172a" },

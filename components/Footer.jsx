@@ -12,7 +12,7 @@ export default function Footer() {
           {/* Brand */}
           <div className="col-span-2 md:col-span-1">
             <div className="mb-3">
-              <Image src="/logo.png" alt="KaamSetu" width={200} height={80} className="h-20 w-auto object-contain" unoptimized />
+              <Image src="/logo.png" alt="Karvia" width={200} height={80} className="h-20 w-auto object-contain" unoptimized />
             </div>
             <p className="text-white/60 text-sm font-hindi leading-relaxed">{t({ hi: 'हर काम, हर जगह', en: 'Every Work, Everywhere' })}</p>
             <p className="text-white/50 text-xs mt-1">{t({ hi: 'भारत का लोकल सर्विस मार्केटप्लेस', en: "India's local service marketplace" })}</p>
@@ -52,7 +52,7 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-white/10 mt-10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-white/50 text-xs">
-          <p>© 2025 KaamSetu. All rights reserved.</p>
+          <p>© 2025 Karvia. All rights reserved.</p>
           <div className="flex gap-4 flex-wrap justify-center">
             <Link href="/privacy"    className="hover:text-brand-yellow transition-colors">{t({ hi: 'प्राइवेसी', en: 'Privacy' })}</Link>
             <Link href="/disclaimer" className="hover:text-brand-yellow transition-colors">{t({ hi: 'अस्वीकरण', en: 'Disclaimer' })}</Link>

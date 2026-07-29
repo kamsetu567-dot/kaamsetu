@@ -75,13 +75,13 @@ export default function AdminLayout({ children }) {
           </button>
           <Image
             src="/logo.png"
-            alt="KaamSetu"
+            alt="Karvia"
             width={44}
             height={44}
             className="w-11 h-11 rounded-lg object-contain flex-shrink-0"
             unoptimized
           />
-          <span className="text-white font-black text-lg">KAAMSETU {t({ hi: 'एडमिन', en: 'Admin' })}</span>
+          <span className="text-white font-black text-lg">KARVIA {t({ hi: 'एडमिन', en: 'Admin' })}</span>
         </div>
 
         <main className="flex-1 p-4 md:p-6 max-w-7xl w-full mx-auto">

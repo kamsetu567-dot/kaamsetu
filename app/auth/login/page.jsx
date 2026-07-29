@@ -199,7 +199,7 @@ export default function LoginPage() {
                 {method === 'otp' && step === 2 ? t({ hi: 'OTP Verify करें', en: 'Verify OTP' }) : t({ hi: 'लॉगिन करें', en: 'Login' })}
               </h2>
               <p className="text-gray-500 text-sm">
-                {method === 'otp' && step === 2 ? `OTP sent to ${email}` : t({ hi: 'KaamSetu पर लॉगिन करें', en: 'Login to KaamSetu' })}
+                {method === 'otp' && step === 2 ? `OTP sent to ${email}` : t({ hi: 'Karvia पर लॉगिन करें', en: 'Login to Karvia' })}
               </p>
             </div>
 

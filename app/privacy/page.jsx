@@ -2,8 +2,8 @@
 import Footer from "@/components/Footer";
 
 export const metadata = {
-  title: "Privacy Policy | KaamSetu",
-  description: "KaamSetu privacy policy — how we collect, use, and protect your data.",
+  title: "Privacy Policy | Karvia",
+  description: "Karvia privacy policy — how we collect, use, and protect your data.",
 };
 
 function Section({ num, hi, en, children }) {
@@ -49,10 +49,10 @@ export default function PrivacyPage() {
             className="text-blue-600 text-sm"
             style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
           >
-            KaamSetu आपकी privacy की परवाह करता है। यह नीति बताती है कि हम आपका data कैसे collect, use और protect करते हैं।
+            Karvia आपकी privacy की परवाह करता है। यह नीति बताती है कि हम आपका data कैसे collect, use और protect करते हैं।
           </p>
           <p className="text-blue-700 text-xs mt-1">
-            KaamSetu cares about your privacy. This policy explains how we collect, use, and protect your data.
+            Karvia cares about your privacy. This policy explains how we collect, use, and protect your data.
           </p>
         </div>
 
@@ -109,7 +109,7 @@ export default function PrivacyPage() {
 
         <Section num="5" hi="सहमति" en="Consent &amp; Your Rights">
           <p style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}>
-            KaamSetu use करके आप इस privacy policy से सहमत होते हैं। आपके अधिकार:
+            Karvia use करके आप इस privacy policy से सहमत होते हैं। आपके अधिकार:
           </p>
           <ul className="list-disc list-inside space-y-1 mt-2">
             <li>अपना account और data delete करवाने का अधिकार</li>
@@ -124,7 +124,7 @@ export default function PrivacyPage() {
         </Section>
 
         <p className="text-center text-gray-500 text-xs pb-4">
-          This privacy policy is subject to change. Continued use of KaamSetu implies acceptance of the latest version.
+          This privacy policy is subject to change. Continued use of Karvia implies acceptance of the latest version.
         </p>
 
       </main>

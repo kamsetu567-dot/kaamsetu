@@ -16,7 +16,7 @@ export async function generateMetadata({ params }) {
   const cat = getCategoryBySlug(slug);
   if (!cat) return { title: "Category Not Found" };
   return {
-    title: `${cat.nameEn} — ${cat.nameHi} | KaamSetu`,
+    title: `${cat.nameEn} — ${cat.nameHi} | Karvia`,
     description: `Find ${cat.nameEn} workers: ${cat.subcategories.slice(0, 4).join(", ")}`,
   };
 }

@@ -12,8 +12,8 @@ const DEFAULTS = {
   paymentUpiId: "",        // e.g. kaamsetu@upi — shown alongside the QR
   paymentNote: "",         // instructions shown to the payer
   smsTemplates: {
-    jobAlert: "नई job आई है {category} में। KaamSetu app खोलें।",
-    welcome: "KaamSetu में आपका स्वागत है! आपकी profile अब live है।",
+    jobAlert: "नई job आई है {category} में। Karvia app खोलें।",
+    welcome: "Karvia में आपका स्वागत है! आपकी profile अब live है।",
     subscription: "आपकी subscription {days} दिनों के लिए active है।",
   },
 };

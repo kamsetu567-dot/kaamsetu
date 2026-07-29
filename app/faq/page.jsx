@@ -8,15 +8,15 @@ import { useT } from "@/lib/i18n/useT";
 
 const FAQS = [
   {
-    q: { hi: "KaamSetu क्या है?", en: "What is KaamSetu?" },
-    a: { hi: "KaamSetu एक ऑनलाइन प्लेटफॉर्म है जहाँ आप मिस्त्री, प्लंबर, DJ, ट्यूटर जैसे workers को 5-30 सेकंड में खोज सकते हैं।", en: "KaamSetu is an online platform where you can find workers like Mistri, Plumber, DJ, Tutor in 5-30 seconds." },
+    q: { hi: "Karvia क्या है?", en: "What is Karvia?" },
+    a: { hi: "Karvia एक ऑनलाइन प्लेटफॉर्म है जहाँ आप मिस्त्री, प्लंबर, DJ, ट्यूटर जैसे workers को 5-30 सेकंड में खोज सकते हैं।", en: "Karvia is an online platform where you can find workers like Mistri, Plumber, DJ, Tutor in 5-30 seconds." },
   },
   {
     q: { hi: "वर्कर बनने के लिए क्या चाहिए?", en: "What is needed to become a worker?" },
     a: { hi: "मोबाइल नंबर, Aadhaar card, और ₹199/month subscription fee।", en: "Mobile number, Aadhaar card, and ₹199/month subscription fee." },
   },
   {
-    q: { hi: "क्या KaamSetu फ्री है?", en: "Is KaamSetu free?" },
+    q: { hi: "क्या Karvia फ्री है?", en: "Is Karvia free?" },
     a: { hi: "Clients के लिए बिल्कुल फ्री है। Workers के लिए ₹199/month subscription है।", en: "Completely free for clients. Workers pay a ₹199/month subscription." },
   },
   {

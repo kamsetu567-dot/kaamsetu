@@ -56,14 +56,14 @@ export default function AdminLoginPage() {
           <div className="w-16 h-16 bg-brand-navy rounded-2xl flex items-center justify-center mx-auto mb-4 overflow-hidden p-2">
             <Image
               src="/logo.png"
-              alt="KaamSetu"
+              alt="Karvia"
               width={48}
               height={48}
               className="w-full h-full object-contain"
               unoptimized
             />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">KaamSetu {t({ hi: 'एडमिन', en: 'Admin' })}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Karvia {t({ hi: 'एडमिन', en: 'Admin' })}</h1>
           <p className="text-gray-500 mt-1 text-sm">{t({ hi: 'सिर्फ अधिकृत प्रवेश', en: 'Authorized Access Only' })}</p>
         </div>
 

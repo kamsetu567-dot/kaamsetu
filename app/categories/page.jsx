@@ -5,8 +5,8 @@ import CategoriesHeading from "@/components/CategoriesHeading";
 import { CATEGORIES } from "@/lib/data/categories";
 
 export const metadata = {
-  title: "सभी सेवाएँ / All Categories — KaamSetu",
-  description: "Browse all service categories on KaamSetu — Construction, Events, Home Services, Talent and more.",
+  title: "सभी सेवाएँ / All Categories — Karvia",
+  description: "Browse all service categories on Karvia — Construction, Events, Home Services, Talent and more.",
 };
 
 export default function CategoriesPage() {
