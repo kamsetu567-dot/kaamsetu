@@ -115,7 +115,7 @@ export default function ForgotPasswordPage() {
       <div className="bg-brand-navy px-4 py-4 flex items-center gap-3">
         <button onClick={() => step > 1 ? setStep(step - 1) : router.push('/auth/login')}
           className="text-white/70 hover:text-white min-h-0"><ChevronLeft size={24} /></button>
-        <span className="font-black text-white">KAAM<span className="text-brand-yellow">SETU</span></span>
+        <span className="font-black text-white">KAR<span className="text-brand-yellow">VIA</span></span>
       </div>
 
       <div className="bg-white border-b border-gray-100 px-4 py-3">

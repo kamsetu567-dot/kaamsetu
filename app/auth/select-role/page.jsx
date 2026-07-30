@@ -47,7 +47,7 @@ export default function SelectRolePage() {
       <div className="min-h-screen bg-brand-bg flex flex-col">
         <div className="bg-brand-navy px-4 py-4 flex items-center gap-3">
           <Link href="/" className="text-white/70 hover:text-white min-h-0"><ChevronLeft size={24} /></Link>
-          <span className="font-black text-white text-lg">KAAM<span className="text-brand-yellow">SETU</span></span>
+          <span className="font-black text-white text-lg">KAR<span className="text-brand-yellow">VIA</span></span>
         </div>
         <div className="flex-1 flex items-center justify-center px-4 py-12">
           <div className="w-full max-w-md text-center">
@@ -102,7 +102,7 @@ export default function SelectRolePage() {
         <Link href="/" className="text-white/70 hover:text-white min-h-0">
           <ChevronLeft size={24} />
         </Link>
-        <span className="font-black text-white text-lg">KAAM<span className="text-brand-yellow">SETU</span></span>
+        <span className="font-black text-white text-lg">KAR<span className="text-brand-yellow">VIA</span></span>
       </div>
 
       <div className="flex-1 flex items-center justify-center px-4 py-12">

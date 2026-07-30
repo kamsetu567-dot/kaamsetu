@@ -262,7 +262,7 @@ export default function AdminSettingsPage() {
             type="text"
             value={upiId}
             onChange={(e) => setUpiId(e.target.value)}
-            placeholder="kaamsetu@upi"
+            placeholder="karvia@upi"
             className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-blue-600 transition-colors"
           />
         </div>

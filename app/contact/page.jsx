@@ -90,7 +90,7 @@ export default function ContactPage() {
               {
                 icon: Mail, color: "bg-yellow-50 text-yellow-700",
                 label: { hi: "ईमेल", en: "Email" },
-                value: "support@kaamsetu.com",
+                value: "support@karvia.com",
               },
               {
                 icon: Clock, color: "bg-green-50 text-green-700",

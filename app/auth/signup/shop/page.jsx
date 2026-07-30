@@ -131,7 +131,7 @@ export default function ShopSignupPage() {
         <div className="w-20 h-20 bg-brand-yellow rounded-2xl flex items-center justify-center mb-6">
           <Wrench size={40} className="text-brand-navy" />
         </div>
-        <h1 className="text-4xl font-black text-white font-hindi mb-3">KAAM<span className="text-brand-yellow">SETU</span></h1>
+        <h1 className="text-4xl font-black text-white font-hindi mb-3">KAR<span className="text-brand-yellow">VIA</span></h1>
         <p className="text-white/80 font-hindi text-lg mb-2">{t({ hi: 'दुकान को ऑनलाइन ले जाएँ', en: 'Take your shop online' })}</p>
         <p className="text-white/60 text-sm">{t({ hi: 'शॉप / बिज़नेस के तौर पर जुड़ें', en: 'Join as a Shop / Business' })}</p>
         <div className="mt-10 space-y-3 text-left">
@@ -153,7 +153,7 @@ export default function ShopSignupPage() {
         <div className="md:hidden bg-brand-navy px-4 py-4 flex items-center gap-3">
           <button onClick={() => step > 1 ? setStep(step - 1) : router.push('/auth/select-role')}
             className="text-white/70 hover:text-white min-h-0"><ChevronLeft size={24} /></button>
-          <span className="font-black text-white">KAAM<span className="text-brand-yellow">SETU</span></span>
+          <span className="font-black text-white">KAR<span className="text-brand-yellow">VIA</span></span>
         </div>
 
         {/* Desktop back button */}

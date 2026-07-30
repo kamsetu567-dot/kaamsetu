@@ -44,7 +44,7 @@ export default function SignupPage() {
         </Link>
         <div className="flex items-center gap-2">
           <Wrench size={20} className="text-brand-yellow" />
-          <span className="font-black text-white text-lg">KAAM<span className="text-brand-yellow">SETU</span></span>
+          <span className="font-black text-white text-lg">KAR<span className="text-brand-yellow">VIA</span></span>
         </div>
       </div>
 

@@ -59,7 +59,7 @@ export default function ClientSignupPage() {
         <div className="w-20 h-20 bg-brand-yellow rounded-2xl flex items-center justify-center mb-6">
           <Wrench size={40} className="text-brand-navy" />
         </div>
-        <h1 className="text-4xl font-black text-white font-hindi mb-3">KAAM<span className="text-brand-yellow">SETU</span></h1>
+        <h1 className="text-4xl font-black text-white font-hindi mb-3">KAR<span className="text-brand-yellow">VIA</span></h1>
         <p className="text-white/80 font-hindi text-lg mb-2">{t({ hi: 'काम करवाओ — आसानी से', en: 'Hire workers easily' })}</p>
         <p className="text-white/60 text-sm">{t({ hi: 'क्लाइंट के तौर पर जुड़ें', en: 'Join as a Client' })}</p>
         <div className="relative w-64 h-64 mt-6">
@@ -85,7 +85,7 @@ export default function ClientSignupPage() {
           <button onClick={() => router.push('/')} className="text-white/70 hover:text-white min-h-0">
             <ChevronLeft size={24} />
           </button>
-          <span className="font-black text-white">KAAM<span className="text-brand-yellow">SETU</span></span>
+          <span className="font-black text-white">KAR<span className="text-brand-yellow">VIA</span></span>
         </div>
 
         <div className="flex-1 flex items-center justify-center px-6 py-10">

@@ -9,7 +9,7 @@ const DEFAULTS = {
   // Manual-QR payment config (used while the Razorpay gateway is hidden).
   paymentMode: "qr",       // "qr" = manual UPI QR flow, "razorpay" = gateway
   paymentQrUrl: "",        // Cloudinary URL of the admin-uploaded UPI QR image
-  paymentUpiId: "",        // e.g. kaamsetu@upi — shown alongside the QR
+  paymentUpiId: "",        // e.g. karvia@upi — shown alongside the QR
   paymentNote: "",         // instructions shown to the payer
   smsTemplates: {
     jobAlert: "नई job आई है {category} में। Karvia app खोलें।",

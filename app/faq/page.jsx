@@ -33,7 +33,7 @@ const FAQS = [
   },
   {
     q: { hi: "शिकायत कहाँ करें?", en: "Where to file a complaint?" },
-    a: { hi: "support@kaamsetu.com या +91 9876543210 पर संपर्क करें।", en: "Contact support@kaamsetu.com or +91 9876543210." },
+    a: { hi: "support@karvia.com या +91 9876543210 पर संपर्क करें।", en: "Contact support@karvia.com or +91 9876543210." },
   },
 ];
 
@@ -98,7 +98,7 @@ export default function FAQPage() {
           </p>
           <p className="text-white/60 text-sm font-hindi">
             {t({ hi: "हमसे संपर्क करें", en: "Contact us" })}
-            {" — support@kaamsetu.com"}
+            {" — support@karvia.com"}
           </p>
         </div>
       </main>

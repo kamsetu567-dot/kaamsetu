@@ -107,7 +107,7 @@ export default function DisclaimerPage() {
 
         <p className="text-center text-gray-500 text-sm pb-4">
           For concerns or disputes, contact{" "}
-          <span className="text-blue-600 font-semibold">support@kaamsetu.in</span>
+          <span className="text-blue-600 font-semibold">support@karvia.in</span>
         </p>
 
       </main>

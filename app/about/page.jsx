@@ -118,7 +118,7 @@ export default function AboutPage() {
 
         <p className="text-center text-gray-500 text-sm">
           {t({ hi: 'सवाल हैं? हमें यहाँ संपर्क करें', en: 'Questions? Contact us at' })}{" "}
-          <span className="text-blue-600 font-semibold">support@kaamsetu.in</span>
+          <span className="text-blue-600 font-semibold">support@karvia.in</span>
         </p>
 
       </main>
