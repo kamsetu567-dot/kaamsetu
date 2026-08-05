@@ -6,24 +6,44 @@ import Footer from "@/components/Footer";
 import EmptyState from "@/components/EmptyState";
 import AdSlot from "@/components/AdSlot";
 import { getCategoryBySlug, CATEGORIES } from "@/lib/data/categories";
+import { connectDB } from "@/lib/db/mongoose";
+import CustomCategory from "@/lib/models/CustomCategory";
 
 export function generateStaticParams() {
   return CATEGORIES.map(c => ({ slug: c.slug }));
 }
 
+// Built-in first; else an admin-approved custom category (shaped the same, with
+// no subcategories). Custom slugs aren't in generateStaticParams, so they
+// render dynamically on request — exactly what a just-approved category needs.
+async function resolveCategory(slug) {
+  const builtin = getCategoryBySlug(slug);
+  if (builtin) return builtin;
+  try {
+    await connectDB();
+    const c = await CustomCategory.findOne({ slug, status: "approved" }).lean();
+    if (!c) return null;
+    return { slug: c.slug, nameEn: c.nameEn, nameHi: c.nameHi || c.nameEn, subcategories: [] };
+  } catch {
+    return null;
+  }
+}
+
 export async function generateMetadata({ params }) {
   const { slug } = await params;
-  const cat = getCategoryBySlug(slug);
+  const cat = await resolveCategory(slug);
   if (!cat) return { title: "Category Not Found" };
   return {
     title: `${cat.nameEn} — ${cat.nameHi} | Karvia`,
-    description: `Find ${cat.nameEn} workers: ${cat.subcategories.slice(0, 4).join(", ")}`,
+    description: cat.subcategories.length
+      ? `Find ${cat.nameEn} workers: ${cat.subcategories.slice(0, 4).join(", ")}`
+      : `Find ${cat.nameEn} workers on Karvia`,
   };
 }
 
 export default async function CategoryPage({ params }) {
   const { slug } = await params;
-  const category = getCategoryBySlug(slug);
+  const category = await resolveCategory(slug);
   if (!category) notFound();
 
   return (
@@ -49,7 +69,9 @@ export default async function CategoryPage({ params }) {
               {category.nameHi}
             </h1>
             <p className="text-xl font-semibold text-white/90">{category.nameEn}</p>
-            <p className="text-white/70 mt-2 text-sm">{category.subcategories.length} services available</p>
+            {category.subcategories.length > 0 && (
+              <p className="text-white/70 mt-2 text-sm">{category.subcategories.length} services available</p>
+            )}
           </div>
         </div>
 
@@ -57,7 +79,25 @@ export default async function CategoryPage({ params }) {
 
         <AdSlot variant="banner-wide" category={category.slug} limit={3} className="mb-6" />
 
-        {/* Subcategories */}
+        {/* Subcategories — custom categories have none; send those straight to
+            the worker list for this category instead of an empty grid. */}
+        {category.subcategories.length === 0 ? (
+          <div className="mb-8">
+            <Link
+              href={`/workers?category=${slug}`}
+              className="flex items-center justify-between bg-white border-2 border-border-light rounded-2xl px-5 py-4 hover:border-primary-orange hover:shadow-md transition-all group"
+              aria-label={`Browse ${category.nameEn} workers`}
+            >
+              <span
+                className="font-semibold text-text-primary group-hover:text-primary-orange transition-colors"
+                style={{ fontFamily: "var(--font-noto-devanagari), sans-serif" }}
+              >
+                {category.nameHi} workers देखें / Browse {category.nameEn} workers
+              </span>
+              <ArrowRight size={18} className="text-text-secondary group-hover:text-primary-orange transition-colors flex-shrink-0" />
+            </Link>
+          </div>
+        ) : (
         <div className="mb-8">
           <h2
             className="text-xl font-black text-text-primary mb-4"
@@ -84,6 +124,7 @@ export default async function CategoryPage({ params }) {
             ))}
           </div>
         </div>
+        )}
 
         {/* Quick Request CTA */}
         <div className="bg-primary-orange rounded-3xl p-8 text-white text-center">

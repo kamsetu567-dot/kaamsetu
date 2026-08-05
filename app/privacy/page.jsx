@@ -119,7 +119,7 @@ export default function PrivacyPage() {
           </ul>
           <p className="mt-2">
             To exercise these rights, contact us at{" "}
-            <span className="text-blue-600 font-semibold">privacy@karvia.in</span>
+            <span className="text-blue-600 font-semibold">support@karvia.services</span>
           </p>
         </Section>
 

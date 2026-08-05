@@ -85,12 +85,12 @@ export default function ContactPage() {
               {
                 icon: Phone, color: "bg-blue-50 text-brand-navy",
                 label: { hi: "फोन", en: "Phone" },
-                value: "+91 9876543210",
+                value: "+91 9690993056",
               },
               {
                 icon: Mail, color: "bg-yellow-50 text-yellow-700",
                 label: { hi: "ईमेल", en: "Email" },
-                value: "support@karvia.com",
+                value: "support@karvia.services",
               },
               {
                 icon: Clock, color: "bg-green-50 text-green-700",

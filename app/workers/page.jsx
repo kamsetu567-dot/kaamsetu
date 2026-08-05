@@ -94,9 +94,15 @@ function WorkerList() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [role, setRole] = useState(null);
-  const [clientCoords, setClientCoords] = useState(null); // { lat, lng } | null
+  const [clientCoords, setClientCoords] = useState(null); // { lat, lng } | null (saved profile GPS)
   const [clientCity, setClientCity] = useState(""); // saved city for fallback when no GPS
   const [coordsResolved, setCoordsResolved] = useState(false); // true once we know whether client has GPS
+  // LIVE browser location — where the user is right now, not what their profile
+  // says. Asked for once, only after they express location intent by picking a
+  // distance chip. Live beats saved: the saved point may be home while they're
+  // standing at the job site.
+  const [liveCoords, setLiveCoords] = useState(null); // { lat, lng } | null
+  const [liveGeoTried, setLiveGeoTried] = useState(false);
 
   // Sync filters FROM the URL params (e.g. from /categories/[slug] tiles).
   // Must re-run whenever the query string changes — /workers is a client page,
@@ -153,6 +159,22 @@ function WorkerList() {
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Ask the browser for LIVE location the first time a distance chip is picked.
+  // One attempt per page visit; denial falls back to saved coords / city.
+  useEffect(() => {
+    if (filters.distance <= 0 || liveGeoTried) return;
+    if (typeof navigator === "undefined" || !navigator.geolocation) { setLiveGeoTried(true); return; }
+    setLiveGeoTried(true);
+    navigator.geolocation.getCurrentPosition(
+      pos => setLiveCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      () => {}, // denied/unavailable → saved-coords/city fallback below
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+    );
+  }, [filters.distance, liveGeoTried]);
+
+  // Live browser GPS wins over the saved profile point.
+  const activeCoords = liveCoords || clientCoords;
+
   useEffect(() => {
     setLoading(true);
     const augmented = {
@@ -160,20 +182,20 @@ function WorkerList() {
       // Prefer the client's saved city over any user-typed filter city, so the
       // server's city fallback always has something to anchor on when GPS is missing.
       city: filters.city || clientCity || "",
-      ...(clientCoords ? { lat: clientCoords.lat, lng: clientCoords.lng } : {}),
+      ...(activeCoords ? { lat: activeCoords.lat, lng: activeCoords.lng } : {}),
     };
     getWorkers(augmented)
       .then(setWorkers)
       .finally(() => setLoading(false));
-  }, [filters, clientCoords, clientCity]);
+  }, [filters, activeCoords, clientCity]);
 
   // Banner: distance filter is active but neither GPS nor city is available
   // to anchor it — workers list will not be distance-filtered at all.
   const distanceFilterIgnored =
-    coordsResolved && role === "client" && !clientCoords && !clientCity && filters.distance > 0;
+    coordsResolved && role === "client" && !activeCoords && !clientCity && filters.distance > 0;
   // Softer banner: GPS missing but city fallback active — accuracy nudge.
   const usingCityFallback =
-    coordsResolved && role === "client" && !clientCoords && clientCity && filters.distance > 0;
+    coordsResolved && role === "client" && !activeCoords && clientCity && filters.distance > 0;
 
   return (
     <>

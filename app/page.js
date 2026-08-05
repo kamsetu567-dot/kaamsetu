@@ -45,6 +45,7 @@ const CATEGORY_EMOJI = {
   Laptop: '💻', Presentation: '📊', Scale: '⚖️', Building: '🏢', UtensilsCrossed: '🍽️',
   Music: '🎵', Megaphone: '📣', SprayCan: '🧴', Siren: '🚨', Wallet: '💰', Plane: '✈️',
   KeyRound: '🔑', FileText: '📄', Recycle: '♻️', Shirt: '🧺', Baby: '👶', Truck: '🚛',
+  HardHat: '👷',
 };
 
 // The 12 original categories ship a PNG icon in /public/icons. New categories
@@ -230,6 +231,7 @@ export default function HomePage() {
   // freshly-added trades (e.g. "Road Accident and Rescue") become searchable
   // from the homepage hero without a code change.
   const [extraSuggestions, setExtraSuggestions] = useState([]);
+  const [customTiles, setCustomTiles] = useState([]);
   // Admin-configurable worker subscription price. The "Become a Worker" CTA
   // showed a hardcoded ₹199 that didn't follow the admin setting; read it from
   // the same public endpoint the subscription page uses so they stay in sync.
@@ -251,9 +253,20 @@ export default function HomePage() {
     let cancelled = false;
     getAllCategoriesForSearch({ force: true }).then(list => {
       if (cancelled) return;
-      setExtraSuggestions(list.filter(c => c.custom).map(c => ({
+      const customs = list.filter(c => c.custom);
+      setExtraSuggestions(customs.map(c => ({
         label: `${c.nameHi} / ${c.nameEn}`,
         query: c.nameEn,
+      })));
+      // Admin-added categories get a homepage tile too — otherwise "add
+      // category in admin" looks like it did nothing on the main site.
+      setCustomTiles(customs.map(c => ({
+        icon: null,
+        emoji: '🏷️',
+        hi: c.nameHi,
+        en: c.nameEn,
+        bg: 'bg-gray-50',
+        href: `/categories/${c.slug}`,
       })));
     });
     return () => { cancelled = true; };
@@ -383,6 +396,10 @@ export default function HomePage() {
                   {CATEGORIES.map(c => (
                     <option key={c.slug} value={c.slug}>{lang === 'hi' ? c.nameHi : c.nameEn}</option>
                   ))}
+                  {/* Admin-added categories appear here too */}
+                  {customTiles.map(tc => (
+                    <option key={tc.href} value={tc.href.replace('/categories/', '')}>{lang === 'hi' ? tc.hi : tc.en}</option>
+                  ))}
                 </select>
 
                 <div className="relative flex-1" ref={suggestionsRef}>
@@ -501,7 +518,10 @@ export default function HomePage() {
             <p className="text-gray-500 text-sm font-hindi">{t({ hi: 'अपनी ज़रूरत की सेवा चुनें', en: 'Pick the service you need' })}</p>
           </div>
           <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
-            {(showAllTiles ? SERVICE_TILES : SERVICE_TILES.slice(0, 12)).map(tile => (
+            {(() => {
+              const allTiles = [...SERVICE_TILES, ...customTiles];
+              return (showAllTiles ? allTiles : allTiles.slice(0, 12));
+            })().map(tile => (
               <Link
                 key={tile.en}
                 href={tile.href}
@@ -518,7 +538,7 @@ export default function HomePage() {
               </Link>
             ))}
           </div>
-          {SERVICE_TILES.length > 12 && (
+          {SERVICE_TILES.length + customTiles.length > 12 && (
             <div className="text-center mt-6">
               <button
                 onClick={() => setShowAllTiles(v => !v)}
@@ -526,7 +546,7 @@ export default function HomePage() {
               >
                 {showAllTiles
                   ? t({ hi: 'कम दिखाएं', en: 'Show Less' })
-                  : t({ hi: `और देखें (${SERVICE_TILES.length - 12}+)`, en: `Show More (${SERVICE_TILES.length - 12}+)` })}
+                  : t({ hi: `और देखें (${SERVICE_TILES.length + customTiles.length - 12}+)`, en: `Show More (${SERVICE_TILES.length + customTiles.length - 12}+)` })}
               </button>
             </div>
           )}

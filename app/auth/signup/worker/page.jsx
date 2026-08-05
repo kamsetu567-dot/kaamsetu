@@ -19,6 +19,7 @@ const ICONS = {
   Presentation: '📊', Scale: '⚖️', Building: '🏢', UtensilsCrossed: '🍽️', Music: '🎵',
   Megaphone: '📣', SprayCan: '🧴', Siren: '🚨', Wallet: '💰', Plane: '✈️',
   KeyRound: '🔑', FileText: '📄', Recycle: '♻️', Shirt: '🧺', Baby: '👶', Truck: '🚛',
+  HardHat: '👷',
 };
 
 export default function WorkerSignupPage() {

@@ -42,17 +42,23 @@ export async function GET(request) {
       ];
     }
 
+    // Whether the caller supplied usable GPS coordinates at all. The radius
+    // chip (`distance`) only controls the CUTOFF — with GPS but no chip we
+    // still $geoNear (unbounded) so every card gets its real km figure and
+    // "sort by distance" actually works.
+    const hasGeo = Number.isFinite(lat) && Number.isFinite(lng);
+
     const sortMap = {
       rating: { boosted: -1, rating: -1 },
       newest: { createdAt: -1 },
-      distance: { rating: -1 },
+      // Real nearest-first when GPS gave us distanceMeters; otherwise there is
+      // nothing to sort by, so fall back to rating. (This used to be
+      // `{ rating: -1 }` unconditionally — the Distance sort option silently
+      // reordered $geoNear's nearest-first output back to rating order.)
+      distance: hasGeo ? { distanceMeters: 1 } : { rating: -1 },
     };
     const sort = sortMap[sortBy] || sortMap.rating;
 
-    // If client passed real GPS + a distance filter, use $geoNear so we
-    // get accurate radius matching AND a per-worker distance back. Workers
-    // without coordinates are naturally excluded by $geoNear.
-    const hasGeo = Number.isFinite(lat) && Number.isFinite(lng) && distance > 0;
     // If the client only has a city (no GPS) and a distance chip is selected,
     // fall back to a city-name match so "nearby" still means *something*. This
     // also catches workers who typed their address rather than tapping GPS.
@@ -79,7 +85,9 @@ export async function GET(request) {
           $geoNear: {
             near: { type: "Point", coordinates: [lng, lat] },
             distanceField: "distanceMeters",
-            maxDistance: distance * 1000,
+            // Radius cutoff only when a distance chip is active; otherwise
+            // unbounded — we just want each worker's km for display/sort.
+            ...(distance > 0 ? { maxDistance: distance * 1000 } : {}),
             spherical: true,
             query: filter,
           },
@@ -92,8 +100,12 @@ export async function GET(request) {
       // $geoNear silently excludes workers without coordinates. Many workers
       // typed their address (no GPS) — they'd be invisible. Bring them back in
       // via a city-name match so the radius chip doesn't hide real workers.
-      if (city) {
+      // (Guard the limit: .limit(0) means UNLIMITED in Mongo, not zero.)
+      if (city && workers.length < 50) {
         const seen = new Set(workers.map(w => String(w._id)));
+        // The geo path may sort by distanceMeters, which city-only workers
+        // don't have — sort those by rating instead.
+        const citySort = sortBy === "distance" ? sortMap.rating : sort;
         const cityOnly = await Worker.find({
           ...filter,
           _id: { $nin: workers.map(w => w._id) },
@@ -104,7 +116,7 @@ export async function GET(request) {
             { "location.coordinates.coordinates": { $exists: false } },
           ],
         })
-          .sort(sort)
+          .sort(citySort)
           .limit(50 - workers.length)
           .select("-__v")
           .lean();

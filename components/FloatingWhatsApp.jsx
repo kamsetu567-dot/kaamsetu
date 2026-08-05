@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 
-const SUPPORT_NUMBER = process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP || "918410270299";
+const SUPPORT_NUMBER = process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP || "919690993056";
 // Default community link works out of the box; admin can override via env if
 // they create a different community. Hardcoded fallback used to be "" which
 // hid the icon entirely until the env var was set.
