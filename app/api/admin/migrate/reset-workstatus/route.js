@@ -19,7 +19,7 @@ function safeCompare(a, b) {
 // them deliberately toggled busy under the new meaning.
 //
 // Call:
-//   curl -X POST https://www.kaamsetu.live/api/admin/migrate/reset-workstatus \
+//   curl -X POST https://karvia.services/api/admin/migrate/reset-workstatus \
 //        -H "Content-Type: application/json" \
 //        -d '{"adminSecret":"<ADMIN_SECRET_PASSWORD>"}'
 export async function POST(request) {

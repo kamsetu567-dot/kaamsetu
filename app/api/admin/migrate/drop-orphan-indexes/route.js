@@ -22,7 +22,7 @@ function safeCompare(a, b) {
 // Auth (either):
 //   - Admin JWT in `Authorization: Bearer <token>` header. Best when called
 //     from the admin DevTools console on the SAME ORIGIN as the admin app
-//     (i.e. `www.kaamsetu.live`). Note: browsers strip the Authorization
+//     (i.e. `karvia.services`). Note: browsers strip the Authorization
 //     header across origin redirects, so calling from the apex domain
 //     (without `www`) will fail with 401.
 //   - `adminSecret` in the request body matched against ADMIN_SECRET_PASSWORD
@@ -33,7 +33,7 @@ function safeCompare(a, b) {
 //   Authorization: Bearer <admin-jwt>
 //
 // Call (body secret):
-//   curl -X POST https://www.kaamsetu.live/api/admin/migrate/drop-orphan-indexes \
+//   curl -X POST https://karvia.services/api/admin/migrate/drop-orphan-indexes \
 //        -H "Content-Type: application/json" \
 //        -d '{"adminSecret":"<ADMIN_SECRET_PASSWORD>"}'
 export async function POST(request) {

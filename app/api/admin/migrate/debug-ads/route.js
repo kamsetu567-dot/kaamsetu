@@ -19,7 +19,7 @@ function safeCompare(a, b) {
 // called from any terminal.
 //
 // Call:
-//   curl -X POST https://www.kaamsetu.live/api/admin/migrate/debug-ads \
+//   curl -X POST https://karvia.services/api/admin/migrate/debug-ads \
 //        -H "Content-Type: application/json" \
 //        -d '{"adminSecret":"<ADMIN_SECRET_PASSWORD>"}'
 export async function POST(request) {

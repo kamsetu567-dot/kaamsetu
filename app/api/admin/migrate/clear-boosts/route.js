@@ -21,7 +21,7 @@ function safeCompare(a, b) {
 //   - `adminSecret` in body matching ADMIN_SECRET_PASSWORD env (use from curl).
 //
 // Call:
-//   curl -X POST https://www.kaamsetu.live/api/admin/migrate/clear-boosts \
+//   curl -X POST https://karvia.services/api/admin/migrate/clear-boosts \
 //        -H "Content-Type: application/json" \
 //        -d '{"adminSecret":"<ADMIN_SECRET_PASSWORD>"}'
 export async function POST(request) {
